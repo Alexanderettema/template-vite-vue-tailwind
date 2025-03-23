@@ -1,12 +1,12 @@
 <template>
-  <div class="flex flex-col items-center justify-center rounded-xl shadow-lg p-6 w-full md:w-2/3 border border-gray-300 bg-yellow-50">
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">GeminiChat</h1>
+  <div class="flex flex-col items-center justify-center rounded-xl shadow-lg p-6 w-full md:w-2/3 border-4 border-gray-400 bg-yellow-50">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4 retro-font">GeminiChat</h1>
     <div class="flex w-full mb-4">
-      <input v-model="prompt" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your prompt">
-      <button @click="sendPrompt" class="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Send</button>
+      <input v-model="prompt" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-yellow-100" placeholder="Enter your prompt">
+      <button @click="sendPrompt" class="ml-2 bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow focus:outline-none focus:shadow-outline">Send</button>
     </div>
     <div class="overflow-auto" style="max-height: 60vh;">
-      <div v-for="(message, index) in messages.slice().reverse()" :key="index" class="bg-white shadow-md rounded-md p-4 mb-2 w-full">
+      <div v-for="(message, index) in messages.slice().reverse()" :key="index" class="bg-yellow-100 shadow-md rounded-md p-4 mb-2 w-full border border-gray-300">
         <p class="text-gray-600 font-bold">Prompt:</p>
         <p class="text-gray-800">{{ message.prompt }}</p>
         <p class="text-gray-600 font-bold mt-2">Response:</p>

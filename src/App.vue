@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center items-center h-screen bg-gradient-to-br from-pink-500 to-purple-500">
+  <div class="flex justify-center items-center h-screen bg-gray-100">
     <GeminiChat />
   </div>
 </template>
