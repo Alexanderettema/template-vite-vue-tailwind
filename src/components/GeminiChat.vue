@@ -1,16 +1,94 @@
 <template>
-  <div class="flex flex-col items-center justify-center rounded-xl shadow-lg p-6 w-full md:w-2/3 border-4 border-gray-400 bg-yellow-50">
-    <h1 class="text-3xl font-bold text-gray-800 mb-4 retro-font">GeminiChat</h1>
-    <div class="flex w-full mb-4">
-      <input v-model="prompt" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-yellow-100" placeholder="Enter your prompt">
-      <button @click="sendPrompt" class="ml-2 bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow focus:outline-none focus:shadow-outline">Send</button>
+  <div class="flex flex-col items-center justify-center p-4 w-full max-w-4xl mx-auto">
+    <!-- Header - Inspired by the EQUALIZER element -->
+    <div class="w-full bg-yellow-500 border-4 border-black rounded-none shadow-lg mb-6">
+      <div class="flex justify-between items-center px-4 py-2">
+        <span class="font-bold text-2xl text-black">GEMINI CHAT</span>
+        <div class="flex">
+          <div class="h-6 w-6 bg-red-500 rounded-full border-2 border-black flex items-center justify-center text-black font-bold">×</div>
+        </div>
+      </div>
     </div>
-    <div class="overflow-auto" style="max-height: 60vh;">
-      <div v-for="(message, index) in messages.slice().reverse()" :key="index" class="bg-yellow-100 shadow-md rounded-md p-4 mb-2 w-full border border-gray-300">
-        <p class="text-gray-600 font-bold">Prompt:</p>
-        <p class="text-gray-800">{{ message.prompt }}</p>
-        <p class="text-gray-600 font-bold mt-2">Response:</p>
-        <p class="text-gray-800">{{ message.response }}</p>
+
+    <!-- Input area - Inspired by the PASSWORD element -->
+    <div class="w-full bg-red-400 border-4 border-black rounded-none shadow-lg mb-6">
+      <div class="p-4">
+        <div class="mb-2 font-bold text-black">PROMPT:</div>
+        <input 
+          v-model="prompt"
+          class="w-full bg-yellow-100 border-2 border-black p-2 mb-3 shadow-inner focus:outline-none"
+          placeholder="Enter your prompt"
+        />
+        
+        <div class="flex justify-between">
+          <button 
+            @click="prompt = ''"
+            class="bg-blue-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-blue-500"
+          >
+            RESET
+          </button>
+          <button 
+            @click="sendPrompt"
+            class="bg-yellow-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-yellow-500"
+          >
+            SEND
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages area - Inspired by the SYSTEM and file tabs elements -->
+    <div class="w-full bg-blue-300 border-4 border-black rounded-none shadow-lg mb-6">
+      <div class="flex justify-between items-center px-4 py-2 bg-blue-400 border-b-2 border-black">
+        <span class="font-bold text-black">SYSTEM</span>
+        <div class="flex">
+          <span class="h-6 w-6 mx-1 flex items-center justify-center">○</span>
+          <span class="h-6 w-6 mx-1 flex items-center justify-center">_</span>
+          <span class="h-6 w-6 mx-1 flex items-center justify-center">×</span>
+        </div>
+      </div>
+      
+      <div class="p-4 overflow-auto" style="max-height: 60vh;">
+        <div v-for="(message, index) in messages.slice().reverse()" :key="index" class="bg-yellow-100 border-2 border-black mb-4 shadow">
+          <div class="bg-gray-200 p-2 border-b-2 border-black">
+            <span class="font-bold">PROMPT #{{ messages.length - index }}</span>
+          </div>
+          <div class="p-3">
+            <p class="mb-2">{{ message.prompt }}</p>
+            <div class="bg-gray-100 p-2 border-2 border-black">
+              <p>{{ message.response }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex justify-center p-2 border-t-2 border-black">
+        <button class="bg-gray-300 px-6 py-1 border-2 border-black font-bold">OK</button>
+      </div>
+    </div>
+    
+    <!-- Audio player inspired element -->
+    <div class="w-full bg-yellow-500 border-4 border-black rounded-none shadow-lg">
+      <div class="p-2 flex justify-between items-center">
+        <div class="bg-red-500 h-6 w-6 rounded-full border-2 border-black"></div>
+        <div class="bg-yellow-300 h-6 w-6 rounded-full border-2 border-black"></div>
+        <div class="bg-blue-400 h-6 w-6 rounded-full border-2 border-black"></div>
+      </div>
+      <div class="p-3 bg-yellow-100 border-t-2 border-black">
+        <div class="w-full h-6 bg-yellow-200 border-2 border-black mb-3 flex items-center justify-center">
+          <!-- Audio visualization -->
+          <div class="w-4/5 h-2 bg-yellow-500 relative">
+            <div v-for="n in 20" :key="n" 
+              class="absolute bottom-0 bg-yellow-600" 
+              :style="{ 
+                height: `${Math.random() * 14 + 4}px`, 
+                width: '3px', 
+                left: `${(n-1) * 5}%` 
+              }"
+            ></div>
+          </div>
+        </div>
+        <button class="w-full bg-blue-300 border-2 border-black py-1 font-bold">TURN ON</button>
       </div>
     </div>
   </div>
@@ -64,3 +142,13 @@ export default {
   },
 };
 </script>
+
+<style>
+/* Add any additional CSS here */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* Optional: Add a global retro font */
+.font-retro {
+  font-family: 'VT323', monospace;
+}
+</style>
