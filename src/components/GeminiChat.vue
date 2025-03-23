@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center justify-center p-4 w-full max-w-4xl mx-auto">
     <!-- Header - Inspired by the EQUALIZER element -->
-    <div class="w-full bg-yellow-500 border-4 border-black rounded-none shadow-lg mb-6">
+    <div class="max-w-full bg-yellow-500 border-4 border-black rounded-none shadow-lg mb-6">
       <div class="flex justify-between items-center px-4 py-2">
         <span class="font-bold text-2xl text-black">GEMINI CHAT</span>
         <div class="flex">
@@ -11,7 +11,7 @@
     </div>
 
     <!-- Input area - Inspired by the PASSWORD element -->
-    <div class="w-full bg-red-400 border-4 border-black rounded-none shadow-lg mb-6">
+    <div class="max-w-full bg-red-400 border-4 border-black rounded-none shadow-lg mb-6">
       <div class="p-4">
         <div class="mb-2 font-bold text-black">PROMPT:</div>
         <input 
@@ -34,28 +34,41 @@
             SEND
           </button>
         </div>
-        <div class="flex flex-col">
+        <div class="flex mt-4">
           <div
             @click="examplePrompt('Dealing with Anxiety')"
-            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-green-500 mb-2 cursor-pointer"
+            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:bg-green-500 mb-2 mr-2 cursor-pointer flex items-center justify-center flex-col w-1/3"
           >
+            <BsIcon name="emoji-frown-fill" class="mb-1" />
             Dealing with Anxiety
           </div>
           <div
             @click="examplePrompt('Overcoming Procrastination')"
-            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-green-500 mb-2 cursor-pointer"
+            class="bg-yellow-400 text-black font-bold py-1 px-4 border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:bg-yellow-500 mb-2 mr-2 cursor-pointer flex items-center justify-center flex-col w-1/3"
           >
+            <BsIcon name="emoji-neutral-fill" class="mb-1" />
             Overcoming Procrastination
           </div>
           <div
             @click="examplePrompt('Improving Relationships')"
-            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-green-500 cursor-pointer"
+            class="bg-blue-400 text-black font-bold py-1 px-4 border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:bg-blue-500 mb-2 cursor-pointer flex items-center justify-center flex-col w-1/3"
           >
+            <BsIcon name="emoji-smile-fill" class="mb-1" />
             Improving Relationships
           </div>
-        </div>
-      </div>
-    </div>
+                   </div>
+                   <div v-if="selectedTopic" class="flex mt-4">
+                     <div
+                       v-for="subtopic in subtopics[selectedTopic]"
+                       :key="subtopic"
+                       @click="examplePrompt(subtopic)"
+                       class="bg-purple-400 text-black font-bold py-1 px-4 border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:bg-purple-500 mb-2 mr-2 cursor-pointer flex items-center justify-center flex-col w-1/3"
+                     >
+                       {{ subtopic }}
+                     </div>
+                   </div>
+                 </div>
+               </div>
 
     <!-- Messages area - Inspired by the SYSTEM and file tabs elements -->
     <div class="w-full bg-blue-300 border-4 border-black rounded-none shadow-lg mb-6">
@@ -68,7 +81,7 @@
         </div>
       </div>
       
-      <div class="p-4 overflow-auto" style="max-height: 60vh;">
+      <div class="p-4 overflow-auto overflow-y-auto">
         <div v-for="(message, index) in messages.slice().reverse()" :key="index" class="bg-yellow-100 border-2 border-black mb-4 shadow">
           <div class="bg-gray-200 p-2 border-b-2 border-black">
             <span class="font-bold">PROMPT #{{ messages.length - index }}</span>
@@ -127,9 +140,27 @@ export default {
   data() {
     return {
       prompt: "",
-      messages: [],
-      systemPrompt: "You are an ACT (Acceptance and Commitment Therapy) therapist specialist. Respond to the user's prompts with empathy, acceptance, and guidance, helping them to identify their values, accept their thoughts and feelings, and commit to actions that align with their values.",
-    };
+            messages: [],
+            systemPrompt: "You are an ACT (Acceptance and Commitment Therapy) therapist specialist. Answer in 2-3 sentences. Only elaborate when it is really necessary. Respond to the user's prompts with empathy, acceptance, and guidance, helping them to identify their values, accept their thoughts and feelings, and commit to actions that align with their values.",
+            subtopics: {
+              "Dealing with Anxiety": [
+                "Specific phobias",
+                "Social anxiety",
+                "Panic disorder",
+              ],
+              "Overcoming Procrastination": [
+                "Identifying triggers",
+                "Breaking down tasks",
+                "Managing perfectionism",
+              ],
+              "Improving Relationships": [
+                "Active listening",
+                "Expressing needs",
+                "Setting boundaries",
+              ],
+            },
+            selectedTopic: null,
+          };
   },
   methods: {
     async sendPrompt() {
@@ -173,21 +204,15 @@ export default {
       this.messages = [];
     },
     examplePrompt(topic) {
-      switch (topic) {
-        case "Dealing with Anxiety":
-          this.prompt = "I'm feeling anxious about an upcoming presentation. How can ACT help me manage my anxiety?";
-          break;
-        case "Overcoming Procrastination":
-          this.prompt = "I keep procrastinating on important tasks. What ACT techniques can I use to overcome procrastination?";
-          break;
-        case "Improving Relationships":
-          this.prompt = "I'm having trouble communicating effectively in my relationships. How can ACT help me improve my communication skills and build stronger relationships?";
-          break;
-        default:
-          this.prompt = "";
-      }
-      this.sendPrompt();
-    },
+          if (this.subtopics[topic]) {
+            this.selectedTopic = topic;
+            this.prompt = "";
+          } else {
+            this.selectedTopic = null;
+            this.prompt = topic;
+            this.sendPrompt();
+          }
+        },
   },
 };
 </script>
