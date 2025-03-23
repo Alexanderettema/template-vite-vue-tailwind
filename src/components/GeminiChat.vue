@@ -21,8 +21,8 @@
         />
         
         <div class="flex justify-between">
-          <button 
-            @click="prompt = ''"
+          <button
+            @click="reset"
             class="bg-blue-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-blue-500"
           >
             RESET
@@ -108,6 +108,7 @@ export default {
     return {
       prompt: "",
       messages: [],
+      systemPrompt: "You are an ACT (Acceptance and Commitment Therapy) therapist specialist. Respond to the user's prompts with empathy, acceptance, and guidance, helping them to identify their values, accept their thoughts and feelings, and commit to actions that align with their values.",
     };
   },
   methods: {
@@ -119,7 +120,15 @@ export default {
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
         // Generate content
-        const result = await model.generateContent(this.prompt);
+        const chat = model.startChat({
+          history: [],
+          generationConfig: {
+            temperature: 0.7,
+          },
+          systemPrompt: this.systemPrompt,
+        });
+
+        const result = await chat.sendMessage(this.prompt);
 
         // Get the response text
         const responseText = result.response.text();
@@ -138,6 +147,10 @@ export default {
         });
         this.prompt = "";
       }
+    },
+    reset() {
+      this.prompt = "";
+      this.messages = [];
     },
   },
 };
