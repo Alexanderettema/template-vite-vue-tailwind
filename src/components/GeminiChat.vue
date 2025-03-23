@@ -1,13 +1,12 @@
 <template>
-  <div class="gemini-chat">
-    <h1>GeminiChat</h1>
-    <div class="chat-input">
-      <input type="text" v-model="prompt" placeholder="Enter your prompt">
-      <button @click="sendPrompt">Send</button>
+  <div class="flex flex-col items-center justify-center bg-gradient-to-br from-yellow-200 to-pink-200 rounded-xl shadow-lg p-6 w-96">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">GeminiChat</h1>
+    <div class="flex w-full mb-4">
+      <input v-model="prompt" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your prompt">
+      <button @click="sendPrompt" class="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Send</button>
     </div>
-    <div v-if="response">
-      <h2>Response:</h2>
-      <p>{{ response }}</p>
+    <div v-if="response" class="bg-white shadow-md rounded-md p-4">
+      <p class="text-gray-800">{{ response }}</p>
     </div>
   </div>
 </template>
@@ -49,31 +48,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.gemini-chat {
-  width: 500px;
-  margin: 0 auto;
-  border: 1px solid #ccc;
-  padding: 20px;
-}
-
-.chat-input {
-  margin-top: 10px;
-}
-
-.chat-input input {
-  width: 70%;
-  padding: 10px;
-  border: 1px solid #ccc;
-}
-
-.chat-input button {
-  width: 25%;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-</style>
