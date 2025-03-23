@@ -34,6 +34,26 @@
             SEND
           </button>
         </div>
+        <div class="flex flex-col">
+          <div
+            @click="examplePrompt('Dealing with Anxiety')"
+            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-green-500 mb-2 cursor-pointer"
+          >
+            Dealing with Anxiety
+          </div>
+          <div
+            @click="examplePrompt('Overcoming Procrastination')"
+            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-green-500 mb-2 cursor-pointer"
+          >
+            Overcoming Procrastination
+          </div>
+          <div
+            @click="examplePrompt('Improving Relationships')"
+            class="bg-green-400 text-black font-bold py-1 px-4 border-2 border-black shadow hover:bg-green-500 cursor-pointer"
+          >
+            Improving Relationships
+          </div>
+        </div>
       </div>
     </div>
 
@@ -128,7 +148,7 @@ export default {
           systemPrompt: this.systemPrompt,
         });
 
-        const result = await chat.sendMessage(this.prompt);
+        const result = await chat.sendMessage(this.systemPrompt + "\n" + this.prompt);
 
         // Get the response text
         const responseText = result.response.text();
@@ -151,6 +171,22 @@ export default {
     reset() {
       this.prompt = "";
       this.messages = [];
+    },
+    examplePrompt(topic) {
+      switch (topic) {
+        case "Dealing with Anxiety":
+          this.prompt = "I'm feeling anxious about an upcoming presentation. How can ACT help me manage my anxiety?";
+          break;
+        case "Overcoming Procrastination":
+          this.prompt = "I keep procrastinating on important tasks. What ACT techniques can I use to overcome procrastination?";
+          break;
+        case "Improving Relationships":
+          this.prompt = "I'm having trouble communicating effectively in my relationships. How can ACT help me improve my communication skills and build stronger relationships?";
+          break;
+        default:
+          this.prompt = "";
+      }
+      this.sendPrompt();
     },
   },
 };
