@@ -1,12 +1,17 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gradient-to-br from-yellow-200 to-pink-200 rounded-xl shadow-lg p-6 w-96">
+  <div class="flex flex-col items-center justify-center rounded-xl shadow-lg p-6 w-full md:w-2/3 border border-gray-300 bg-yellow-50">
     <h1 class="text-2xl font-bold text-gray-800 mb-4">GeminiChat</h1>
     <div class="flex w-full mb-4">
       <input v-model="prompt" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your prompt">
       <button @click="sendPrompt" class="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Send</button>
     </div>
-    <div v-if="response" class="bg-white shadow-md rounded-md p-4">
-      <p class="text-gray-800">{{ response }}</p>
+    <div class="overflow-auto" style="max-height: 60vh;">
+      <div v-for="(message, index) in messages.slice().reverse()" :key="index" class="bg-white shadow-md rounded-md p-4 mb-2 w-full">
+        <p class="text-gray-600 font-bold">Prompt:</p>
+        <p class="text-gray-800">{{ message.prompt }}</p>
+        <p class="text-gray-600 font-bold mt-2">Response:</p>
+        <p class="text-gray-800">{{ message.response }}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -24,25 +29,36 @@ export default {
   data() {
     return {
       prompt: "",
-      response: null,
+      messages: [],
     };
   },
   methods: {
     async sendPrompt() {
       if (!this.prompt.trim()) return;
-      
+
       try {
         // Get the model
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-        
+
         // Generate content
         const result = await model.generateContent(this.prompt);
-        
+
         // Get the response text
-        this.response = result.response.text();
+        const responseText = result.response.text();
+
+        this.messages.push({
+          prompt: this.prompt,
+          response: responseText,
+        });
+
+        this.prompt = "";
       } catch (error) {
         console.error("Error generating content:", error);
-        this.response = "Error generating response: " + error.message;
+        this.messages.push({
+          prompt: this.prompt,
+          response: "Error generating response: " + error.message,
+        });
+        this.prompt = "";
       }
     },
   },
