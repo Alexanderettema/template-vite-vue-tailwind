@@ -33,12 +33,13 @@ export default {
       if (!this.prompt.trim()) return;
       
       try {
-        // Generate content using the model
-        const result = await genAI.generateContent({
-          model: MODEL_NAME,
-          contents: [{ text: this.prompt }]
-        });
+        // Get the model
+        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         
+        // Generate content
+        const result = await model.generateContent(this.prompt);
+        
+        // Get the response text
         this.response = result.response.text();
       } catch (error) {
         console.error("Error generating content:", error);
