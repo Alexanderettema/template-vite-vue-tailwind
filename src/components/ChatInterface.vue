@@ -294,6 +294,17 @@ function continueSession() {
 function goToHome() {
   emit('go-to-home')
 }
+
+// Custom icon mapping for ACT themes
+const themeIcons = {
+  "Waarden": "heart",
+  "Defusie": "paperclip", 
+  "Mindfulness": "eye",
+  "Acceptatie": "hand",
+  "Zelf": "user",
+  "Toewijding": "compass",
+  "Compassie": "smile"
+}
 </script>
 
 <template>
@@ -304,53 +315,68 @@ function goToHome() {
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
       <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
-        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">
+        <div class="font-bold flex items-center" :class="[darkMode ? 'text-white' : '']">
+          <font-awesome-icon icon="list" class="mr-1" />
           {{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}
         </div>
         <div class="flex">
           <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
-                  :class="[darkMode ? 'border-gray-600 hover:bg-emerald-700 hover:text-white' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">_</button>
+                  :class="[darkMode ? 'border-gray-600 hover:bg-emerald-700 hover:text-white' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="minus" />
+          </button>
         </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin scrollbar-track-white"
            :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600']">
         <!-- Main topics -->
         <div v-if="!selectedMainTopic" class="flex flex-col gap-2.5">
-          <div class="font-bold border p-1 mb-2.5 text-center"
-               :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">Kies een ACT thema:</div>
+          <div class="font-bold border p-1 mb-2.5 text-center flex items-center justify-center"
+               :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">
+            <font-awesome-icon icon="star" class="mr-1" />
+            Kies een ACT thema:
+          </div>
           <button 
             v-for="(description, topic) in mainTopics" 
             :key="topic"
             @click="selectMainTopic(topic)"
             :disabled="isLoading"
-            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
             :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
+            <font-awesome-icon :icon="themeIcons[topic as keyof typeof themeIcons] || 'bookmark'" class="mr-2" />
             {{ topic }}
+            <span class="ml-auto text-xs opacity-70">
+              <font-awesome-icon icon="chevron-right" />
+            </span>
           </button>
         </div>
         
         <!-- Subtopics after main topic selection -->
         <div v-else class="flex flex-col gap-2.5">
-          <div class="font-bold border p-1 mb-2.5 text-center"
-               :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">Kies een oefening:</div>
+          <div class="font-bold border p-1 mb-2.5 text-center flex items-center justify-center"
+               :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">
+            <font-awesome-icon icon="star" class="mr-1" />
+            Kies een oefening:
+          </div>
           <button 
             v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
             :key="index"
             @click="sendSubTopic(subtopic)"
             :disabled="isLoading"
-            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
             :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
+            <font-awesome-icon icon="star" class="mr-2" />
             {{ subtopic }}
           </button>
           
           <button 
             @click="selectedMainTopic = ''" 
-            class="w-full mt-4 text-left p-2 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            class="w-full mt-4 text-left p-2 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
             :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
-            ← Terug naar thema's
+            <font-awesome-icon icon="chevron-left" class="mr-2" />
+            Terug naar thema's
           </button>
         </div>
       </div>
@@ -360,19 +386,25 @@ function goToHome() {
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
       <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
-        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">ACT therapie</div>
+        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">
+          <font-awesome-icon icon="message" class="mr-1" /> ACT therapie
+        </div>
         <div class="flex">
           <button @click="toggleDarkMode" class="w-auto h-5 px-1 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110"
                   :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']" 
                   :title="darkMode ? 'Licht modus' : 'Donker modus'">
-            {{ darkMode ? '☀️' : '🌙' }}
+            <font-awesome-icon :icon="darkMode ? 'sun' : 'moon'" />
           </button>
           <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110" 
                   @click="startOnboarding" title="Help"
-                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">?</button>
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="question-circle" />
+          </button>
           <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110" 
                   @click="resetSession" title="Reset gesprek"
-                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">×</button>
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="trash" />
+          </button>
         </div>
       </div>
       
@@ -381,42 +413,67 @@ function goToHome() {
            :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
         <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono text-center"
              :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
-          <h2 class="text-center pb-2.5 mt-0 border-b-2"
-              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">Einde Sessie</h2>
+          <h2 class="text-center pb-2.5 mt-0 border-b-2 flex items-center justify-center"
+              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <font-awesome-icon icon="check-circle" class="mr-2" />
+            Einde Sessie
+          </h2>
           
-          <div class="border border-dashed p-4 my-4 text-left rounded"
+          <!-- Enhanced end session summary -->
+          <div class="border border-dashed p-4 my-4 text-left rounded shadow-inner"
                :class="[darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-800']">
-            <p>{{ sessionSummary }}</p>
+            <div class="flex items-start mb-2">
+              <font-awesome-icon icon="file-alt" class="mr-2 mt-1" />
+              <div>
+                <div class="font-bold mb-1">Samenvatting</div>
+                <p>{{ sessionSummary }}</p>
+              </div>
+            </div>
           </div>
           
-          <div class="text-5xl my-5">
-            <span>🧘</span>
-          </div>
-          
-          <div class="mb-5 italic">
-            <p>Bedankt voor je deelname aan deze ACT sessie. Neem even de tijd om te reflecteren.</p>
+          <div class="flex flex-col items-center my-5">
+            <div class="text-5xl mb-3">
+              <span>🧘</span>
+            </div>
+            
+            <div class="italic flex items-center">
+              <font-awesome-icon icon="smile" class="mr-2" />
+              <p>Bedankt voor je deelname aan deze ACT sessie. Neem even de tijd om te reflecteren.</p>
+            </div>
+            
+            <div class="w-full max-w-xs border-t mt-3 pt-3"
+                 :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+              <div class="text-sm text-center mb-2"
+                   :class="[darkMode ? 'text-gray-400' : 'text-gray-600']">
+                <font-awesome-icon icon="info-circle" class="mr-1" />
+                Wat wil je nu doen?
+              </div>
+            </div>
           </div>
           
           <div class="flex justify-center gap-5 mt-5">
             <button 
               @click="continueSession" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
+              <font-awesome-icon icon="reply" class="mr-2" />
               Doorgaan met sessie
             </button>
             <button 
               @click="resetSession" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
+              <font-awesome-icon icon="redo" class="mr-2" />
               Nieuwe sessie starten
             </button>
             <button 
               @click="goToHome" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-600 border-gray-600 text-white hover:bg-gray-500' : 'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white']"
             >
+              <font-awesome-icon icon="home" class="mr-2" />
               Naar startpagina
             </button>
           </div>
@@ -433,9 +490,9 @@ function goToHome() {
                   'bg-emerald-600 text-white mr-2.5 border-gray-800': message.role === 'assistant' && !darkMode,
                   'bg-emerald-700 text-white mr-2.5 border-gray-600': message.role === 'assistant' && darkMode
                }">
-            {{ message.role === 'user' ? 'J' : 'A' }}
+            <font-awesome-icon :icon="message.role === 'user' ? 'user' : 'robot'" />
           </div>
-          <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative" 
+          <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative shadow-sm" 
                :class="{
                  'bg-white border border-gray-800 rounded-tr-sm text-left': message.role === 'user' && !darkMode, 
                  'bg-gray-700 border border-gray-600 rounded-tr-sm text-left text-white': message.role === 'user' && darkMode,
@@ -443,38 +500,54 @@ function goToHome() {
                  'bg-emerald-700 text-white rounded-tl-sm text-left': message.role === 'assistant' && darkMode
                }">
             {{ message.content }}
+            <div v-if="message.role === 'assistant'" class="text-xs opacity-70 mt-1 text-right">
+              <font-awesome-icon icon="clock" /> 
+              {{ new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+            </div>
           </div>
         </div>
         
-        <div v-if="isLoading" class="text-center p-2.5 italic" :class="[darkMode ? 'text-white' : '']">Laden...</div>
+        <div v-if="isLoading" class="text-center p-2.5">
+          <div class="animate-spin mx-auto h-5 w-5 text-emerald-600" :class="{ 'text-emerald-400': darkMode }">
+            <font-awesome-icon icon="spinner" class="animate-spin" />
+          </div>
+          <div class="mt-1 italic" :class="[darkMode ? 'text-white' : '']">Even denken...</div>
+        </div>
       </div>
       
+      <!-- User input section with enhanced style -->
       <div class="flex p-2.5 border-t"
            :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
-        <input 
-          v-model="userMessage"
-          @keyup.enter="sendMessage"
-          type="text"
-          placeholder="Deel je gedachten..."
-          class="flex-1 p-1 border-2 font-mono"
-          :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-800']"
-        />
+        <div class="relative flex-1">
+          <input 
+            v-model="userMessage"
+            @keyup.enter="sendMessage"
+            type="text"
+            placeholder="Deel je gedachten..."
+            class="flex-1 p-1 pl-8 w-full border-2 font-mono"
+            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-800']"
+          />
+          <div class="absolute left-2 top-1/2 transform -translate-y-1/2">
+            <font-awesome-icon icon="message" :class="[darkMode ? 'text-gray-400' : 'text-gray-500']" />
+          </div>
+        </div>
         <button 
           @click="sendMessage"
           :disabled="isLoading"
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50 flex items-center"
           :class="[
             darkMode ? 
               'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
               'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
           ]"
         >
+          <font-awesome-icon icon="paper-plane" class="mr-1" />
           {{ chatHistory.length > 0 ? 'Versturen' : 'Start gesprek' }}
         </button>
         <button
           @click="endSession"
           :disabled="isLoading" 
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50 flex items-center"
           :class="[
             darkMode ? 
               'bg-gray-600 border-gray-600 text-white hover:bg-gray-500 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
@@ -482,6 +555,7 @@ function goToHome() {
           ]"
           title="Beëindig deze sessie"
         >
+          <font-awesome-icon icon="check-circle" class="mr-1" />
           Afronden
         </button>
       </div>
@@ -492,10 +566,15 @@ function goToHome() {
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
       <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
-        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">Kernbegrippen</div>
+        <div class="font-bold flex items-center" :class="[darkMode ? 'text-white' : '']">
+          <font-awesome-icon icon="tag" class="mr-1" />
+          Kernbegrippen
+        </div>
         <div class="flex">
           <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
-                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">_</button>
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="minus" />
+          </button>
         </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin"
@@ -506,23 +585,25 @@ function goToHome() {
           <div class="flex flex-wrap">
             <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
                  @click="useEssenceWord(word)"
-                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 flex items-center"
                  :class="[
                    darkMode ? 
                      'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
                      'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
                  ]"
             >
+              <font-awesome-icon icon="tag" class="mr-1" />
               {{ word }}
             </div>
           </div>
         </div>
         
         <div v-if="isEssenceLoading" class="essence-loading">
-          <div class="w-full h-5 border relative overflow-hidden mt-2.5"
-               :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
-            <span class="block h-full w-1/2 bg-gradient-to-r via-white animate-progress"
-                  :class="[darkMode ? 'from-emerald-700 to-emerald-700 via-gray-700' : 'from-emerald-600 to-emerald-600']"></span>
+          <div class="flex items-center justify-center mt-2.5">
+            <div class="animate-spin mx-auto h-5 w-5 text-emerald-600" :class="{ 'text-emerald-400': darkMode }">
+              <font-awesome-icon icon="spinner" class="animate-spin" />
+            </div>
+            <span class="text-xs ml-2" :class="[darkMode ? 'text-white' : '']">Kernbegrippen laden...</span>
           </div>
         </div>
       </div>

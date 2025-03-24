@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
     "@google/generative-ai": "^0.24.0",
     "@nanostores/persistent": "^0.10.1",
     "@nanostores/vue": "^0.11.0",
