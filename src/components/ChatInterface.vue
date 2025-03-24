@@ -56,6 +56,32 @@ const subTopics = {
   ]
 }
 
+// Add a MutationObserver to automatically scroll when new messages are added
+let chatObserver: MutationObserver | null = null
+
+onMounted(() => {
+  const chatContainer = document.querySelector('.flex-1.overflow-y-auto')
+  if (chatContainer) {
+    chatObserver = new MutationObserver(() => {
+      scrollToBottom()
+    })
+    
+    chatObserver.observe(chatContainer, {
+      childList: true,
+      subtree: true
+    })
+  }
+  
+  // Initial scroll to bottom when component mounts
+  scrollToBottom()
+})
+
+onUnmounted(() => {
+  if (chatObserver) {
+    chatObserver.disconnect()
+  }
+})
+
 async function sendMessage() {
   if (!userMessage.value.trim()) return
   
@@ -64,7 +90,7 @@ async function sendMessage() {
   userMessage.value = ''
   isLoading.value = true
   
-  nextTick(() => scrollToBottom())
+  scrollToBottom()
 
   try {
     const fullPrompt = `${systemInstructions}\n\nUser: ${message}`
@@ -77,12 +103,12 @@ async function sendMessage() {
     
     getEssence(text, messageIndex)
     
-    nextTick(() => scrollToBottom())
+    scrollToBottom()
   } catch (error) {
     console.error('Error:', error)
     chatHistory.value.push({ role: 'assistant', content: 'Sorry, er was een fout bij het verwerken van je verzoek.' })
     
-    nextTick(() => scrollToBottom())
+    scrollToBottom()
   } finally {
     isLoading.value = false
   }
@@ -112,7 +138,7 @@ async function getEssence(text: string, messageIndex: number) {
       chatHistory.value[messageIndex].essence = essence
     }
     
-    nextTick(() => scrollEssencePanelToBottom())
+    scrollEssencePanelToBottom()
   } catch (error) {
     console.error('Error generating essence:', error)
   } finally {
@@ -131,17 +157,21 @@ function useEssenceWord(word: string) {
 }
 
 function scrollToBottom() {
-  const chatContainer = document.querySelector('.chat-container')
-  if (chatContainer) {
-    chatContainer.scrollTop = chatContainer.scrollHeight
-  }
+  nextTick(() => {
+    const chatContainer = document.querySelector('.flex-1.overflow-y-auto')
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight
+    }
+  })
 }
 
 function scrollEssencePanelToBottom() {
-  const essencePanel = document.querySelector('.essence-panel')
-  if (essencePanel) {
-    essencePanel.scrollTop = essencePanel.scrollHeight
-  }
+  nextTick(() => {
+    const essencePanel = document.querySelector('.flex-1.overflow-y-auto.scrollbar-thumb-gray-800')
+    if (essencePanel) {
+      essencePanel.scrollTop = essencePanel.scrollHeight
+    }
+  })
 }
 
 function selectMainTopic(topic: string) {
