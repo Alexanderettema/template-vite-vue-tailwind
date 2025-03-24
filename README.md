@@ -1,3 +1,109 @@
+# ACT Therapy App
+
+This is an interactive Acceptance and Commitment Therapy (ACT) application that helps users explore ACT principles through a guided conversational interface. The app uses AI to provide personalized therapy-inspired conversations based on ACT methodology.
+
+## About ACT Therapy App
+
+### What is ACT?
+
+Acceptance and Commitment Therapy (ACT) is a form of psychotherapy that helps people accept difficult thoughts and feelings while taking value-driven actions toward a meaningful life. ACT focuses on:
+
+- Psychological flexibility
+- Mindfulness
+- Value-based living
+- Acceptance of difficult emotions
+- Defusion from unhelpful thoughts
+- Committed action
+
+### How the App Works
+
+The ACT Therapy App provides a user-friendly interface where users can:
+
+1. **Explore ACT Themes**: Choose from key ACT concepts like Values, Defusion, Mindfulness, Acceptance, Self, Commitment, and Compassion
+2. **Practice Exercises**: Engage with specific exercises and techniques within each theme
+3. **Conversational Interface**: Interact via chat with an AI assistant that guides the therapeutic journey
+4. **Keyword Exploration**: Dive deeper into concepts using the keyword panel that shows key terms from each response
+5. **Dark/Light Modes**: Switch between visual themes for comfort
+6. **Guided Tour**: Step through an interactive tutorial that explains app features
+
+### Technical Features
+
+- Vue 3 with TypeScript for robust frontend development
+- Google's Gemini AI API integration for intelligent responses
+- Tailwind CSS for responsive, modern UI
+- Font Awesome integration for intuitive iconography
+- Keyboard shortcuts (ESC, Enter) for enhanced navigation
+- Responsive design for various device sizes
+
+## Next Steps for Development
+
+### Short-term Improvements
+
+1. **Offline Mode**: Implement basic functionality that works without internet connection
+2. **Session History**: Add the ability to save and review past therapy sessions
+3. **Export Functionality**: Allow users to export insights and conversations
+4. **Accessibility Enhancements**: Improve screen reader support and keyboard navigation
+5. **Multi-language Support**: Add additional languages beyond Dutch
+
+### Medium-term Features
+
+1. **User Accounts**: Optional accounts for preserving progress across devices
+2. **Personalized Journeys**: Tailored paths based on user's therapeutic goals
+3. **Progress Tracking**: Visual representation of engagement and practice
+4. **Reminder System**: Optional notifications for consistent practice
+5. **Expanded Exercise Library**: More interactive ACT exercises with multimedia elements
+
+### Long-term Vision
+
+1. **Mobile Applications**: Native iOS and Android versions
+2. **Professional Integration**: Features for therapists to recommend and track client usage
+3. **Research Collaboration**: Anonymous data collection (opt-in) for ACT effectiveness research
+4. **Community Features**: Optional peer support and shared experiences
+5. **Integration with Wearables**: Use data from health devices to suggest appropriate exercises
+
+## Getting Started with Development
+
+### Installation
+
+```bash
+git clone [repository-url]
+cd act-therapy-app
+npm install  # or pnpm install
+```
+
+### Development
+
+```bash
+npm run dev  # or pnpm dev
+```
+
+Visit http://localhost:5173 (or the port shown in your console)
+
+### Build for Production
+
+```bash
+npm run build  # or pnpm build
+```
+
+## Contributing
+
+Contributions to the ACT Therapy App are welcome! Please feel free to submit pull requests or open issues to improve the application.
+
+## Technical Details
+
+This app is built with the following technologies:
+
+- [Vue 3](https://github.com/vuejs/core)
+- [Vite](https://github.com/vitejs/vite)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Font Awesome](https://fontawesome.com/) for icons
+- [Google Gemini API](https://ai.google.dev/) for AI capabilities
+
+## License
+
+This source code is available under the [MIT License](/LICENSE).
+
 # TypeScript + Vite + Vue 3 + Tailwind
 
 This template should help get you started developing with Vue 3, TailwindCSS and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
@@ -70,7 +176,3 @@ Go to [Vercel](https://vercel.com/dashboard) and click `Add new` -> `Project`. T
 ## Contact
 
 Le Minh Tri [@ansidev](https://ansidev.xyz/about).
-
-## License
-
-This source code is available under the [MIT License](/LICENSE).
