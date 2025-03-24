@@ -254,7 +254,8 @@ function scrollDown() {
     
     <!-- UI Overlay for guided onboarding - positioned at the root level -->
     <div v-if="showOverlay" class="fixed inset-0 z-[100] pointer-events-none">
-      <!-- No dark overlay - completely transparent -->
+      <!-- Semi-transparent overlay that helps focus attention while maintaining visibility -->
+      <div class="absolute inset-0 bg-black/15 backdrop-blur-[0.5px]"></div>
       
       <!-- Step 1: Floating arrow pointing to themes panel -->
       <div v-if="onboardingStep === 0" 
@@ -264,7 +265,6 @@ function scrollDown() {
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </div>
-        <div class="w-40 h-1 bg-emerald-500 absolute top-1/2 right-full transform -translate-y-1/2"></div>
       </div>
       
       <!-- Step 2: Floating arrow pointing to chat area -->
@@ -275,7 +275,6 @@ function scrollDown() {
             <path d="M19 9l-7 7-7-7" />
           </svg>
         </div>
-        <div class="w-1 h-40 bg-emerald-500 absolute bottom-full left-1/2 transform -translate-x-1/2"></div>
       </div>
       
       <!-- Step 3: Floating arrow pointing to keywords panel -->
@@ -286,7 +285,6 @@ function scrollDown() {
             <path d="M9 18l6-6-6-6" />
           </svg>
         </div>
-        <div class="w-40 h-1 bg-emerald-500 absolute top-1/2 left-full transform -translate-y-1/2"></div>
       </div>
       
       <!-- Step 4: Floating arrow pointing to input area -->
@@ -297,7 +295,6 @@ function scrollDown() {
             <path d="M19 15l-7-7-7 7" />
           </svg>
         </div>
-        <div class="w-1 h-40 bg-emerald-500 absolute top-full left-1/2 transform -translate-x-1/2"></div>
       </div>
       
       <!-- Tooltips with pointer-events-auto to allow clicking -->
