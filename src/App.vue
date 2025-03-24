@@ -225,8 +225,6 @@ onUnmounted(() => {
             <span class="text-xs ml-1 opacity-80">↵</span>
           </button>
         </div>
-        <div class="absolute w-6 h-6 bg-white transform rotate-45 left-[-12px] top-10"
-             :class="[darkMode ? 'bg-gray-800' : 'bg-white']"></div>
         <!-- Simplified keyboard hint for step 1 -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
@@ -297,8 +295,6 @@ onUnmounted(() => {
             <span class="text-xs ml-1 opacity-80">↵</span>
           </button>
         </div>
-        <div class="absolute w-6 h-6 bg-white transform rotate-45 right-[-12px] top-10"
-             :class="[darkMode ? 'bg-gray-800' : 'bg-white']"></div>
         <!-- Simplified keyboard hint for step 3 -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">

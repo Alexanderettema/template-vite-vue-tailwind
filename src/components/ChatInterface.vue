@@ -215,7 +215,7 @@ async function getEssence(text: string, messageIndex: number) {
   }
 }
 
-function splitEssence(essence: string): string[] {
+function splitEssence(essence: string | undefined): string[] {
   if (!essence) return []
   return essence.split(/\s+/).filter(word => word.trim().length > 0).slice(0, 3)
 }
