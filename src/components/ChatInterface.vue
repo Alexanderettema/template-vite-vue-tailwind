@@ -2,6 +2,9 @@
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+// Define emits
+const emit = defineEmits(['go-to-home'])
+
 const API_KEY = 'AIzaSyAnGkMmVSqjXtA-glr372uaO_JZFobkSo0'
 const genAI = new GoogleGenerativeAI(API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
@@ -305,6 +308,11 @@ function toggleDarkMode() {
   // Store preference in localStorage
   localStorage.setItem('darkMode', darkMode.value ? 'true' : 'false')
 }
+
+// Add function to go to home
+function goToHome() {
+  emit('go-to-home')
+}
 </script>
 
 <template>
@@ -422,6 +430,13 @@ function toggleDarkMode() {
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               Nieuwe sessie starten
+            </button>
+            <button 
+              @click="goToHome" 
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              :class="[darkMode ? 'bg-gray-600 border-gray-600 text-white hover:bg-gray-500' : 'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white']"
+            >
+              Naar startpagina
             </button>
           </div>
         </div>
@@ -546,6 +561,19 @@ function toggleDarkMode() {
           title="Beëindig deze sessie"
         >
           Afronden
+        </button>
+        <button
+          @click="goToHome"
+          :disabled="isLoading" 
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          :class="[
+            darkMode ? 
+              'bg-gray-500 border-gray-600 text-white hover:bg-gray-400 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
+              'bg-gray-50 border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+          ]"
+          title="Terug naar startpagina"
+        >
+          Home
         </button>
       </div>
     </div>

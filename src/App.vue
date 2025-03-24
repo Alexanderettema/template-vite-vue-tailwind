@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import ChatInterface from './components/ChatInterface.vue'
+import LandingPage from './components/LandingPage.vue'
 
 const title = 'Vite template for Vue 3, TypeScript, and TailwindCSS'
 const description = 'An open-source Vite template for Vue 3, TypeScript and TailwindCSS. Dark mode enabled, auto-import enabled, persistent localStorage enabled using Nano Stores'
@@ -94,13 +96,23 @@ useHead({
     }
   ]
 })
-const count = ref(0)
+
+const showChat = ref(false)
+
+function startApp() {
+  showChat.value = true
+}
+
+function goToHome() {
+  showChat.value = false
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-900">
     <div class="">
-      <ChatInterface />
+      <LandingPage v-if="!showChat" @start-app="startApp" />
+      <ChatInterface v-else @go-to-home="goToHome" />
     </div>
   </div>
 </template>

@@ -10,6 +10,7 @@ declare module 'vue' {
     BsIcon: typeof import('./components/BsIcon.vue')['default']
     ChatInterface: typeof import('./components/ChatInterface.vue')['default']
     Header: typeof import('./components/Header.vue')['default']
+    LandingPage: typeof import('./components/LandingPage.vue')['default']
     ThemeSwitcher: typeof import('./components/ThemeSwitcher.vue')['default']
   }
 }
