@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
 import ChatInterface from './components/ChatInterface.vue'
 import LandingPage from './components/LandingPage.vue'
 
@@ -183,6 +183,22 @@ function scrollDown() {
     })
   }
 }
+
+// Handle keyboard events for guided tour
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter' && showOverlay.value) {
+    nextOverlayStep()
+  }
+}
+
+// Add and remove event listeners for keyboard navigation
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
@@ -257,46 +273,6 @@ function scrollDown() {
       <!-- Semi-transparent overlay that helps focus attention while maintaining visibility -->
       <div class="absolute inset-0 bg-black/15 backdrop-blur-[0.5px]"></div>
       
-      <!-- Step 1: Floating arrow pointing to themes panel -->
-      <div v-if="onboardingStep === 0" 
-           class="absolute left-[280px] top-[200px] z-30 transform -translate-x-1/2">
-        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </div>
-      </div>
-      
-      <!-- Step 2: Floating arrow pointing to chat area -->
-      <div v-if="onboardingStep === 1" 
-           class="absolute left-1/2 top-[150px] z-30 transform -translate-x-1/2">
-        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-            <path d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </div>
-      
-      <!-- Step 3: Floating arrow pointing to keywords panel -->
-      <div v-if="onboardingStep === 2" 
-           class="absolute right-[280px] top-[200px] z-30 transform translate-x-1/2">
-        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </div>
-      </div>
-      
-      <!-- Step 4: Floating arrow pointing to input area -->
-      <div v-if="onboardingStep === 3" 
-           class="absolute left-1/2 bottom-[100px] z-30 transform -translate-x-1/2">
-        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-            <path d="M19 15l-7-7-7 7" />
-          </svg>
-        </div>
-      </div>
-      
       <!-- Tooltips with pointer-events-auto to allow clicking -->
       <!-- Step 1: Tooltip for themes panel -->
       <div v-if="onboardingStep === 0" 
@@ -314,8 +290,13 @@ function scrollDown() {
             Overslaan
           </button>
           <button @click="nextOverlayStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Volgende
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
+              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
+              <polyline points="9 8 5 12 9 16"></polyline>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
         </div>
       </div>
@@ -336,8 +317,13 @@ function scrollDown() {
             Overslaan
           </button>
           <button @click="nextOverlayStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Volgende
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
+              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
+              <polyline points="9 8 5 12 9 16"></polyline>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
         </div>
       </div>
@@ -358,8 +344,13 @@ function scrollDown() {
             Overslaan
           </button>
           <button @click="nextOverlayStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Volgende
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
+              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
+              <polyline points="9 8 5 12 9 16"></polyline>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
         </div>
       </div>
@@ -380,9 +371,21 @@ function scrollDown() {
             Overslaan
           </button>
           <button @click="nextOverlayStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Beginnen
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
+              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
+              <polyline points="9 8 5 12 9 16"></polyline>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
+        </div>
+        
+        <!-- Keyboard hint -->
+        <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
+             :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
+          Druk op <span class="px-1 py-0.5 rounded border mx-1 inline-block" 
+                        :class="[darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300']">Enter</span> om verder te gaan
         </div>
       </div>
     </div>
