@@ -290,7 +290,7 @@ function scrollToBottom() {
 
 function scrollEssencePanelToBottom() {
   nextTick(() => {
-    const essencePanel = document.querySelector('.w-60 .flex-1.overflow-y-auto')
+    const essencePanel = document.querySelector('.w-72 .flex-1.overflow-y-auto')
     if (essencePanel && essencePanel !== document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')) {
       essencePanel.scrollTop = essencePanel.scrollHeight
     }
@@ -439,7 +439,7 @@ function toggleChallengeMode() {
   <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5" 
        :class="[darkMode ? 'bg-gray-900' : 'bg-gray-100']">
     <!-- Themes panel (new left sidebar) -->
-    <div class="w-60 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first"
+    <div class="w-72 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first"
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
       <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
@@ -548,45 +548,45 @@ function toggleChallengeMode() {
       <div class="p-3 border-t-2 flex items-center justify-center"
            :class="[darkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-800 bg-white']">
         <div class="flex flex-col items-center">
-          <div class="flex items-center space-x-3 mb-1">
-            <span class="text-xs font-mono flex flex-col items-center" 
+          <div class="flex items-center space-x-5 mb-2">
+            <span class="font-mono flex flex-col items-center" 
                   :class="[showDailyChallenges ? 'opacity-60' : 'opacity-100', darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-              <font-awesome-icon icon="book" class="text-sm" />
-              <span class="text-[10px] mt-0.5">ACT</span>
+              <font-awesome-icon icon="book" class="text-lg" />
+              <span class="text-sm font-medium mt-1">ACT</span>
             </span>
             
             <!-- Retro toggle switch -->
             <div @click="toggleChallengeMode" 
-                 class="relative inline-block w-14 h-7 border-2 rounded-full cursor-pointer transition-colors shadow-inner"
+                 class="relative inline-block w-16 h-8 border-2 rounded-full cursor-pointer transition-colors shadow-inner"
                  :class="[darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-800 bg-gray-200']">
               <!-- Track marks/etchings -->
-              <div class="absolute top-[10px] left-2 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
-              <div class="absolute top-[10px] left-3.5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
-              <div class="absolute top-[10px] left-5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
-              <div class="absolute top-[10px] right-2 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
-              <div class="absolute top-[10px] right-3.5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
-              <div class="absolute top-[10px] right-5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[12px] left-2 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[12px] left-4 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[12px] left-6 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[12px] right-2 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[12px] right-4 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[12px] right-6 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
               
               <!-- Toggle knob -->
-              <div class="absolute top-0.5 left-0.5 transition-transform duration-300 w-5 h-5 border-2 rounded-full shadow-md flex items-center justify-center"
+              <div class="absolute top-0.5 left-0.5 transition-transform duration-300 w-6 h-6 border-2 rounded-full shadow-md flex items-center justify-center"
                    :class="[
-                     showDailyChallenges ? 'transform translate-x-7' : '',
+                     showDailyChallenges ? 'transform translate-x-8' : '',
                      darkMode ? 
                        'border-gray-600 bg-emerald-500' : 
                        'border-gray-800 bg-emerald-600'
                    ]">
                 <!-- Highlight reflection on knob -->
-                <div class="absolute top-0.5 left-1 w-1.5 h-0.5 bg-white opacity-60 rounded-full transform -rotate-45"></div>
+                <div class="absolute top-0.5 left-1 w-2 h-0.5 bg-white opacity-60 rounded-full transform -rotate-45"></div>
               </div>
             </div>
             
-            <span class="text-xs font-mono flex flex-col items-center" 
+            <span class="font-mono flex flex-col items-center" 
                   :class="[!showDailyChallenges ? 'opacity-60' : 'opacity-100', darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-              <font-awesome-icon icon="tasks" class="text-sm" />
-              <span class="text-[10px] mt-0.5">Uitdagingen</span>
+              <font-awesome-icon icon="tasks" class="text-lg" />
+              <span class="text-sm font-medium mt-1">Uitdagingen</span>
             </span>
           </div>
-          <div class="text-[9px] opacity-60 font-mono" :class="[darkMode ? 'text-gray-400' : 'text-gray-600']">
+          <div class="text-xs opacity-70 font-mono font-medium" :class="[darkMode ? 'text-gray-400' : 'text-gray-600']">
             Klik om te wisselen
           </div>
         </div>
@@ -778,7 +778,7 @@ function toggleChallengeMode() {
     </div>
     
     <!-- Essence keywords panel -->
-    <div class="w-60 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden"
+    <div class="w-72 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden"
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
       <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
