@@ -305,7 +305,7 @@ function continueSession() {
           
           <div class="onboarding-section">
             <h3>3. Kernbegrippen paneel</h3>
-            <p>Na elk antwoord van de assistent worden er drie kernbegrippen getoond. Klik hierop om dat onderwerp verder te verkennen.</p>
+            <p>Na elk antwoord van de assistent verschijnen er drie kernbegrippen in het rechterpaneel. <strong>Je kunt hierop klikken om direct een vervolgvraag te stellen</strong> over dat specifieke onderwerp en zo het gesprek te verdiepen.</p>
           </div>
           
           <div class="onboarding-buttons">
