@@ -96,6 +96,23 @@ watch(() => chatHistory.value.length, () => {
   })
 })
 
+// Add methods for the help panel keyboard and click outside functionality
+function handleHelpKeyDown(event: KeyboardEvent) {
+  if (showHelpPanel.value && event.key === 'Escape') {
+    closeHelp()
+  }
+}
+
+// Check if click is outside the help panel
+function handleClickOutside(event: MouseEvent) {
+  if (showHelpPanel.value) {
+    const helpPanel = document.querySelector('.help-panel-container')
+    if (helpPanel && !helpPanel.contains(event.target as Node)) {
+      closeHelp()
+    }
+  }
+}
+
 onMounted(() => {
   // Use a more specific selector for the chat container
   const chatContainer = document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')
@@ -118,12 +135,20 @@ onMounted(() => {
   if (savedDarkMode === 'true') {
     darkMode.value = true
   }
+  
+  // Add event listeners for help panel
+  window.addEventListener('keydown', handleHelpKeyDown)
+  window.addEventListener('mousedown', handleClickOutside)
 })
 
 onUnmounted(() => {
   if (chatObserver) {
     chatObserver.disconnect()
   }
+  
+  // Remove event listeners
+  window.removeEventListener('keydown', handleHelpKeyDown)
+  window.removeEventListener('mousedown', handleClickOutside)
 })
 
 async function sendMessage() {
@@ -620,7 +645,7 @@ const themeIcons = {
     <!-- Help panel overlay -->
     <div v-if="showHelpPanel" class="absolute inset-0 z-10 flex items-center justify-center p-5"
          :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
-      <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono"
+      <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono help-panel-container"
            :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
         <div class="flex justify-between items-center border-b-2 pb-2 mb-4"
              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
@@ -628,10 +653,14 @@ const themeIcons = {
             <font-awesome-icon icon="info-circle" class="mr-2" />
             ACT Therapie Help
           </h2>
-          <button @click="closeHelp" class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
-                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
-            <font-awesome-icon icon="times" />
-          </button>
+          <!-- Close help button with ESC hint -->
+          <div class="flex items-center">
+            <span class="text-xs mr-2 opacity-70">ESC</span>
+            <button @click="closeHelp" class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
+                    :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+              <font-awesome-icon icon="times" />
+            </button>
+          </div>
         </div>
         
         <div class="space-y-4">
