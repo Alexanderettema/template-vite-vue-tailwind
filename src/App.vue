@@ -292,10 +292,9 @@ onUnmounted(() => {
           <button @click="nextOverlayStep" 
                 class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Volgende
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
-              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
-              <polyline points="9 8 5 12 9 16"></polyline>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
+            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
         </div>
@@ -319,10 +318,9 @@ onUnmounted(() => {
           <button @click="nextOverlayStep" 
                 class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Volgende
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
-              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
-              <polyline points="9 8 5 12 9 16"></polyline>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
+            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
         </div>
@@ -346,10 +344,9 @@ onUnmounted(() => {
           <button @click="nextOverlayStep" 
                 class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Volgende
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
-              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
-              <polyline points="9 8 5 12 9 16"></polyline>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
+            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
         </div>
@@ -373,10 +370,9 @@ onUnmounted(() => {
           <button @click="nextOverlayStep" 
                 class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
             Beginnen
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
-              <path d="M13 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2"></path>
-              <polyline points="9 8 5 12 9 16"></polyline>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
+            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
         </div>
@@ -384,8 +380,13 @@ onUnmounted(() => {
         <!-- Keyboard hint -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
-          Druk op <span class="px-1 py-0.5 rounded border mx-1 inline-block" 
-                        :class="[darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300']">Enter</span> om verder te gaan
+          Druk op <span class="px-1 py-0.5 inline-flex items-center justify-center mx-1" 
+                        :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span> om verder te gaan
         </div>
       </div>
     </div>
