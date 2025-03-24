@@ -21,12 +21,31 @@ IMPORTANT: Your responses MUST be under 50 words. Prioritize clarity and brevity
 const userMessage = ref('')
 const chatHistory = ref<{ role: 'user' | 'assistant', content: string }[]>([])
 const isLoading = ref(false)
+const selectedMainTopic = ref('')
 
-const examplePrompts = [
-  "Values exploration",
-  "Defusion technique",
-  "Present moment"
-]
+const mainTopics = {
+  "Values": "Values exploration",
+  "Defusion": "Defusion technique",
+  "Mindfulness": "Present moment"
+}
+
+const subTopics = {
+  "Values": [
+    "Life direction",
+    "Core values",
+    "Values vs goals"
+  ],
+  "Defusion": [
+    "Thought watching",
+    "Leaves on stream",
+    "Thanking your mind"
+  ],
+  "Mindfulness": [
+    "Body scan",
+    "Five senses",
+    "Mindful breathing"
+  ]
+}
 
 async function sendMessage() {
   if (!userMessage.value.trim()) return
@@ -50,13 +69,20 @@ async function sendMessage() {
   }
 }
 
-function sendExamplePrompt(prompt: string) {
-  userMessage.value = prompt
+function selectMainTopic(topic: string) {
+  selectedMainTopic.value = topic
+}
+
+function sendSubTopic(subtopic: string) {
+  const fullTopic = `${mainTopics[selectedMainTopic.value as keyof typeof mainTopics]}: ${subtopic}`
+  userMessage.value = fullTopic
   sendMessage()
+  selectedMainTopic.value = '' // Reset after sending
 }
 
 function resetSession() {
   chatHistory.value = []
+  selectedMainTopic.value = ''
 }
 </script>
 
@@ -94,17 +120,49 @@ function resetSession() {
       </div>
       
       <div class="flex flex-col gap-6">
+        <!-- Topic selection buttons -->
         <div class="grid grid-cols-3 gap-4">
+          <!-- Main topics -->
+          <template v-if="!selectedMainTopic">
+            <button 
+              v-for="(description, topic) in mainTopics" 
+              :key="topic"
+              @click="selectMainTopic(topic)"
+              :disabled="isLoading"
+              class="bg-sage-700/20 text-sage-200 rounded-3xl border border-sage-400/10 p-4
+                    hover:bg-teal-400/20 transition-all duration-500 disabled:opacity-50 text-center
+                    backdrop-blur-md shadow-lg text-sm sm:text-base"
+            >
+              {{ topic }}
+            </button>
+          </template>
+          
+          <!-- Subtopics after main topic selection -->
+          <template v-else>
+            <button 
+              v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
+              :key="index"
+              @click="sendSubTopic(subtopic)"
+              :disabled="isLoading"
+              class="bg-teal-400/30 text-sage-100 rounded-3xl border border-teal-400/20 p-4
+                    hover:bg-teal-400/40 transition-all duration-500 disabled:opacity-50 text-center
+                    backdrop-blur-md shadow-lg text-sm sm:text-base"
+            >
+              {{ subtopic }}
+            </button>
+          </template>
+        </div>
+        
+        <!-- Back button appears when subtopics are shown -->
+        <div v-if="selectedMainTopic" class="flex justify-center mb-2">
           <button 
-            v-for="(prompt, index) in examplePrompts" 
-            :key="index"
-            @click="sendExamplePrompt(prompt)"
-            :disabled="isLoading"
-            class="bg-sage-700/20 text-sage-200 rounded-3xl border border-sage-400/10 p-4
-                   hover:bg-teal-400/20 transition-all duration-500 disabled:opacity-50 text-center
-                   backdrop-blur-md shadow-lg text-sm sm:text-base"
+            @click="selectedMainTopic = ''" 
+            class="text-sage-300 hover:text-sage-100 text-sm flex items-center gap-1"
           >
-            {{ prompt }}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to main topics
           </button>
         </div>
         
