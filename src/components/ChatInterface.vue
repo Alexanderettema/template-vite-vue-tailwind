@@ -6,17 +6,17 @@ const API_KEY = 'AIzaSyAnGkMmVSqjXtA-glr372uaO_JZFobkSo0'
 const genAI = new GoogleGenerativeAI(API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
-const systemInstructions = `You are an ACT (Acceptance and Commitment Therapy) expert and guide. Your role is to:
-1. Provide evidence-based ACT techniques and principles
-2. Use clear, compassionate, and practical language
-3. Focus on experiential exercises and mindfulness practices
-4. Emphasize acceptance of difficult thoughts and feelings while committing to value-aligned actions
-5. Keep responses under 50 words - be extremely concise
-6. Use examples and metaphors when helpful, but keep them brief
-7. Avoid giving medical advice or diagnosing conditions
-8. Encourage self-compassion and personal growth
+const systemInstructions = `Je bent een ACT (Acceptance and Commitment Therapy) expert en gids. Je rol is om:
+1. Op bewijs gebaseerde ACT-technieken en principes te bieden
+2. Duidelijke, meelevende en praktische taal te gebruiken
+3. Te focussen op ervaringsgerichte oefeningen en mindfulness-praktijken
+4. De nadruk te leggen op acceptatie van moeilijke gedachten en gevoelens terwijl je je richt op waarde-gerichte acties
+5. Antwoorden onder 50 woorden te houden - wees uiterst beknopt
+6. Voorbeelden en metaforen te gebruiken wanneer nuttig, maar houd ze kort
+7. Het geven van medisch advies of diagnoses te vermijden
+8. Zelfcompassie en persoonlijke groei aan te moedigen
 
-IMPORTANT: Your responses MUST be under 50 words. Prioritize clarity and brevity over completeness.`
+BELANGRIJK: Je antwoorden MOETEN onder 50 woorden blijven. Prioriteer duidelijkheid en beknoptheid boven volledigheid.`
 
 const userMessage = ref('')
 const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string }[]>([])
@@ -25,26 +25,26 @@ const isEssenceLoading = ref(false)
 const selectedMainTopic = ref('')
 
 const mainTopics = {
-  "Values": "Values exploration",
-  "Defusion": "Defusion technique",
-  "Mindfulness": "Present moment"
+  "Waarden": "Waarden verkenning",
+  "Defusie": "Defusie techniek",
+  "Mindfulness": "Het huidige moment"
 }
 
 const subTopics = {
-  "Values": [
-    "Life direction",
-    "Core values",
-    "Values vs goals"
+  "Waarden": [
+    "Levensrichting",
+    "Kernwaarden",
+    "Waarden vs doelen"
   ],
-  "Defusion": [
-    "Thought watching",
-    "Leaves on stream",
-    "Thanking your mind"
+  "Defusie": [
+    "Gedachten observeren",
+    "Bladeren op de stroom",
+    "Je geest bedanken"
   ],
   "Mindfulness": [
-    "Body scan",
-    "Five senses",
-    "Mindful breathing"
+    "Lichaamsscan",
+    "Vijf zintuigen",
+    "Bewust ademhalen"
   ]
 }
 
@@ -72,7 +72,7 @@ async function sendMessage() {
     nextTick(() => scrollToBottom())
   } catch (error) {
     console.error('Error:', error)
-    chatHistory.value.push({ role: 'assistant', content: 'Sorry, there was an error processing your request.' })
+    chatHistory.value.push({ role: 'assistant', content: 'Sorry, er was een fout bij het verwerken van je verzoek.' })
     
     nextTick(() => scrollToBottom())
   } finally {
@@ -111,7 +111,7 @@ function splitEssence(essence: string): string[] {
 }
 
 function useEssenceWord(word: string) {
-  userMessage.value = `Let's explore ${word} more deeply.`
+  userMessage.value = `Laten we ${word} dieper verkennen.`
   sendMessage()
 }
 
@@ -150,7 +150,7 @@ function resetSession() {
   <div class="app-container">
     <div class="retro-window main-layout">
       <div class="window-header">
-        <div class="window-title">ACT therapy</div>
+        <div class="window-title">ACT therapie</div>
         <div class="window-controls">
           <button class="window-close" @click="resetSession">×</button>
         </div>
@@ -159,11 +159,11 @@ function resetSession() {
       <div class="chat-container">
         <div v-for="(message, index) in chatHistory" :key="index" class="message">
           <div class="message-content" :class="{'user-message': message.role === 'user', 'assistant-message': message.role === 'assistant'}">
-            <strong>{{ message.role === 'user' ? 'You' : 'Assistant' }}:</strong> {{ message.content }}
+            <strong>{{ message.role === 'user' ? 'Jij' : 'Assistent' }}:</strong> {{ message.content }}
           </div>
         </div>
         
-        <div v-if="isLoading" class="loading">Loading...</div>
+        <div v-if="isLoading" class="loading">Laden...</div>
       </div>
       
       <div class="controls">
@@ -198,7 +198,7 @@ function resetSession() {
         
         <!-- Back button appears when subtopics are shown -->
         <div v-if="selectedMainTopic" class="back-button-container">
-          <button @click="selectedMainTopic = ''" class="retro-button back-button">Back</button>
+          <button @click="selectedMainTopic = ''" class="retro-button back-button">Terug</button>
         </div>
         
         <div class="input-container">
@@ -206,7 +206,7 @@ function resetSession() {
             v-model="userMessage"
             @keyup.enter="sendMessage"
             type="text"
-            placeholder="Enter..."
+            placeholder="Voer bericht in..."
             class="retro-input message-input"
           />
           <button 
@@ -214,7 +214,7 @@ function resetSession() {
             :disabled="isLoading"
             class="retro-button send-button"
           >
-            Send...
+            Versturen...
           </button>
         </div>
       </div>
@@ -223,7 +223,7 @@ function resetSession() {
     <!-- Essence keywords panel -->
     <div class="retro-window sidebar">
       <div class="window-header">
-        <div class="window-title">Key Concepts</div>
+        <div class="window-title">Kernbegrippen</div>
         <div class="window-controls">
           <button class="window-minimize">_</button>
         </div>
