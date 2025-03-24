@@ -23,9 +23,9 @@ const chatHistory = ref<{ role: 'user' | 'assistant', content: string }[]>([])
 const isLoading = ref(false)
 
 const examplePrompts = [
-  "What are the core principles of ACT therapy?",
-  "How can I practice mindfulness in daily life?",
-  "What are some ACT exercises for dealing with anxiety?"
+  "Values exploration",
+  "Defusion technique",
+  "Present moment"
 ]
 
 async function sendMessage() {
@@ -54,12 +54,29 @@ function sendExamplePrompt(prompt: string) {
   userMessage.value = prompt
   sendMessage()
 }
+
+function resetSession() {
+  chatHistory.value = []
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-sage-900 via-teal-900 to-sage-950 p-8">
     <div class="w-full max-w-2xl mx-auto">
-      <h1 class="text-5xl font-extralight text-sage-100 mb-12 text-center tracking-widest">ACT app</h1>
+      <div class="flex justify-between items-center mb-12">
+        <h1 class="text-5xl font-extralight text-sage-100 text-center tracking-widest">ACT app</h1>
+        <button 
+          @click="resetSession" 
+          class="rounded-full bg-sage-700/30 border border-sage-400/20 p-2 hover:bg-teal-400/20 
+                 transition-all duration-300 backdrop-blur-md"
+          aria-label="Reset session"
+          title="Reset session"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-sage-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      </div>
       
       <div class="bg-sage-800/30 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-8 h-[400px] overflow-y-auto border border-sage-400/10">
         <div v-for="(message, index) in chatHistory" :key="index" 
@@ -132,6 +149,22 @@ function sendExamplePrompt(prompt: string) {
   --color-sage-950: #0d0f0d;
 }
 
+/* Custom cursor styles */
+button, 
+input[type="text"],
+a {
+  cursor: pointer;
+}
+
+button:hover {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'><path fill='%23A7B7A7' d='M9.4 18L8 16.6l4.6-4.6L8 7.4 9.4 6l6 6z'/></svg>"), auto;
+}
+
+input[type="text"]:hover {
+  cursor: text;
+}
+
+/* Existing styles */
 .shadow-2xl {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
