@@ -10,6 +10,12 @@ const userMessage = ref('')
 const chatHistory = ref<{ role: 'user' | 'assistant', content: string }[]>([])
 const isLoading = ref(false)
 
+const examplePrompts = [
+  "What are the core principles of ACT therapy?",
+  "How can I practice mindfulness in daily life?",
+  "What are some ACT exercises for dealing with anxiety?"
+]
+
 async function sendMessage() {
   if (!userMessage.value.trim()) return
   
@@ -30,6 +36,11 @@ async function sendMessage() {
     isLoading.value = false
   }
 }
+
+function sendExamplePrompt(prompt: string) {
+  userMessage.value = prompt
+  sendMessage()
+}
 </script>
 
 <template>
@@ -47,21 +58,35 @@ async function sendMessage() {
       </div>
     </div>
     
-    <div class="flex gap-2">
-      <input 
-        v-model="userMessage"
-        @keyup.enter="sendMessage"
-        type="text"
-        placeholder="Type your message..."
-        class="flex-1 p-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
-      />
-      <button 
-        @click="sendMessage"
-        :disabled="isLoading"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-      >
-        Send
-      </button>
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap gap-2">
+        <button 
+          v-for="(prompt, index) in examplePrompts" 
+          :key="index"
+          @click="sendExamplePrompt(prompt)"
+          :disabled="isLoading"
+          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm"
+        >
+          {{ prompt }}
+        </button>
+      </div>
+      
+      <div class="flex gap-2">
+        <input 
+          v-model="userMessage"
+          @keyup.enter="sendMessage"
+          type="text"
+          placeholder="Type your message..."
+          class="flex-1 p-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
+        />
+        <button 
+          @click="sendMessage"
+          :disabled="isLoading"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          Send
+        </button>
+      </div>
     </div>
   </div>
 </template> 
