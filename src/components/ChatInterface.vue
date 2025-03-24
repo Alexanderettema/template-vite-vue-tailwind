@@ -312,13 +312,24 @@ function dismissOnboarding() {
 </template>
 
 <style>
+/* Kleurvariabelen */
+:root {
+  --app-bg-color: #f0f0f0;
+  --window-bg-color: #fff;
+  --text-color: #000;
+  --border-color: #000;
+  --accent-color: #009554; /* Hoofdaccent kleur - verander deze om de gehele UI aan te passen */
+  --accent-text-color: #fff;
+  --secondary-bg-color: #eee;
+}
+
 /* Retro UI styling */
 body {
   margin: 0;
   padding: 0;
   font-family: 'Courier New', monospace;
-  background-color: #f0f0f0;
-  color: #000;
+  background-color: var(--app-bg-color);
+  color: var(--text-color);
 }
 
 /* Center the app horizontally and ensure it fits in viewport */
@@ -334,9 +345,9 @@ body {
 }
 
 .retro-window {
-  background-color: #fff;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
+  background-color: var(--window-bg-color);
+  border: 2px solid var(--border-color);
+  box-shadow: 2px 2px 0 var(--border-color);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -346,8 +357,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
-  border-bottom: 2px solid #000;
+  background-color: var(--window-bg-color);
+  border-bottom: 2px solid var(--border-color);
   padding: 5px 10px;
 }
 
@@ -356,8 +367,8 @@ body {
 }
 
 .window-controls button {
-  background: #fff;
-  border: 1px solid #000;
+  background: var(--window-bg-color);
+  border: 1px solid var(--border-color);
   width: 20px;
   height: 20px;
   line-height: 16px;
@@ -369,8 +380,8 @@ body {
 }
 
 .window-close:hover, .window-help:hover, .window-minimize:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--accent-color);
+  color: var(--accent-text-color);
   transform: scale(1.1);
 }
 
@@ -388,10 +399,10 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
-  background-color: #fff;
+  background-color: var(--window-bg-color);
   /* Custom scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: #000 #fff;
+  scrollbar-color: var(--accent-color) var(--window-bg-color);
 }
 
 .chat-container::-webkit-scrollbar,
@@ -400,35 +411,37 @@ body {
 }
 
 .chat-container::-webkit-scrollbar-track,
-.essence-panel::-webkit-scrollbar-track {
-  background: #fff;
-  border-left: 1px solid #000;
+.essence-panel::-webkit-scrollbar-track,
+.themes-panel::-webkit-scrollbar-track {
+  background: var(--window-bg-color);
+  border-left: 1px solid var(--border-color);
 }
 
 .chat-container::-webkit-scrollbar-thumb,
-.essence-panel::-webkit-scrollbar-thumb {
-  background-color: #000;
-  border: 1px solid #fff;
+.essence-panel::-webkit-scrollbar-thumb,
+.themes-panel::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border: 1px solid var(--window-bg-color);
 }
 
 .topic-section {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .topic-header {
   margin-bottom: 10px;
 }
 
-.topic-label {
+.topic-label, .theme-title {
   font-weight: bold;
   position: relative;
   display: inline-block;
-  background-color: #fff;
-  padding: 0 5px;
-  border: 1px solid #000;
+  background-color: var(--window-bg-color);
+  padding: 5px;
+  border: 1px solid var(--border-color);
 }
 
 .topics-container {
@@ -441,22 +454,22 @@ body {
   display: flex;
   gap: 10px;
   padding: 10px;
-  border-top: 1px solid #000;
+  border-top: 1px solid var(--border-color);
 }
 
 .retro-input {
   flex: 1;
   padding: 5px;
-  border: 2px solid #000;
-  background-color: #fff;
+  border: 2px solid var(--border-color);
+  background-color: var(--window-bg-color);
   font-family: 'Courier New', monospace;
 }
 
 .retro-button {
   padding: 5px 10px;
-  background-color: #fff;
-  color: #000;
-  border: 2px solid #000;
+  background-color: var(--window-bg-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
   cursor: pointer;
   font-family: 'Courier New', monospace;
   font-weight: normal;
@@ -466,21 +479,21 @@ body {
 }
 
 .retro-button:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--accent-color);
+  color: var(--accent-text-color);
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 3px 3px 0 var(--accent-color);
 }
 
 .retro-button:active {
   top: 1px;
   left: 1px;
-  box-shadow: 1px 1px 0 #000;
+  box-shadow: 1px 1px 0 var(--accent-color);
   transform: translate(0, 0);
 }
 
 .retro-button:not(:active):not(:hover) {
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: 2px 2px 0 var(--border-color);
 }
 
 .essence-word {
@@ -512,17 +525,17 @@ body {
   justify-content: center;
   font-weight: bold;
   flex-shrink: 0;
-  border: 1px solid #000;
+  border: 1px solid var(--border-color);
 }
 
 .user-avatar {
-  background-color: #fff;
+  background-color: var(--window-bg-color);
   margin-left: 10px;
 }
 
 .assistant-avatar {
-  background-color: #000;
-  color: white;
+  background-color: var(--accent-color);
+  color: var(--accent-text-color);
   margin-right: 10px;
 }
 
@@ -535,15 +548,15 @@ body {
 }
 
 .user-bubble {
-  background-color: #fff;
-  border: 1px solid #000;
+  background-color: var(--window-bg-color);
+  border: 1px solid var(--border-color);
   border-top-right-radius: 4px;
   text-align: left;
 }
 
 .assistant-bubble {
-  background-color: #000;
-  color: white;
+  background-color: var(--accent-color);
+  color: var(--accent-text-color);
   border-top-left-radius: 4px;
   text-align: left;
 }
@@ -582,7 +595,7 @@ body {
 .loading-bar {
   width: 100%;
   height: 20px;
-  border: 1px solid #000;
+  border: 1px solid var(--border-color);
   position: relative;
   overflow: hidden;
   margin-top: 10px;
@@ -594,10 +607,10 @@ body {
   width: 50%;
   background: repeating-linear-gradient(
     45deg,
-    #000,
-    #000 10px,
-    #fff 10px,
-    #fff 20px
+    var(--accent-color),
+    var(--accent-color) 10px,
+    var(--window-bg-color) 10px,
+    var(--window-bg-color) 20px
   );
   animation: progress 1s linear infinite;
 }
@@ -613,7 +626,7 @@ body {
 
 .essence-group {
   margin-bottom: 10px;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
 }
 
@@ -642,9 +655,9 @@ body {
 }
 
 .onboarding-content {
-  background-color: #fff;
-  border: 2px solid #000;
-  box-shadow: 3px 3px 0 #000;
+  background-color: var(--window-bg-color);
+  border: 2px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--border-color);
   padding: 20px;
   max-width: 90%;
   max-height: 90%;
@@ -654,7 +667,7 @@ body {
 
 .onboarding-content h2 {
   text-align: center;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid var(--border-color);
   padding-bottom: 10px;
   margin-top: 0;
 }
@@ -662,12 +675,12 @@ body {
 .onboarding-section {
   margin-bottom: 15px;
   padding: 10px;
-  border: 1px dashed #000;
+  border: 1px dashed var(--border-color);
 }
 
 .onboarding-section h3 {
   margin-top: 0;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--border-color);
   display: inline-block;
 }
 
@@ -690,10 +703,10 @@ body {
 }
 
 .onboarding-button:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--accent-color);
+  color: var(--accent-text-color);
   transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 #000;
+  box-shadow: 4px 4px 0 var(--accent-color);
 }
 
 .retro-window {
@@ -714,9 +727,9 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
-  background-color: #fff;
+  background-color: var(--window-bg-color);
   scrollbar-width: thin;
-  scrollbar-color: #000 #fff;
+  scrollbar-color: var(--accent-color) var(--window-bg-color);
 }
 
 .themes-panel::-webkit-scrollbar {
@@ -724,13 +737,13 @@ body {
 }
 
 .themes-panel::-webkit-scrollbar-track {
-  background: #fff;
-  border-left: 1px solid #000;
+  background: var(--window-bg-color);
+  border-left: 1px solid var(--border-color);
 }
 
 .themes-panel::-webkit-scrollbar-thumb {
-  background-color: #000;
-  border: 1px solid #fff;
+  background-color: var(--accent-color);
+  border: 1px solid var(--window-bg-color);
 }
 
 .themes-container {
@@ -741,11 +754,11 @@ body {
 
 .theme-title {
   font-weight: bold;
-  border: 1px solid #000;
+  border: 1px solid var(--border-color);
   padding: 5px;
   margin-bottom: 10px;
   text-align: center;
-  background-color: #fff;
+  background-color: var(--window-bg-color);
 }
 
 .theme-button {
@@ -760,7 +773,7 @@ body {
 }
 
 /* Remove the topic-section styles as they're no longer needed */
-.topic-section, .topic-header, .topic-label, .topics-container {
+.topic-section, .topic-header, .topics-container {
   /* These elements are being replaced by the left sidebar */
 }
 </style> 
