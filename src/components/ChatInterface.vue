@@ -31,6 +31,7 @@ const showOnboarding = ref(true)
 const showEndSession = ref(false)
 const sessionSummary = ref('')
 const showScrollIndicator = ref(true)
+const darkMode = ref(false)
 
 const mainTopics = {
   "Waarden": "Waarden verkenning",
@@ -106,6 +107,12 @@ onMounted(() => {
   
   // Initial scroll to bottom when component mounts
   scrollToBottom()
+  
+  // Check for saved dark mode preference
+  const savedDarkMode = localStorage.getItem('darkMode')
+  if (savedDarkMode === 'true') {
+    darkMode.value = true
+  }
 })
 
 onUnmounted(() => {
@@ -291,28 +298,44 @@ function scrollDown() {
     })
   }
 }
+
+// Toggle dark mode
+function toggleDarkMode() {
+  darkMode.value = !darkMode.value
+  // Store preference in localStorage
+  localStorage.setItem('darkMode', darkMode.value ? 'true' : 'false')
+}
 </script>
 
 <template>
-  <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5 bg-gray-100">
+  <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5" 
+       :class="[darkMode ? 'bg-gray-900' : 'bg-gray-100']">
     <!-- Themes panel (new left sidebar) -->
-    <div class="w-60 h-[calc(100vh-40px)] bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first">
-      <div class="flex justify-between items-center bg-white border-b-2 border-gray-800 p-2">
-        <div class="font-bold">{{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}</div>
+    <div class="w-60 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first"
+         :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+      <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
+           :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">
+          {{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}
+        </div>
         <div class="flex">
-          <button class="w-5 h-5 leading-none text-center border border-gray-800 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110">_</button>
+          <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
+                  :class="[darkMode ? 'border-gray-600 hover:bg-emerald-700 hover:text-white' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">_</button>
         </div>
       </div>
-      <div class="flex-1 overflow-y-auto p-2.5 bg-white scrollbar-thin scrollbar-thumb-emerald-600 scrollbar-track-white">
+      <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin scrollbar-track-white"
+           :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600']">
         <!-- Main topics -->
         <div v-if="!selectedMainTopic" class="flex flex-col gap-2.5">
-          <div class="font-bold border border-gray-800 p-1 mb-2.5 text-center bg-white">Kies een ACT thema:</div>
+          <div class="font-bold border p-1 mb-2.5 text-center"
+               :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">Kies een ACT thema:</div>
           <button 
             v-for="(description, topic) in mainTopics" 
             :key="topic"
             @click="selectMainTopic(topic)"
             :disabled="isLoading"
-            class="w-full text-left p-2 mb-1 bg-white border-2 border-gray-800 cursor-pointer font-normal transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
             {{ topic }}
           </button>
@@ -320,20 +343,23 @@ function scrollDown() {
         
         <!-- Subtopics after main topic selection -->
         <div v-else class="flex flex-col gap-2.5">
-          <div class="font-bold border border-gray-800 p-1 mb-2.5 text-center bg-white">Kies een oefening:</div>
+          <div class="font-bold border p-1 mb-2.5 text-center"
+               :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">Kies een oefening:</div>
           <button 
             v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
             :key="index"
             @click="sendSubTopic(subtopic)"
             :disabled="isLoading"
-            class="w-full text-left p-2 mb-1 bg-white border-2 border-gray-800 cursor-pointer font-normal transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
             {{ subtopic }}
           </button>
           
           <button 
             @click="selectedMainTopic = ''" 
-            class="w-full mt-4 text-left p-2 bg-white border-2 border-gray-800 cursor-pointer font-normal transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            class="w-full mt-4 text-left p-2 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
             ← Terug naar thema's
           </button>
@@ -341,21 +367,36 @@ function scrollDown() {
       </div>
     </div>
     
-    <div class="w-[600px] h-[calc(100vh-40px)] bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden relative">
-      <div class="flex justify-between items-center bg-white border-b-2 border-gray-800 p-2">
-        <div class="font-bold">ACT therapie</div>
+    <div class="w-[600px] h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden relative"
+         :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+      <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
+           :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">ACT therapie</div>
         <div class="flex">
-          <button class="w-5 h-5 leading-none text-center border border-gray-800 mr-1 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110" @click="startOnboarding" title="Help">?</button>
-          <button class="w-5 h-5 leading-none text-center border border-gray-800 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110" @click="resetSession" title="Reset gesprek">×</button>
+          <button @click="toggleDarkMode" class="w-auto h-5 px-1 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']" 
+                  :title="darkMode ? 'Licht modus' : 'Donker modus'">
+            {{ darkMode ? '☀️' : '🌙' }}
+          </button>
+          <button class="w-5 h-5 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110" 
+                  @click="startOnboarding" title="Help"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">?</button>
+          <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110" 
+                  @click="resetSession" title="Reset gesprek"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">×</button>
         </div>
       </div>
       
       <!-- End session overlay -->
-      <div v-if="showEndSession" class="absolute inset-0 bg-white/95 z-10 flex items-center justify-center p-5">
-        <div class="bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono text-center">
-          <h2 class="text-center border-b-2 border-gray-800 pb-2.5 mt-0">Einde Sessie</h2>
+      <div v-if="showEndSession" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+           :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
+        <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono text-center"
+             :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
+          <h2 class="text-center pb-2.5 mt-0 border-b-2"
+              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">Einde Sessie</h2>
           
-          <div class="bg-gray-100 border border-dashed border-gray-800 p-4 my-4 text-left rounded">
+          <div class="border border-dashed p-4 my-4 text-left rounded"
+               :class="[darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-800']">
             <p>{{ sessionSummary }}</p>
           </div>
           
@@ -370,13 +411,15 @@ function scrollDown() {
           <div class="flex justify-center gap-5 mt-5">
             <button 
               @click="continueSession" 
-              class="p-2 px-4 bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               Doorgaan met sessie
             </button>
             <button 
               @click="resetSession" 
-              class="p-2 px-4 bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               Nieuwe sessie starten
             </button>
@@ -385,17 +428,25 @@ function scrollDown() {
       </div>
       
       <!-- Onboarding overlay -->
-      <div v-if="showOnboarding" class="absolute inset-0 bg-white/95 z-10 flex items-center justify-center p-5">
-        <div class="bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono onboarding-content relative" @scroll="checkOnboardingScroll">
-          <h2 class="text-center border-b-2 border-gray-800 pb-2.5 mt-0">Welkom bij de ACT Therapie App</h2>
+      <div v-if="showOnboarding" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+           :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
+        <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono onboarding-content relative"
+             :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']"
+             @scroll="checkOnboardingScroll">
+          <h2 class="text-center pb-2.5 mt-0 border-b-2"
+              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">Welkom bij de ACT Therapie App</h2>
           
-          <div class="mb-4 p-2.5 border border-dashed border-gray-800">
-            <h3 class="mt-0 border-b border-gray-800 inline-block">1. Wat is ACT?</h3>
+          <div class="mb-4 p-2.5 border border-dashed"
+               :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <h3 class="mt-0 inline-block border-b"
+                :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">1. Wat is ACT?</h3>
             <p>Acceptance and Commitment Therapy (ACT) helpt je om lastige gedachten en gevoelens te accepteren terwijl je stappen zet richting een waardevol leven.</p>
           </div>
           
-          <div class="mb-4 p-2.5 border border-dashed border-gray-800">
-            <h3 class="mt-0 border-b border-gray-800 inline-block">2. Hoe gebruik je deze app?</h3>
+          <div class="mb-4 p-2.5 border border-dashed"
+               :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <h3 class="mt-0 inline-block border-b"
+                :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">2. Hoe gebruik je deze app?</h3>
             <ul class="pl-5">
               <li class="mb-2"><strong>Kies een onderwerp</strong> - Begin met een van de hoofdthema's: Waarden, Defusie of Mindfulness</li>
               <li class="mb-2"><strong>Verken subthema's</strong> - Verdiep je in specifieke oefeningen of concepten</li>
@@ -404,15 +455,18 @@ function scrollDown() {
             </ul>
           </div>
           
-          <div class="mb-4 p-2.5 border border-dashed border-gray-800">
-            <h3 class="mt-0 border-b border-gray-800 inline-block">3. Kernbegrippen paneel</h3>
+          <div class="mb-4 p-2.5 border border-dashed"
+               :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <h3 class="mt-0 inline-block border-b"
+                :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">3. Kernbegrippen paneel</h3>
             <p>Na elk antwoord van de assistent verschijnen er drie kernbegrippen in het rechterpaneel. <strong>Je kunt hierop klikken om direct een vervolgvraag te stellen</strong> over dat specifieke onderwerp en zo het gesprek te verdiepen.</p>
           </div>
           
           <div class="text-center mt-5">
             <button 
               @click="dismissOnboarding" 
-              class="p-2 px-4 text-lg bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-gray-800 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 text-lg border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-white border-gray-800 hover:bg-gray-800 hover:text-white']"
             >
               Begin met ACT therapie
             </button>
@@ -421,9 +475,10 @@ function scrollDown() {
           <!-- Scroll indicator as fixed element at bottom right -->
           <div v-if="showScrollIndicator" 
                @click="scrollDown"
-               class="absolute bottom-8 right-8 p-2 bg-white/90 rounded-full border-2 border-gray-800 cursor-pointer hover:bg-gray-200 shadow-md animate-pulse transition-all">
+               class="absolute bottom-8 right-8 p-2 rounded-full border-2 cursor-pointer shadow-md animate-pulse transition-all"
+               :class="[darkMode ? 'bg-gray-700/90 border-gray-600 hover:bg-gray-600' : 'bg-white/90 border-gray-800 hover:bg-gray-200']">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                 stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                 :stroke="darkMode ? 'white' : 'black'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
                  class="animate-bounce">
               <path d="M7 13l5 5 5-5"></path>
             </svg>
@@ -431,43 +486,63 @@ function scrollDown() {
         </div>
       </div>
       
-      <div class="flex-1 overflow-y-auto p-2.5 bg-white scrollbar-thin scrollbar-thumb-emerald-600 scrollbar-track-white">
+      <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin"
+           :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600 scrollbar-track-white']">
         <div v-for="(message, index) in chatHistory" :key="index" class="mb-4 flex items-start" :class="{'flex-row-reverse': message.role === 'user', 'flex-row': message.role === 'assistant'}">
-          <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold flex-shrink-0 border border-gray-800" 
-               :class="{'bg-white ml-2.5': message.role === 'user', 'bg-emerald-600 text-white mr-2.5': message.role === 'assistant'}">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold flex-shrink-0 border" 
+               :class="{
+                  'bg-white ml-2.5 border-gray-800': message.role === 'user' && !darkMode,
+                  'bg-gray-700 ml-2.5 border-gray-600 text-white': message.role === 'user' && darkMode,
+                  'bg-emerald-600 text-white mr-2.5 border-gray-800': message.role === 'assistant' && !darkMode,
+                  'bg-emerald-700 text-white mr-2.5 border-gray-600': message.role === 'assistant' && darkMode
+               }">
             {{ message.role === 'user' ? 'J' : 'A' }}
           </div>
           <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative" 
                :class="{
-                 'bg-white border border-gray-800 rounded-tr-sm text-left': message.role === 'user', 
-                 'bg-emerald-600 text-white rounded-tl-sm text-left': message.role === 'assistant'
+                 'bg-white border border-gray-800 rounded-tr-sm text-left': message.role === 'user' && !darkMode, 
+                 'bg-gray-700 border border-gray-600 rounded-tr-sm text-left text-white': message.role === 'user' && darkMode,
+                 'bg-emerald-600 text-white rounded-tl-sm text-left': message.role === 'assistant' && !darkMode,
+                 'bg-emerald-700 text-white rounded-tl-sm text-left': message.role === 'assistant' && darkMode
                }">
             {{ message.content }}
           </div>
         </div>
         
-        <div v-if="isLoading" class="text-center p-2.5 italic">Laden...</div>
+        <div v-if="isLoading" class="text-center p-2.5 italic" :class="[darkMode ? 'text-white' : '']">Laden...</div>
       </div>
       
-      <div class="flex p-2.5 border-t border-gray-800">
+      <div class="flex p-2.5 border-t"
+           :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
         <input 
           v-model="userMessage"
           @keyup.enter="sendMessage"
           type="text"
           placeholder="Deel je gedachten..."
-          class="flex-1 p-1 border-2 border-gray-800 bg-white font-mono"
+          class="flex-1 p-1 border-2 font-mono"
+          :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-800']"
         />
         <button 
           @click="sendMessage"
           :disabled="isLoading"
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 bg-white border-2 border-gray-800 cursor-pointer font-mono font-normal transition-all hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          :class="[
+            darkMode ? 
+              'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
+              'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+          ]"
         >
           {{ chatHistory.length > 0 ? 'Versturen' : 'Start gesprek' }}
         </button>
         <button
           @click="endSession"
           :disabled="isLoading" 
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 bg-gray-100 border-2 border-gray-800 cursor-pointer font-mono font-normal transition-all hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          :class="[
+            darkMode ? 
+              'bg-gray-600 border-gray-600 text-white hover:bg-gray-500 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
+              'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+          ]"
           title="Beëindig deze sessie"
         >
           Afronden
@@ -476,19 +551,30 @@ function scrollDown() {
     </div>
     
     <!-- Essence keywords panel -->
-    <div class="w-60 h-[calc(100vh-40px)] bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center bg-white border-b-2 border-gray-800 p-2">
-        <div class="font-bold">Kernbegrippen</div>
+    <div class="w-60 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden"
+         :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+      <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
+           :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">Kernbegrippen</div>
         <div class="flex">
-          <button class="w-5 h-5 leading-none text-center border border-gray-800 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110">_</button>
+          <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">_</button>
         </div>
       </div>
-      <div class="flex-1 overflow-y-auto p-2.5 bg-white scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-white">
-        <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" class="mb-2.5 pb-2.5 border-b border-gray-800 last:border-b-0">
+      <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin"
+           :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-gray-600 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-gray-800 scrollbar-track-white']">
+        <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" 
+             class="mb-2.5 pb-2.5 last:border-b-0"
+             :class="[darkMode ? 'border-b border-gray-600' : 'border-b border-gray-800']">
           <div class="flex flex-wrap">
             <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
                  @click="useEssenceWord(word)"
-                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 bg-white border-2 border-gray-800 cursor-pointer font-mono font-normal transition-all drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-gray-800 hover:text-white hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+                 :class="[
+                   darkMode ? 
+                     'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
+                     'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+                 ]"
             >
               {{ word }}
             </div>
@@ -496,8 +582,10 @@ function scrollDown() {
         </div>
         
         <div v-if="isEssenceLoading" class="essence-loading">
-          <div class="w-full h-5 border border-gray-800 relative overflow-hidden mt-2.5">
-            <span class="block h-full w-1/2 bg-gradient-to-r from-emerald-600 to-emerald-600 via-white bg-[length:20px_20px] animate-progress"></span>
+          <div class="w-full h-5 border relative overflow-hidden mt-2.5"
+               :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <span class="block h-full w-1/2 bg-gradient-to-r via-white animate-progress"
+                  :class="[darkMode ? 'from-emerald-700 to-emerald-700 via-gray-700' : 'from-emerald-600 to-emerald-600']"></span>
           </div>
         </div>
       </div>
