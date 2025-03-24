@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { ref, provide, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import ChatInterface from './components/ChatInterface.vue'
 import LandingPage from './components/LandingPage.vue'
 
@@ -127,10 +127,23 @@ function dismissOnboarding() {
   onboardingStep.value = 0
 }
 
+// Function to focus the current tour step
+function focusCurrentStep() {
+  nextTick(() => {
+    const currentStep = document.querySelector(`.tour-step-${onboardingStep.value}`)
+    if (currentStep && 'focus' in currentStep) {
+      (currentStep as HTMLElement).focus()
+    }
+  })
+}
+
+// Update existing functions to use the new focus function
 function nextOnboardingStep() {
   onboardingStep.value++
   if (onboardingStep.value > 4) {
     dismissOnboarding()
+  } else {
+    focusCurrentStep()
   }
 }
 
@@ -143,12 +156,21 @@ function skipOverlay() {
 function handleKeyDown(event: KeyboardEvent) {
   if (showOverlay.value) {
     if (event.key === 'Enter') {
+      event.preventDefault()
       nextOnboardingStep()
     } else if (event.key === 'Escape') {
+      event.preventDefault()
       skipOverlay()
     }
   }
 }
+
+// Watch for changes to showOverlay
+watch(showOverlay, (newValue) => {
+  if (newValue) {
+    focusCurrentStep()
+  }
+})
 
 // Initial setup onMounted
 onMounted(() => {
@@ -180,7 +202,9 @@ onUnmounted(() => {
       <!-- Tooltips with pointer-events-auto to allow clicking -->
       <!-- Step 1: Tooltip for themes panel -->
       <div v-if="onboardingStep === 1" 
-           class="absolute left-[150px] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
+           class="absolute left-[150px] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30 focus:outline-none tour-step-1"
+           tabindex="0"
+           @keydown.enter="nextOnboardingStep"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 1 van 4
@@ -191,50 +215,33 @@ onUnmounted(() => {
           <button @click="skipOverlay" 
                 class="px-2 py-1 text-sm border rounded flex items-center"
                 :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <span class="text-xs mr-1 opacity-80">ESC</span>
             Overslaan
           </button>
           <button @click="nextOnboardingStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center"
+                tabindex="0">
             Volgende
-            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <span class="text-xs ml-1 opacity-80">↵</span>
           </button>
         </div>
         <div class="absolute w-6 h-6 bg-white transform rotate-45 left-[-12px] top-10"
              :class="[darkMode ? 'bg-gray-800' : 'bg-white']"></div>
-        <!-- Add keyboard shortcut hint to steps 1-3 -->
+        <!-- Simplified keyboard hint for step 1 -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            ESC
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">ESC</span>
           om te annuleren | 
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Enter
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">Enter ↵</span>
           om verder te gaan
         </div>
       </div>
       
       <!-- Step 2: Tooltip for chat area -->
       <div v-if="onboardingStep === 2" 
-           class="absolute left-1/2 -translate-x-1/2 top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
+           class="absolute left-1/2 -translate-x-1/2 top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30 focus:outline-none tour-step-2"
+           tabindex="0"
+           @keydown.enter="nextOnboardingStep"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 2 van 4
@@ -245,48 +252,31 @@ onUnmounted(() => {
           <button @click="skipOverlay" 
                 class="px-2 py-1 text-sm border rounded flex items-center"
                 :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <span class="text-xs mr-1 opacity-80">ESC</span>
             Overslaan
           </button>
           <button @click="nextOnboardingStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center"
+                tabindex="0">
             Volgende
-            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <span class="text-xs ml-1 opacity-80">↵</span>
           </button>
         </div>
-        <!-- Add keyboard shortcut hint to step 2 -->
+        <!-- Simplified keyboard hint for step 2 -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            ESC
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">ESC</span>
           om te annuleren | 
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Enter
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">Enter ↵</span>
           om verder te gaan
         </div>
       </div>
       
       <!-- Step 3: Tooltip for keywords panel -->
       <div v-if="onboardingStep === 3" 
-           class="absolute right-[150px] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
+           class="absolute right-[150px] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30 focus:outline-none tour-step-3"
+           tabindex="0"
+           @keydown.enter="nextOnboardingStep"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 3 van 4
@@ -297,50 +287,33 @@ onUnmounted(() => {
           <button @click="skipOverlay" 
                 class="px-2 py-1 text-sm border rounded flex items-center"
                 :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <span class="text-xs mr-1 opacity-80">ESC</span>
             Overslaan
           </button>
           <button @click="nextOnboardingStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center"
+                tabindex="0">
             Volgende
-            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <span class="text-xs ml-1 opacity-80">↵</span>
           </button>
         </div>
         <div class="absolute w-6 h-6 bg-white transform rotate-45 right-[-12px] top-10"
              :class="[darkMode ? 'bg-gray-800' : 'bg-white']"></div>
-        <!-- Add keyboard shortcut hint to step 3 -->
+        <!-- Simplified keyboard hint for step 3 -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            ESC
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">ESC</span>
           om te annuleren | 
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Enter
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">Enter ↵</span>
           om verder te gaan
         </div>
       </div>
       
       <!-- Step 4: Tooltip for input area -->
       <div v-if="onboardingStep === 4" 
-           class="absolute bottom-[120px] left-1/2 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
+           class="absolute bottom-[120px] left-1/2 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30 focus:outline-none tour-step-4"
+           tabindex="0"
+           @keydown.enter="nextOnboardingStep"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 4 van 4
@@ -351,42 +324,23 @@ onUnmounted(() => {
           <button @click="skipOverlay" 
                 class="px-2 py-1 text-sm border rounded flex items-center"
                 :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <span class="text-xs mr-1 opacity-80">ESC</span>
             Overslaan
           </button>
           <button @click="nextOnboardingStep" 
-                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center">
+                class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center"
+                tabindex="0">
             Beginnen
-            <svg class="ml-1 w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <span class="text-xs ml-1 opacity-80">↵</span>
           </button>
         </div>
         
-        <!-- Keyboard hint for step 4 with ESC option -->
+        <!-- Simplified keyboard hint for step 4 -->
         <div class="mt-4 pt-2 border-t text-center text-xs opacity-60"
              :class="[darkMode ? 'border-gray-700' : 'border-gray-300']">
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M7 7l10 10M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            ESC
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">ESC</span>
           om te annuleren | 
-          <span class="inline-flex items-center justify-center px-1 py-0.5 mx-1" 
-                :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M16 12H8M8 12L12 16M8 12L12 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Enter
-          </span> 
+          <span class="text-xs mx-1" :class="[darkMode ? 'text-emerald-400' : 'text-emerald-600']">Enter ↵</span>
           om verder te gaan
         </div>
       </div>

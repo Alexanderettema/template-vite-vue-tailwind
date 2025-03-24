@@ -275,6 +275,14 @@ function startGuidedTour() {
   // Reset state and show only the guided tour steps
   onboardingStep.value = 1 // Start with first step
   showOverlay.value = true // Show the steps overlay
+  
+  // This extra nextTick ensures DOM is updated before we try to focus
+  nextTick(() => {
+    const firstStep = document.querySelector('.tour-step-1')
+    if (firstStep && 'focus' in firstStep) {
+      (firstStep as HTMLElement).focus()
+    }
+  })
 }
 
 // Function to close help panel
