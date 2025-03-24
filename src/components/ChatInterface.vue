@@ -23,6 +23,7 @@ const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?:
 const isLoading = ref(false)
 const isEssenceLoading = ref(false)
 const selectedMainTopic = ref('')
+const showOnboarding = ref(true)
 
 const mainTopics = {
   "Waarden": "Waarden verkenning",
@@ -144,6 +145,14 @@ function resetSession() {
   chatHistory.value = []
   selectedMainTopic.value = ''
 }
+
+function startOnboarding() {
+  showOnboarding.value = true
+}
+
+function dismissOnboarding() {
+  showOnboarding.value = false
+}
 </script>
 
 <template>
@@ -152,7 +161,39 @@ function resetSession() {
       <div class="window-header">
         <div class="window-title">ACT therapie</div>
         <div class="window-controls">
-          <button class="window-close" @click="resetSession">×</button>
+          <button class="window-help" @click="startOnboarding" title="Help">?</button>
+          <button class="window-close" @click="resetSession" title="Reset gesprek">×</button>
+        </div>
+      </div>
+      
+      <!-- Onboarding overlay -->
+      <div v-if="showOnboarding" class="onboarding-overlay">
+        <div class="onboarding-content">
+          <h2>Welkom bij de ACT Therapie App</h2>
+          
+          <div class="onboarding-section">
+            <h3>1. Wat is ACT?</h3>
+            <p>Acceptance and Commitment Therapy (ACT) helpt je om lastige gedachten en gevoelens te accepteren terwijl je stappen zet richting een waardevol leven.</p>
+          </div>
+          
+          <div class="onboarding-section">
+            <h3>2. Hoe gebruik je deze app?</h3>
+            <ul>
+              <li><strong>Kies een onderwerp</strong> - Begin met een van de hoofdthema's: Waarden, Defusie of Mindfulness</li>
+              <li><strong>Verken subthema's</strong> - Verdiep je in specifieke oefeningen of concepten</li>
+              <li><strong>Stel vragen</strong> - Type je eigen vragen in het invoerveld onderaan</li>
+              <li><strong>Vervolg het gesprek</strong> - Klik op de kernbegrippen rechts om het gesprek verder te verdiepen</li>
+            </ul>
+          </div>
+          
+          <div class="onboarding-section">
+            <h3>3. Kernbegrippen paneel</h3>
+            <p>Na elk antwoord van de assistent worden er drie kernbegrippen getoond. Klik hierop om dat onderwerp verder te verkennen.</p>
+          </div>
+          
+          <div class="onboarding-buttons">
+            <button @click="dismissOnboarding" class="retro-button onboarding-button">Begin met ACT therapie</button>
+          </div>
         </div>
       </div>
       
@@ -303,11 +344,13 @@ body {
   margin-left: 5px;
   font-weight: bold;
   cursor: pointer;
+  transition: all 0.15s ease-in-out;
 }
 
-.window-close:hover {
+.window-close:hover, .window-help:hover, .window-minimize:hover {
   background-color: #000;
   color: #fff;
+  transform: scale(1.1);
 }
 
 .main-layout {
@@ -379,15 +422,24 @@ body {
   font-weight: normal;
   position: relative;
   text-align: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.retro-button:hover {
+  background-color: #000;
+  color: #fff;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #000;
 }
 
 .retro-button:active {
   top: 1px;
   left: 1px;
   box-shadow: 1px 1px 0 #000;
+  transform: translate(0, 0);
 }
 
-.retro-button:not(:active) {
+.retro-button:not(:active):not(:hover) {
   box-shadow: 2px 2px 0 #000;
 }
 
@@ -469,5 +521,84 @@ body {
 
 .essence-group:last-child {
   border-bottom: none;
+}
+
+.window-help {
+  margin-right: 5px;
+}
+
+/* Onboarding styles */
+.onboarding-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.onboarding-content {
+  background-color: #fff;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 20px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+}
+
+.onboarding-content h2 {
+  text-align: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+.onboarding-section {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px dashed #000;
+}
+
+.onboarding-section h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #000;
+  display: inline-block;
+}
+
+.onboarding-section ul {
+  padding-left: 20px;
+}
+
+.onboarding-section li {
+  margin-bottom: 8px;
+}
+
+.onboarding-buttons {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.onboarding-button {
+  padding: 8px 16px;
+  font-size: 1.1rem;
+}
+
+.onboarding-button:hover {
+  background-color: #000;
+  color: #fff;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.retro-window {
+  position: relative;
 }
 </style> 
