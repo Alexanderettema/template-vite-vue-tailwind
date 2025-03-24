@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BsIcon: typeof import('./components/BsIcon.vue')['default']
+    ChatInterface: typeof import('./components/ChatInterface.vue')['default']
     Header: typeof import('./components/Header.vue')['default']
     ThemeSwitcher: typeof import('./components/ThemeSwitcher.vue')['default']
   }
