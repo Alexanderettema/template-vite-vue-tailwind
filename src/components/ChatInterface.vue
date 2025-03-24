@@ -319,12 +319,6 @@ const themeIcons = {
           <font-awesome-icon icon="list" class="mr-1" />
           {{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}
         </div>
-        <div class="flex">
-          <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
-                  :class="[darkMode ? 'border-gray-600 hover:bg-emerald-700 hover:text-white' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
-            <font-awesome-icon icon="minus" />
-          </button>
-        </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin scrollbar-track-white"
            :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600']">
@@ -569,12 +563,6 @@ const themeIcons = {
         <div class="font-bold flex items-center" :class="[darkMode ? 'text-white' : '']">
           <font-awesome-icon icon="tag" class="mr-1" />
           Kernbegrippen
-        </div>
-        <div class="flex">
-          <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
-                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
-            <font-awesome-icon icon="minus" />
-          </button>
         </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin"
