@@ -155,12 +155,21 @@ function skipOverlay() {
 // Handle keyboard events for guided tour
 function handleKeyDown(event: KeyboardEvent) {
   if (showOverlay.value) {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      nextOnboardingStep()
+    // Check if the event target is a focused tour step element - if so, don't handle it here
+    // as it's already being handled by the @keydown.enter directive on the element
+    const target = event.target as HTMLElement;
+    const isTourStepFocused = target && target.classList && 
+      (target.classList.contains('tour-step-1') || 
+       target.classList.contains('tour-step-2') || 
+       target.classList.contains('tour-step-3') || 
+       target.classList.contains('tour-step-4'));
+    
+    if (event.key === 'Enter' && !isTourStepFocused) {
+      event.preventDefault();
+      nextOnboardingStep();
     } else if (event.key === 'Escape') {
-      event.preventDefault()
-      skipOverlay()
+      event.preventDefault();
+      skipOverlay();
     }
   }
 }
