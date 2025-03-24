@@ -239,9 +239,12 @@ function dismissOnboarding() {
       </div>
       
       <div class="chat-container">
-        <div v-for="(message, index) in chatHistory" :key="index" class="message">
-          <div class="message-content" :class="{'user-message': message.role === 'user', 'assistant-message': message.role === 'assistant'}">
-            <strong>{{ message.role === 'user' ? 'Jij' : 'Assistent' }}:</strong> {{ message.content }}
+        <div v-for="(message, index) in chatHistory" :key="index" class="message" :class="{'user-message-container': message.role === 'user', 'assistant-message-container': message.role === 'assistant'}">
+          <div class="avatar" :class="{'user-avatar': message.role === 'user', 'assistant-avatar': message.role === 'assistant'}">
+            {{ message.role === 'user' ? 'J' : 'A' }}
+          </div>
+          <div class="message-bubble" :class="{'user-bubble': message.role === 'user', 'assistant-bubble': message.role === 'assistant'}">
+            {{ message.content }}
           </div>
         </div>
         
@@ -476,24 +479,82 @@ body {
 }
 
 .message {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
 }
 
-.message-content {
-  padding: 8px;
+.user-message-container {
+  flex-direction: row-reverse;
+}
+
+.assistant-message-container {
+  flex-direction: row;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
   border: 1px solid #000;
-  display: inline-block;
-  max-width: 80%;
+}
+
+.user-avatar {
+  background-color: #eee;
+  margin-left: 10px;
+}
+
+.assistant-avatar {
+  background-color: #5D76CB;
+  color: white;
+  margin-right: 10px;
+}
+
+.message-bubble {
+  padding: 10px 15px;
+  border-radius: 18px;
+  max-width: 70%;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.user-bubble {
   background-color: #fff;
+  border: 1px solid #e1e1e1;
+  border-top-right-radius: 4px;
+  text-align: right;
 }
 
-.user-message {
-  margin-right: auto;
+.assistant-bubble {
+  background-color: #5D76CB;
+  color: white;
+  border-top-left-radius: 4px;
+  text-align: left;
 }
 
-.assistant-message {
-  margin-left: auto;
-  background-color: #f0f0f0;
+/* Remove old message styling */
+.message-content {
+  display: none;
+}
+
+.user-message, .assistant-message {
+  display: none;
+}
+
+/* Updated timestamp style */
+.chat-container .message:last-child::after {
+  content: '';
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: #999;
+  font-size: 0.8rem;
+  margin-top: 15px;
 }
 
 .controls {
