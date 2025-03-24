@@ -208,175 +208,199 @@ function continueSession() {
 </script>
 
 <template>
-  <div class="app-container">
+  <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5 bg-gray-100">
     <!-- Themes panel (new left sidebar) -->
-    <div class="retro-window sidebar themes-sidebar">
-      <div class="window-header">
-        <div class="window-title">{{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}</div>
-        <div class="window-controls">
-          <button class="window-minimize">_</button>
+    <div class="w-60 h-[calc(100vh-40px)] bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first">
+      <div class="flex justify-between items-center bg-white border-b-2 border-gray-800 p-2">
+        <div class="font-bold">{{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}</div>
+        <div class="flex">
+          <button class="w-5 h-5 leading-none text-center border border-gray-800 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110">_</button>
         </div>
       </div>
-      <div class="themes-panel">
+      <div class="flex-1 overflow-y-auto p-2.5 bg-white scrollbar-thin scrollbar-thumb-emerald-600 scrollbar-track-white">
         <!-- Main topics -->
-        <div v-if="!selectedMainTopic" class="themes-container">
-          <div class="theme-title">Kies een ACT thema:</div>
+        <div v-if="!selectedMainTopic" class="flex flex-col gap-2.5">
+          <div class="font-bold border border-gray-800 p-1 mb-2.5 text-center bg-white">Kies een ACT thema:</div>
           <button 
             v-for="(description, topic) in mainTopics" 
             :key="topic"
             @click="selectMainTopic(topic)"
             :disabled="isLoading"
-            class="retro-button theme-button"
+            class="w-full text-left p-2 mb-1 bg-white border-2 border-gray-800 cursor-pointer font-normal transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
           >
             {{ topic }}
           </button>
         </div>
         
         <!-- Subtopics after main topic selection -->
-        <div v-else class="themes-container">
-          <div class="theme-title">Kies een oefening:</div>
+        <div v-else class="flex flex-col gap-2.5">
+          <div class="font-bold border border-gray-800 p-1 mb-2.5 text-center bg-white">Kies een oefening:</div>
           <button 
             v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
             :key="index"
             @click="sendSubTopic(subtopic)"
             :disabled="isLoading"
-            class="retro-button theme-button"
+            class="w-full text-left p-2 mb-1 bg-white border-2 border-gray-800 cursor-pointer font-normal transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
           >
             {{ subtopic }}
           </button>
           
-          <button @click="selectedMainTopic = ''" class="retro-button back-button">← Terug naar thema's</button>
+          <button 
+            @click="selectedMainTopic = ''" 
+            class="w-full mt-4 text-left p-2 bg-white border-2 border-gray-800 cursor-pointer font-normal transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+          >
+            ← Terug naar thema's
+          </button>
         </div>
       </div>
     </div>
     
-    <div class="retro-window main-layout">
-      <div class="window-header">
-        <div class="window-title">ACT therapie</div>
-        <div class="window-controls">
-          <button class="window-help" @click="startOnboarding" title="Help">?</button>
-          <button class="window-close" @click="resetSession" title="Reset gesprek">×</button>
+    <div class="w-[600px] h-[calc(100vh-40px)] bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden relative">
+      <div class="flex justify-between items-center bg-white border-b-2 border-gray-800 p-2">
+        <div class="font-bold">ACT therapie</div>
+        <div class="flex">
+          <button class="w-5 h-5 leading-none text-center border border-gray-800 mr-1 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110" @click="startOnboarding" title="Help">?</button>
+          <button class="w-5 h-5 leading-none text-center border border-gray-800 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110" @click="resetSession" title="Reset gesprek">×</button>
         </div>
       </div>
       
       <!-- End session overlay -->
-      <div v-if="showEndSession" class="end-session-overlay">
-        <div class="end-session-content">
-          <h2>Einde Sessie</h2>
+      <div v-if="showEndSession" class="absolute inset-0 bg-white/95 z-10 flex items-center justify-center p-5">
+        <div class="bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono text-center">
+          <h2 class="text-center border-b-2 border-gray-800 pb-2.5 mt-0">Einde Sessie</h2>
           
-          <div class="end-session-summary">
+          <div class="bg-gray-100 border border-dashed border-gray-800 p-4 my-4 text-left rounded">
             <p>{{ sessionSummary }}</p>
           </div>
           
-          <div class="meditation-icon">
+          <div class="text-5xl my-5">
             <span>🧘</span>
           </div>
           
-          <div class="end-session-message">
+          <div class="mb-5 italic">
             <p>Bedankt voor je deelname aan deze ACT sessie. Neem even de tijd om te reflecteren.</p>
           </div>
           
-          <div class="end-session-buttons">
-            <button @click="continueSession" class="retro-button continue-button">Doorgaan met sessie</button>
-            <button @click="resetSession" class="retro-button new-session-button">Nieuwe sessie starten</button>
+          <div class="flex justify-center gap-5 mt-5">
+            <button 
+              @click="continueSession" 
+              class="p-2 px-4 bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              Doorgaan met sessie
+            </button>
+            <button 
+              @click="resetSession" 
+              class="p-2 px-4 bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              Nieuwe sessie starten
+            </button>
           </div>
         </div>
       </div>
       
       <!-- Onboarding overlay -->
-      <div v-if="showOnboarding" class="onboarding-overlay">
-        <div class="onboarding-content">
-          <h2>Welkom bij de ACT Therapie App</h2>
+      <div v-if="showOnboarding" class="absolute inset-0 bg-white/95 z-10 flex items-center justify-center p-5">
+        <div class="bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono">
+          <h2 class="text-center border-b-2 border-gray-800 pb-2.5 mt-0">Welkom bij de ACT Therapie App</h2>
           
-          <div class="onboarding-section">
-            <h3>1. Wat is ACT?</h3>
+          <div class="mb-4 p-2.5 border border-dashed border-gray-800">
+            <h3 class="mt-0 border-b border-gray-800 inline-block">1. Wat is ACT?</h3>
             <p>Acceptance and Commitment Therapy (ACT) helpt je om lastige gedachten en gevoelens te accepteren terwijl je stappen zet richting een waardevol leven.</p>
           </div>
           
-          <div class="onboarding-section">
-            <h3>2. Hoe gebruik je deze app?</h3>
-            <ul>
-              <li><strong>Kies een onderwerp</strong> - Begin met een van de hoofdthema's: Waarden, Defusie of Mindfulness</li>
-              <li><strong>Verken subthema's</strong> - Verdiep je in specifieke oefeningen of concepten</li>
-              <li><strong>Stel vragen</strong> - Type je eigen vragen in het invoerveld onderaan</li>
-              <li><strong>Vervolg het gesprek</strong> - Klik op de kernbegrippen rechts om het gesprek verder te verdiepen</li>
+          <div class="mb-4 p-2.5 border border-dashed border-gray-800">
+            <h3 class="mt-0 border-b border-gray-800 inline-block">2. Hoe gebruik je deze app?</h3>
+            <ul class="pl-5">
+              <li class="mb-2"><strong>Kies een onderwerp</strong> - Begin met een van de hoofdthema's: Waarden, Defusie of Mindfulness</li>
+              <li class="mb-2"><strong>Verken subthema's</strong> - Verdiep je in specifieke oefeningen of concepten</li>
+              <li class="mb-2"><strong>Stel vragen</strong> - Type je eigen vragen in het invoerveld onderaan</li>
+              <li class="mb-2"><strong>Vervolg het gesprek</strong> - Klik op de kernbegrippen rechts om het gesprek verder te verdiepen</li>
             </ul>
           </div>
           
-          <div class="onboarding-section">
-            <h3>3. Kernbegrippen paneel</h3>
+          <div class="mb-4 p-2.5 border border-dashed border-gray-800">
+            <h3 class="mt-0 border-b border-gray-800 inline-block">3. Kernbegrippen paneel</h3>
             <p>Na elk antwoord van de assistent verschijnen er drie kernbegrippen in het rechterpaneel. <strong>Je kunt hierop klikken om direct een vervolgvraag te stellen</strong> over dat specifieke onderwerp en zo het gesprek te verdiepen.</p>
           </div>
           
-          <div class="onboarding-buttons">
-            <button @click="dismissOnboarding" class="retro-button onboarding-button">Begin met ACT therapie</button>
+          <div class="text-center mt-5">
+            <button 
+              @click="dismissOnboarding" 
+              class="p-2 px-4 text-lg bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              Begin met ACT therapie
+            </button>
           </div>
         </div>
       </div>
       
-      <div class="chat-container">
-        <div v-for="(message, index) in chatHistory" :key="index" class="message" :class="{'user-message-container': message.role === 'user', 'assistant-message-container': message.role === 'assistant'}">
-          <div class="avatar" :class="{'user-avatar': message.role === 'user', 'assistant-avatar': message.role === 'assistant'}">
+      <div class="flex-1 overflow-y-auto p-2.5 bg-white scrollbar-thin scrollbar-thumb-emerald-600 scrollbar-track-white">
+        <div v-for="(message, index) in chatHistory" :key="index" class="mb-4 flex items-start" :class="{'flex-row-reverse': message.role === 'user', 'flex-row': message.role === 'assistant'}">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold flex-shrink-0 border border-gray-800" 
+               :class="{'bg-white ml-2.5': message.role === 'user', 'bg-emerald-600 text-white mr-2.5': message.role === 'assistant'}">
             {{ message.role === 'user' ? 'J' : 'A' }}
           </div>
-          <div class="message-bubble" :class="{'user-bubble': message.role === 'user', 'assistant-bubble': message.role === 'assistant'}">
+          <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative" 
+               :class="{
+                 'bg-white border border-gray-800 rounded-tr-sm text-left': message.role === 'user', 
+                 'bg-emerald-600 text-white rounded-tl-sm text-left': message.role === 'assistant'
+               }">
             {{ message.content }}
           </div>
         </div>
         
-        <div v-if="isLoading" class="loading">Laden...</div>
+        <div v-if="isLoading" class="text-center p-2.5 italic">Laden...</div>
       </div>
       
-      <div class="controls">
-        <div class="input-container">
-          <input 
-            v-model="userMessage"
-            @keyup.enter="sendMessage"
-            type="text"
-            placeholder="Stel hier je vraag over ACT therapie..."
-            class="retro-input message-input"
-          />
-          <button 
-            @click="sendMessage"
-            :disabled="isLoading"
-            class="retro-button send-button"
-          >
-            Start gesprek
-          </button>
-          <button
-            @click="endSession"
-            :disabled="isLoading" 
-            class="retro-button end-button"
-            title="Beëindig deze sessie"
-          >
-            Afronden
-          </button>
-        </div>
+      <div class="flex p-2.5 border-t border-gray-800">
+        <input 
+          v-model="userMessage"
+          @keyup.enter="sendMessage"
+          type="text"
+          placeholder="Stel hier je vraag over ACT therapie..."
+          class="flex-1 p-1 border-2 border-gray-800 bg-white font-mono"
+        />
+        <button 
+          @click="sendMessage"
+          :disabled="isLoading"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 bg-white border-2 border-gray-800 cursor-pointer font-mono font-normal transition-all hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+        >
+          {{ chatHistory.length > 0 ? 'Versturen' : 'Start gesprek' }}
+        </button>
+        <button
+          @click="endSession"
+          :disabled="isLoading" 
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 bg-gray-100 border-2 border-gray-800 cursor-pointer font-mono font-normal transition-all hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
+          title="Beëindig deze sessie"
+        >
+          Afronden
+        </button>
       </div>
     </div>
     
     <!-- Essence keywords panel -->
-    <div class="retro-window sidebar">
-      <div class="window-header">
-        <div class="window-title">Kernbegrippen</div>
-        <div class="window-controls">
-          <button class="window-minimize">_</button>
+    <div class="w-60 h-[calc(100vh-40px)] bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden">
+      <div class="flex justify-between items-center bg-white border-b-2 border-gray-800 p-2">
+        <div class="font-bold">Kernbegrippen</div>
+        <div class="flex">
+          <button class="w-5 h-5 leading-none text-center border border-gray-800 font-bold cursor-pointer transition-all hover:bg-emerald-600 hover:text-white hover:scale-110">_</button>
         </div>
       </div>
-      <div class="essence-panel">
-        <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" class="essence-group">
-          <div class="essence-words">
+      <div class="flex-1 overflow-y-auto p-2.5 bg-white scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-white">
+        <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" class="mb-2.5 pb-2.5 border-b border-gray-800 last:border-b-0">
+          <div class="flex flex-wrap">
             <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
                  @click="useEssenceWord(word)"
-                 class="retro-button essence-word">
+                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 bg-white border-2 border-gray-800 cursor-pointer font-mono font-normal transition-all drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-gray-800 hover:text-white hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+            >
               {{ word }}
             </div>
           </div>
         </div>
         
         <div v-if="isEssenceLoading" class="essence-loading">
-          <div class="loading-bar">
-            <span class="loading-progress"></span>
+          <div class="w-full h-5 border border-gray-800 relative overflow-hidden mt-2.5">
+            <span class="block h-full w-1/2 bg-gradient-to-r from-emerald-600 to-emerald-600 via-white bg-[length:20px_20px] animate-progress"></span>
           </div>
         </div>
       </div>
@@ -385,309 +409,6 @@ function continueSession() {
 </template>
 
 <style>
-/* Kleurvariabelen */
-:root {
-  --app-bg-color: #f0f0f0;
-  --window-bg-color: #fff;
-  --text-color: #000;
-  --border-color: #000;
-  --accent-color: #009554; /* Hoofdaccent kleur - verander deze om de gehele UI aan te passen */
-  --accent-text-color: #fff;
-  --secondary-bg-color: #eee;
-}
-
-/* Retro UI styling */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Courier New', monospace;
-  background-color: var(--app-bg-color);
-  color: var(--text-color);
-}
-
-/* Center the app horizontally and ensure it fits in viewport */
-.app-container {
-  display: flex;
-  min-height: 100vh;
-  max-height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.retro-window {
-  background-color: var(--window-bg-color);
-  border: 2px solid var(--border-color);
-  box-shadow: 2px 2px 0 var(--border-color);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.window-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--window-bg-color);
-  border-bottom: 2px solid var(--border-color);
-  padding: 5px 10px;
-}
-
-.window-title {
-  font-weight: bold;
-}
-
-.window-controls button {
-  background: var(--window-bg-color);
-  border: 1px solid var(--border-color);
-  width: 20px;
-  height: 20px;
-  line-height: 16px;
-  text-align: center;
-  margin-left: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-}
-
-.window-close:hover, .window-help:hover, .window-minimize:hover {
-  background-color: var(--accent-color);
-  color: var(--accent-text-color);
-  transform: scale(1.1);
-}
-
-.main-layout {
-  width: 600px;
-  height: calc(100vh - 40px);
-}
-
-.sidebar {
-  width: 250px;
-  height: calc(100vh - 40px);
-}
-
-.chat-container, .essence-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  background-color: var(--window-bg-color);
-  /* Custom scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) var(--window-bg-color);
-}
-
-.chat-container::-webkit-scrollbar,
-.essence-panel::-webkit-scrollbar {
-  width: 10px;
-}
-
-.chat-container::-webkit-scrollbar-track,
-.essence-panel::-webkit-scrollbar-track,
-.themes-panel::-webkit-scrollbar-track {
-  background: var(--window-bg-color);
-  border-left: 1px solid var(--border-color);
-}
-
-.chat-container::-webkit-scrollbar-thumb,
-.essence-panel::-webkit-scrollbar-thumb,
-.themes-panel::-webkit-scrollbar-thumb {
-  background-color: var(--accent-color);
-  border: 1px solid var(--window-bg-color);
-}
-
-.topic-section {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.topic-header {
-  margin-bottom: 10px;
-}
-
-.topic-label, .theme-title {
-  font-weight: bold;
-  position: relative;
-  display: inline-block;
-  background-color: var(--window-bg-color);
-  padding: 5px;
-  border: 1px solid var(--border-color);
-}
-
-.topics-container {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.input-container {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  border-top: 1px solid var(--border-color);
-}
-
-.retro-input {
-  flex: 1;
-  padding: 5px;
-  border: 2px solid var(--border-color);
-  background-color: var(--window-bg-color);
-  font-family: 'Courier New', monospace;
-}
-
-.retro-button {
-  padding: 5px 10px;
-  background-color: var(--window-bg-color);
-  color: var(--text-color);
-  border: 2px solid var(--border-color);
-  cursor: pointer;
-  font-family: 'Courier New', monospace;
-  font-weight: normal;
-  position: relative;
-  text-align: center;
-  transition: all 0.15s ease-in-out;
-}
-
-.retro-button:hover {
-  background-color: var(--accent-color);
-  color: var(--accent-text-color);
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--accent-color);
-}
-
-.retro-button:active {
-  top: 1px;
-  left: 1px;
-  box-shadow: 1px 1px 0 var(--accent-color);
-  transform: translate(0, 0);
-}
-
-.retro-button:not(:active):not(:hover) {
-  box-shadow: 2px 2px 0 var(--border-color);
-}
-
-.essence-word {
-  display: inline-block;
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
-
-.message {
-  margin-bottom: 15px;
-  display: flex;
-  align-items: flex-start;
-}
-
-.user-message-container {
-  flex-direction: row-reverse;
-}
-
-.assistant-message-container {
-  flex-direction: row;
-}
-
-.avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  flex-shrink: 0;
-  border: 1px solid var(--border-color);
-}
-
-.user-avatar {
-  background-color: var(--window-bg-color);
-  margin-left: 10px;
-}
-
-.assistant-avatar {
-  background-color: var(--accent-color);
-  color: var(--accent-text-color);
-  margin-right: 10px;
-}
-
-.message-bubble {
-  padding: 10px 15px;
-  border-radius: 18px;
-  max-width: 70%;
-  word-wrap: break-word;
-  position: relative;
-}
-
-.user-bubble {
-  background-color: var(--window-bg-color);
-  border: 1px solid var(--border-color);
-  border-top-right-radius: 4px;
-  text-align: left;
-}
-
-.assistant-bubble {
-  background-color: var(--accent-color);
-  color: var(--accent-text-color);
-  border-top-left-radius: 4px;
-  text-align: left;
-}
-
-/* Remove old message styling */
-.message-content {
-  display: none;
-}
-
-.user-message, .assistant-message {
-  display: none;
-}
-
-/* Updated timestamp style */
-.chat-container .message:last-child::after {
-  content: '';
-  display: block;
-  width: 100%;
-  text-align: center;
-  color: #999;
-  font-size: 0.8rem;
-  margin-top: 15px;
-}
-
-.controls {
-  display: flex;
-  flex-direction: column;
-}
-
-.loading {
-  text-align: center;
-  padding: 10px;
-  font-style: italic;
-}
-
-.loading-bar {
-  width: 100%;
-  height: 20px;
-  border: 1px solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-  margin-top: 10px;
-}
-
-.loading-progress {
-  display: block;
-  height: 100%;
-  width: 50%;
-  background: repeating-linear-gradient(
-    45deg,
-    var(--accent-color),
-    var(--accent-color) 10px,
-    var(--window-bg-color) 10px,
-    var(--window-bg-color) 20px
-  );
-  animation: progress 1s linear infinite;
-}
-
 @keyframes progress {
   0% {
     transform: translateX(-100%);
@@ -697,227 +418,25 @@ body {
   }
 }
 
-.essence-group {
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
-}
-
-.essence-group:last-child {
-  border-bottom: none;
-}
-
-.window-help {
-  margin-right: 5px;
-}
-
-/* Onboarding styles */
-.onboarding-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.onboarding-content {
-  background-color: var(--window-bg-color);
-  border: 2px solid var(--border-color);
-  box-shadow: 3px 3px 0 var(--border-color);
-  padding: 20px;
-  max-width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
-  font-family: 'Courier New', monospace;
-}
-
-.onboarding-content h2 {
-  text-align: center;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 10px;
-  margin-top: 0;
-}
-
-.onboarding-section {
-  margin-bottom: 15px;
-  padding: 10px;
-  border: 1px dashed var(--border-color);
-}
-
-.onboarding-section h3 {
-  margin-top: 0;
-  border-bottom: 1px solid var(--border-color);
-  display: inline-block;
-}
-
-.onboarding-section ul {
-  padding-left: 20px;
-}
-
-.onboarding-section li {
-  margin-bottom: 8px;
-}
-
-.onboarding-buttons {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.onboarding-button {
-  padding: 8px 16px;
-  font-size: 1.1rem;
-}
-
-.onboarding-button:hover {
-  background-color: var(--accent-color);
-  color: var(--accent-text-color);
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--accent-color);
-}
-
-.retro-window {
-  position: relative;
-}
-
-.send-button {
-  white-space: nowrap;
-}
-
-.themes-sidebar {
-  width: 250px;
-  height: calc(100vh - 40px);
-  order: -1; /* Places this sidebar on the left */
-}
-
-.themes-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  background-color: var(--window-bg-color);
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) var(--window-bg-color);
-}
-
-.themes-panel::-webkit-scrollbar {
+/* Scrollbar styling for browsers that support it */
+.scrollbar-thin::-webkit-scrollbar {
   width: 10px;
 }
 
-.themes-panel::-webkit-scrollbar-track {
-  background: var(--window-bg-color);
-  border-left: 1px solid var(--border-color);
+.scrollbar-track-white::-webkit-scrollbar-track {
+  background: white;
+  border-left: 1px solid #333;
 }
 
-.themes-panel::-webkit-scrollbar-thumb {
-  background-color: var(--accent-color);
-  border: 1px solid var(--window-bg-color);
+.scrollbar-thumb-emerald-600::-webkit-scrollbar-thumb {
+  background-color: #1f2937;
+  border: 1px solid white;
 }
 
-.themes-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.theme-title {
-  font-weight: bold;
-  border: 1px solid var(--border-color);
-  padding: 5px;
-  margin-bottom: 10px;
-  text-align: center;
-  background-color: var(--window-bg-color);
-}
-
-.theme-button {
-  width: 100%;
-  text-align: left;
-  padding: 8px 10px;
-  margin-bottom: 5px;
-}
-
-.back-button {
-  margin-top: 15px;
-}
-
-/* Remove the topic-section styles as they're no longer needed */
-.topic-section, .topic-header, .topics-container {
-  /* These elements are being replaced by the left sidebar */
-}
-
-/* End session styles */
-.end-session-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.end-session-content {
-  background-color: var(--window-bg-color);
-  border: 2px solid var(--border-color);
-  box-shadow: 3px 3px 0 var(--border-color);
-  padding: 20px;
-  max-width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
-  font-family: 'Courier New', monospace;
-  text-align: center;
-}
-
-.end-session-content h2 {
-  text-align: center;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 10px;
-  margin-top: 0;
-}
-
-.end-session-summary {
-  background-color: var(--secondary-bg-color);
-  border: 1px dashed var(--border-color);
-  padding: 15px;
-  margin: 15px 0;
-  text-align: left;
-  border-radius: 4px;
-}
-
-.meditation-icon {
-  font-size: 48px;
-  margin: 20px 0;
-}
-
-.end-session-message {
-  margin-bottom: 20px;
-  font-style: italic;
-}
-
-.end-session-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.continue-button, .new-session-button {
-  padding: 8px 16px;
-}
-
-.end-button {
-  white-space: nowrap;
-  margin-left: 10px;
-  background-color: var(--secondary-bg-color);
+/* Hide the fallback loading elements that use older CSS */
+.message-content,
+.user-message,
+.assistant-message {
+  display: none;
 }
 </style> 
