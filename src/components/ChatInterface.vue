@@ -28,6 +28,8 @@ const isLoading = ref(false)
 const isEssenceLoading = ref(false)
 const selectedMainTopic = ref('')
 const showOnboarding = ref(true)
+const showEndSession = ref(false)
+const sessionSummary = ref('')
 
 const mainTopics = {
   "Waarden": "Waarden verkenning",
@@ -155,6 +157,8 @@ function sendSubTopic(subtopic: string) {
 function resetSession() {
   chatHistory.value = []
   selectedMainTopic.value = ''
+  showEndSession.value = false
+  sessionSummary.value = ''
 }
 
 function startOnboarding() {
@@ -163,6 +167,43 @@ function startOnboarding() {
 
 function dismissOnboarding() {
   showOnboarding.value = false
+}
+
+async function endSession() {
+  if (chatHistory.value.length < 2) {
+    showEndSession.value = true
+    return
+  }
+  
+  isLoading.value = true
+  try {
+    // Alle berichten extraheren voor samenvatting
+    const conversation = chatHistory.value.map(msg => 
+      `${msg.role === 'user' ? 'Gebruiker' : 'Assistent'}: ${msg.content}`
+    ).join('\n\n');
+    
+    const summaryPrompt = `Hier is een ACT therapie gesprek. Maak een zeer korte samenvatting (max 50 woorden) 
+    met de belangrijkste inzichten en voeg een korte reflectievraag toe die de gebruiker thuis kan overdenken.
+    
+    Gesprek:
+    ${conversation}
+    
+    Format: Geef alleen de samenvatting en reflectievraag. Geen extra tekst of uitleg.`
+    
+    const result = await model.generateContent(summaryPrompt)
+    const response = await result.response
+    sessionSummary.value = response.text().trim()
+  } catch (error) {
+    console.error('Error generating summary:', error)
+    sessionSummary.value = 'Dank voor je tijd. Neem even rust om te reflecteren op wat je hebt geleerd en hoe je dit kunt toepassen in je dagelijks leven.'
+  } finally {
+    isLoading.value = false
+    showEndSession.value = true
+  }
+}
+
+function continueSession() {
+  showEndSession.value = false
 }
 </script>
 
@@ -215,6 +256,30 @@ function dismissOnboarding() {
         <div class="window-controls">
           <button class="window-help" @click="startOnboarding" title="Help">?</button>
           <button class="window-close" @click="resetSession" title="Reset gesprek">×</button>
+        </div>
+      </div>
+      
+      <!-- End session overlay -->
+      <div v-if="showEndSession" class="end-session-overlay">
+        <div class="end-session-content">
+          <h2>Einde Sessie</h2>
+          
+          <div class="end-session-summary">
+            <p>{{ sessionSummary }}</p>
+          </div>
+          
+          <div class="meditation-icon">
+            <span>🧘</span>
+          </div>
+          
+          <div class="end-session-message">
+            <p>Bedankt voor je deelname aan deze ACT sessie. Neem even de tijd om te reflecteren.</p>
+          </div>
+          
+          <div class="end-session-buttons">
+            <button @click="continueSession" class="retro-button continue-button">Doorgaan met sessie</button>
+            <button @click="resetSession" class="retro-button new-session-button">Nieuwe sessie starten</button>
+          </div>
         </div>
       </div>
       
@@ -277,6 +342,14 @@ function dismissOnboarding() {
             class="retro-button send-button"
           >
             Start gesprek
+          </button>
+          <button
+            @click="endSession"
+            :disabled="isLoading" 
+            class="retro-button end-button"
+            title="Beëindig deze sessie"
+          >
+            Afronden
           </button>
         </div>
       </div>
@@ -775,5 +848,76 @@ body {
 /* Remove the topic-section styles as they're no longer needed */
 .topic-section, .topic-header, .topics-container {
   /* These elements are being replaced by the left sidebar */
+}
+
+/* End session styles */
+.end-session-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.end-session-content {
+  background-color: var(--window-bg-color);
+  border: 2px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--border-color);
+  padding: 20px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+}
+
+.end-session-content h2 {
+  text-align: center;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+.end-session-summary {
+  background-color: var(--secondary-bg-color);
+  border: 1px dashed var(--border-color);
+  padding: 15px;
+  margin: 15px 0;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.meditation-icon {
+  font-size: 48px;
+  margin: 20px 0;
+}
+
+.end-session-message {
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.end-session-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.continue-button, .new-session-button {
+  padding: 8px 16px;
+}
+
+.end-button {
+  white-space: nowrap;
+  margin-left: 10px;
+  background-color: var(--secondary-bg-color);
 }
 </style> 
