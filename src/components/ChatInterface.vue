@@ -472,7 +472,7 @@ function toggleChallengeMode() {
               :key="topic"
               @click="selectMainTopic(topic)"
               :disabled="isLoading"
-              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon :icon="themeIcons[topic as keyof typeof themeIcons] || 'bookmark'" class="mr-2" />
@@ -490,7 +490,7 @@ function toggleChallengeMode() {
               :key="challenge"
               @click="selectMainTopic(challenge)"
               :disabled="isLoading"
-              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon :icon="challengeIcons[challenge as keyof typeof challengeIcons] || 'tasks'" class="mr-2" />
@@ -517,7 +517,7 @@ function toggleChallengeMode() {
               :key="index"
               @click="sendSubTopic(subtopic)"
               :disabled="isLoading"
-              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon icon="star" class="mr-2" />
@@ -532,7 +532,7 @@ function toggleChallengeMode() {
               :key="index"
               @click="sendChallengeSubTopic(subtopic)"
               :disabled="isLoading"
-              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon icon="tasks" class="mr-2" />
@@ -542,7 +542,7 @@ function toggleChallengeMode() {
           
           <button 
             @click="selectedMainTopic = ''" 
-            class="w-full mt-4 text-left p-2 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
+            class="w-full mt-4 text-left p-2 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md flex items-center"
             :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
             <font-awesome-icon icon="chevron-left" class="mr-2" />
@@ -629,7 +629,7 @@ function toggleChallengeMode() {
           <div class="flex justify-center gap-5 mt-5">
             <button 
               @click="continueSession" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon icon="reply" class="mr-2" />
@@ -637,7 +637,7 @@ function toggleChallengeMode() {
             </button>
             <button 
               @click="resetSession" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon icon="redo" class="mr-2" />
@@ -645,7 +645,7 @@ function toggleChallengeMode() {
             </button>
             <button 
               @click="goToHome" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center"
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-600 border-gray-600 text-white hover:bg-gray-500' : 'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white']"
             >
               <font-awesome-icon icon="home" class="mr-2" />
@@ -709,11 +709,11 @@ function toggleChallengeMode() {
         <button 
           @click="sendMessage"
           :disabled="isLoading"
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50 flex items-center"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all disabled:opacity-50 flex items-center shadow-sm hover:shadow-md"
           :class="[
             darkMode ? 
-              'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
-              'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+              'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 
+              'bg-white border-gray-800 hover:bg-gray-800 hover:text-white'
           ]"
         >
           <font-awesome-icon icon="paper-plane" class="mr-1" />
@@ -722,11 +722,11 @@ function toggleChallengeMode() {
         <button
           @click="endSession"
           :disabled="isLoading" 
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50 flex items-center"
+          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all disabled:opacity-50 flex items-center shadow-sm hover:shadow-md"
           :class="[
             darkMode ? 
-              'bg-gray-600 border-gray-600 text-white hover:bg-gray-500 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
-              'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+              'bg-gray-600 border-gray-600 text-white hover:bg-gray-500' : 
+              'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white'
           ]"
           title="Beëindig deze sessie"
         >
@@ -754,11 +754,11 @@ function toggleChallengeMode() {
           <div class="flex flex-wrap">
             <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
                  @click="useEssenceWord(word)"
-                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 flex items-center"
+                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:shadow-md flex items-center"
                  :class="[
                    darkMode ? 
-                     'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
-                     'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
+                     'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)]' : 
+                     'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]'
                  ]"
             >
               <font-awesome-icon icon="tag" class="mr-1" />
@@ -847,7 +847,7 @@ function toggleChallengeMode() {
              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
           <button 
             @click="closeHelp" 
-            class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center mx-auto"
+            class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center mx-auto"
             :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
             <font-awesome-icon icon="arrow-left" class="mr-2" />
