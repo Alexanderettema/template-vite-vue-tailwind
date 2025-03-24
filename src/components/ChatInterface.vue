@@ -454,7 +454,7 @@ function scrollDown() {
           v-model="userMessage"
           @keyup.enter="sendMessage"
           type="text"
-          placeholder="Typ je vraag..."
+          placeholder="Deel je gedachten..."
           class="flex-1 p-1 border-2 border-gray-800 bg-white font-mono"
         />
         <button 
