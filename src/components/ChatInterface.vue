@@ -157,6 +157,47 @@ function dismissOnboarding() {
 
 <template>
   <div class="app-container">
+    <!-- Themes panel (new left sidebar) -->
+    <div class="retro-window sidebar themes-sidebar">
+      <div class="window-header">
+        <div class="window-title">{{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}</div>
+        <div class="window-controls">
+          <button class="window-minimize">_</button>
+        </div>
+      </div>
+      <div class="themes-panel">
+        <!-- Main topics -->
+        <div v-if="!selectedMainTopic" class="themes-container">
+          <div class="theme-title">Kies een ACT thema:</div>
+          <button 
+            v-for="(description, topic) in mainTopics" 
+            :key="topic"
+            @click="selectMainTopic(topic)"
+            :disabled="isLoading"
+            class="retro-button theme-button"
+          >
+            {{ topic }}
+          </button>
+        </div>
+        
+        <!-- Subtopics after main topic selection -->
+        <div v-else class="themes-container">
+          <div class="theme-title">Kies een oefening:</div>
+          <button 
+            v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
+            :key="index"
+            @click="sendSubTopic(subtopic)"
+            :disabled="isLoading"
+            class="retro-button theme-button"
+          >
+            {{ subtopic }}
+          </button>
+          
+          <button @click="selectedMainTopic = ''" class="retro-button back-button">← Terug naar thema's</button>
+        </div>
+      </div>
+    </div>
+    
     <div class="retro-window main-layout">
       <div class="window-header">
         <div class="window-title">ACT therapie</div>
@@ -208,46 +249,12 @@ function dismissOnboarding() {
       </div>
       
       <div class="controls">
-        <!-- Topic selection buttons -->
-        <div class="topics-container">
-          <!-- Main topics -->
-          <template v-if="!selectedMainTopic">
-            <button 
-              v-for="(description, topic) in mainTopics" 
-              :key="topic"
-              @click="selectMainTopic(topic)"
-              :disabled="isLoading"
-              class="retro-button topic-button"
-            >
-              {{ topic }}
-            </button>
-          </template>
-          
-          <!-- Subtopics after main topic selection -->
-          <template v-else>
-            <button 
-              v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
-              :key="index"
-              @click="sendSubTopic(subtopic)"
-              :disabled="isLoading"
-              class="retro-button subtopic-button"
-            >
-              {{ subtopic }}
-            </button>
-          </template>
-        </div>
-        
-        <!-- Back button appears when subtopics are shown -->
-        <div v-if="selectedMainTopic" class="back-button-container">
-          <button @click="selectedMainTopic = ''" class="retro-button back-button">Terug</button>
-        </div>
-        
         <div class="input-container">
           <input 
             v-model="userMessage"
             @keyup.enter="sendMessage"
             type="text"
-            placeholder="Voer bericht in..."
+            placeholder="Stel hier je vraag over ACT therapie..."
             class="retro-input message-input"
           />
           <button 
@@ -255,7 +262,7 @@ function dismissOnboarding() {
             :disabled="isLoading"
             class="retro-button send-button"
           >
-            Versturen...
+            Start gesprek
           </button>
         </div>
       </div>
@@ -390,11 +397,30 @@ body {
   border: 1px solid #fff;
 }
 
+.topic-section {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-bottom: 1px solid #000;
+}
+
+.topic-header {
+  margin-bottom: 10px;
+}
+
+.topic-label {
+  font-weight: bold;
+  position: relative;
+  display: inline-block;
+  background-color: #fff;
+  padding: 0 5px;
+  border: 1px solid #000;
+}
+
 .topics-container {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 10px;
 }
 
 .input-container {
@@ -600,5 +626,69 @@ body {
 
 .retro-window {
   position: relative;
+}
+
+.send-button {
+  white-space: nowrap;
+}
+
+.themes-sidebar {
+  width: 250px;
+  height: calc(100vh - 40px);
+  order: -1; /* Places this sidebar on the left */
+}
+
+.themes-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #fff;
+  scrollbar-width: thin;
+  scrollbar-color: #000 #fff;
+}
+
+.themes-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.themes-panel::-webkit-scrollbar-track {
+  background: #fff;
+  border-left: 1px solid #000;
+}
+
+.themes-panel::-webkit-scrollbar-thumb {
+  background-color: #000;
+  border: 1px solid #fff;
+}
+
+.themes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.theme-title {
+  font-weight: bold;
+  border: 1px solid #000;
+  padding: 5px;
+  margin-bottom: 10px;
+  text-align: center;
+  background-color: #fff;
+}
+
+.theme-button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+}
+
+.back-button {
+  margin-top: 15px;
+}
+
+/* Remove the topic-section styles as they're no longer needed */
+.topic-section, .topic-header, .topic-label, .topics-container {
+  /* These elements are being replaced by the left sidebar */
 }
 </style> 
