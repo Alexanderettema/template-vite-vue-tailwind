@@ -239,12 +239,32 @@ function resetSession() {
   sessionSummary.value = ''
 }
 
-function startOnboarding() {
-  // Reset state
-  onboardingStep.value = 0
-  showOverlay.value = false
-  // Show onboarding screen first
+// Add separate show states for help panel and guided tour
+const showHelpPanel = ref(false)
+const showGuidedTour = ref(false)
+
+// Update function to handle showing the help panel
+function showHelp() {
+  showHelpPanel.value = true
+}
+
+// Update function to handle showing the guided tour
+function startGuidedTour() {
+  // Reset state and immediately show guided tour
+  onboardingStep.value = 1 // Start directly with first step
+  showOverlay.value = true // Show overlay immediately
+  showGuidedTour.value = true
   showOnboarding.value = true
+}
+
+// Function to close help panel
+function closeHelp() {
+  showHelpPanel.value = false
+}
+
+// Rename startOnboarding to reflect it's now specifically for guided tour
+function startOnboarding() {
+  startGuidedTour()
 }
 
 function toggleDarkMode() {
@@ -389,10 +409,15 @@ const themeIcons = {
                   :title="darkMode ? 'Licht modus' : 'Donker modus'">
             <font-awesome-icon :icon="darkMode ? 'sun' : 'moon'" />
           </button>
-          <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110" 
-                  @click="startOnboarding" title="Help"
+          <button class="w-5 h-5 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110" 
+                  @click="showHelp" title="Help informatie"
                   :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
-            <font-awesome-icon icon="question-circle" />
+            <font-awesome-icon icon="info-circle" />
+          </button>
+          <button class="w-5 h-5 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110" 
+                  @click="startGuidedTour" title="Rondleiding"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="route" />
           </button>
           <button class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110" 
                   @click="resetSession" title="Reset gesprek"
@@ -593,6 +618,81 @@ const themeIcons = {
             </div>
             <span class="text-xs ml-2" :class="[darkMode ? 'text-white' : '']">Kernbegrippen laden...</span>
           </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Help panel overlay -->
+    <div v-if="showHelpPanel" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+         :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
+      <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono"
+           :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
+        <div class="flex justify-between items-center border-b-2 pb-2 mb-4"
+             :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+          <h2 class="text-xl flex items-center m-0">
+            <font-awesome-icon icon="info-circle" class="mr-2" />
+            ACT Therapie Help
+          </h2>
+          <button @click="closeHelp" class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="times" />
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <section>
+            <h3 class="text-lg font-bold flex items-center">
+              <font-awesome-icon icon="comment" class="mr-2 text-emerald-600" />
+              Over ACT Therapie
+            </h3>
+            <p class="mt-2">
+              Acceptance and Commitment Therapy (ACT) is een vorm van psychotherapie die je helpt om bewuster 
+              en flexibeler om te gaan met moeilijke gedachten en gevoelens, zodat je meer kunt leven volgens 
+              jouw persoonlijke waarden.
+            </p>
+          </section>
+          
+          <section>
+            <h3 class="text-lg font-bold flex items-center">
+              <font-awesome-icon icon="list" class="mr-2 text-emerald-600" />
+              Beschikbare thema's
+            </h3>
+            <ul class="list-disc ml-5 mt-2">
+              <li><strong>Waarden:</strong> Ontdek wat écht belangrijk voor je is</li>
+              <li><strong>Defusie:</strong> Leer afstand nemen van belemmerende gedachten</li>
+              <li><strong>Mindfulness:</strong> Oefen met aandacht in het hier en nu</li>
+              <li><strong>Acceptatie:</strong> Maak ruimte voor moeilijke gevoelens</li>
+              <li><strong>Zelf:</strong> Ontwikkel een flexibeler zelfbeeld</li>
+              <li><strong>Toewijding:</strong> Onderneem acties die bij je waarden passen</li>
+              <li><strong>Compassie:</strong> Ontwikkel meer zelfcompassie</li>
+            </ul>
+          </section>
+          
+          <section>
+            <h3 class="text-lg font-bold flex items-center">
+              <font-awesome-icon icon="lightbulb" class="mr-2 text-emerald-600" />
+              Tips voor gebruik
+            </h3>
+            <ul class="list-disc ml-5 mt-2">
+              <li>Kies een thema dat momenteel relevant voor je is</li>
+              <li>Neem de tijd om de oefeningen rustig door te werken</li>
+              <li>Probeer oefeningen ook in je dagelijks leven toe te passen</li>
+              <li>De kernbegrippen rechts kun je aanklikken voor meer verdieping</li>
+              <li>Sla belangrijke inzichten op om later te raadplegen</li>
+            </ul>
+          </section>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t text-center"
+             :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+          <button 
+            @click="closeHelp" 
+            class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md flex items-center mx-auto"
+            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+          >
+            <font-awesome-icon icon="arrow-left" class="mr-2" />
+            Terug naar gesprek
+          </button>
         </div>
       </div>
     </div>
