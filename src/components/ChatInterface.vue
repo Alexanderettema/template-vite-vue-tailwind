@@ -35,7 +35,11 @@ const showScrollIndicator = ref(true)
 const mainTopics = {
   "Waarden": "Waarden verkenning",
   "Defusie": "Defusie techniek",
-  "Mindfulness": "Het huidige moment"
+  "Mindfulness": "Het huidige moment",
+  "Acceptatie": "Acceptatie oefening",
+  "Zelf": "Observerend zelf",
+  "Toewijding": "Toegewijde actie",
+  "Compassie": "Zelfcompassie"
 }
 
 const subTopics = {
@@ -53,6 +57,26 @@ const subTopics = {
     "Lichaamsscan",
     "Vijf zintuigen",
     "Bewust ademhalen"
+  ],
+  "Acceptatie": [
+    "Pijn vs lijden",
+    "Ruimte maken",
+    "De strijd staken"
+  ],
+  "Zelf": [
+    "Observerende zelf",
+    "Denkende zelf",
+    "Contextueel zelf"
+  ],
+  "Toewijding": [
+    "Waardegericht handelen",
+    "Barrières overwinnen",
+    "Kleine stappen zetten"
+  ],
+  "Compassie": [
+    "Zelfvriendelijkheid",
+    "Gemeenschappelijkheid",
+    "Mindful aanvaarden"
   ]
 }
 
@@ -430,7 +454,7 @@ function scrollDown() {
           v-model="userMessage"
           @keyup.enter="sendMessage"
           type="text"
-          placeholder="Stel hier je vraag over ACT therapie..."
+          placeholder="Typ je vraag..."
           class="flex-1 p-1 border-2 border-gray-800 bg-white font-mono"
         />
         <button 
