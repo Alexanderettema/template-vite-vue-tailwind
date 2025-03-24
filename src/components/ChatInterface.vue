@@ -83,8 +83,9 @@ function sendExamplePrompt(prompt: string) {
             :key="index"
             @click="sendExamplePrompt(prompt)"
             :disabled="isLoading"
-            class="bg-yellow text-forest font-display text-xl p-4 border-4 border-forest
-                   hover:bg-orange disabled:opacity-50 transition-colors duration-300 text-center"
+            class="bg-sage-700/20 text-sage-200 rounded-3xl border border-sage-400/10 p-4
+                   hover:bg-teal-400/20 transition-all duration-500 disabled:opacity-50 text-center
+                   backdrop-blur-md shadow-lg text-sm sm:text-base"
           >
             {{ prompt }}
           </button>
