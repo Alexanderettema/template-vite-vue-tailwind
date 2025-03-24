@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "@nanostores/persistent": "^0.10.1",
     "@nanostores/vue": "^0.11.0",
     "@tailwindcss/vite": "^4.0.0",

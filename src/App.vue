@@ -99,6 +99,7 @@ const count = ref(0)
   <Header />
   <div class="container flex flex-col space-y-4 justify-center items-center h-screen px-4 mx-auto max-w-xl"
     style="height: calc(100vh - 84px);">
+    <h1 class="text-4xl font-bold text-white mb-8">ACT app</h1>
     <div class="flex justify-center items-center space-x-4">
       <a href="https://vitejs.dev" title="Vite logo" target="_blank">
         <img src="/vite.svg" class="logo" alt="Vite logo" width="96" height="96" />
