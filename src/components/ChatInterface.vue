@@ -16,7 +16,11 @@ const systemInstructions = `Je bent een ACT (Acceptance and Commitment Therapy) 
 7. Het geven van medisch advies of diagnoses te vermijden
 8. Zelfcompassie en persoonlijke groei aan te moedigen
 
-BELANGRIJK: Je antwoorden MOETEN onder 50 woorden blijven. Prioriteer duidelijkheid en beknoptheid boven volledigheid.`
+BELANGRIJK: 
+- Je antwoorden MOETEN onder 50 woorden blijven. Prioriteer duidelijkheid en beknoptheid boven volledigheid.
+- Eindigen ALTIJD op een manier die het gesprek open houdt voor vervolgvragen of verdieping.
+- Stel een subtiele vervolgvraag of geef een impliciete uitnodiging in je laatste zin.
+- VERMIJD het eindigen met "laat me weten of je vragen hebt" of gelijksoortige expliciete uitnodigingen.`
 
 const userMessage = ref('')
 const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string }[]>([])
@@ -84,10 +88,17 @@ async function sendMessage() {
 async function getEssence(text: string, messageIndex: number) {
   isEssenceLoading.value = true
   try {
-    const essencePrompt = `Extract exactly 3 important keywords directly from this ACT therapy response.
-      Choose words that actually appear in the text and would be meaningful for continuing the conversation.
-      Select diverse words representing different aspects or concepts mentioned.
-      Format: respond with only the 3 extracted single words separated by spaces. No explanations or additional text.
+    const essencePrompt = `Uit dit ACT therapie antwoord, extract EXACT 3 belangrijke sleutelwoorden die als conversatie-voortzettingen kunnen dienen.
+      
+      Belangrijke regels:
+      1. Kies woorden die ECHT in de tekst voorkomen
+      2. Kies woorden die tot verdieping of verdere verkenning uitnodigen
+      3. Selecteer woorden die verschillende aspecten van ACT therapy vertegenwoordigen
+      4. Houd de woorden kort en krachtig (1-2 woorden per concept)
+      5. Gebruik zelfstandige naamwoorden of kernbegrippen (geen werkwoorden/bijvoeglijke naamwoorden)
+      
+      Format: antwoord met ALLEEN 3 geëxtraheerde woorden gescheiden door spaties. Geen uitleg of extra tekst.
+      
       Text: "${text}"`
     
     const result = await model.generateContent(essencePrompt)
@@ -112,7 +123,7 @@ function splitEssence(essence: string): string[] {
 }
 
 function useEssenceWord(word: string) {
-  userMessage.value = `Laten we ${word} dieper verkennen.`
+  userMessage.value = `Kun je meer vertellen over ${word} in de context van ACT therapie?`
   sendMessage()
 }
 
