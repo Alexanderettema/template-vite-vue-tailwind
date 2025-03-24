@@ -7,10 +7,8 @@ const emit = defineEmits(['go-to-home'])
 
 // Inject shared state from App.vue
 const darkMode = inject('darkMode', ref(false))
-const showOnboarding = inject('showOnboarding', ref(true))
 const showOverlay = inject('showOverlay', ref(false))
 const onboardingStep = inject('onboardingStep', ref(0))
-const showScrollIndicator = inject('showScrollIndicator', ref(true))
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
 const genAI = new GoogleGenerativeAI(API_KEY)
@@ -239,9 +237,8 @@ function resetSession() {
   sessionSummary.value = ''
 }
 
-// Add separate show states for help panel and guided tour
+// Add separate show states for help panel
 const showHelpPanel = ref(false)
-const showGuidedTour = ref(false)
 
 // Update function to handle showing the help panel
 function showHelp() {
@@ -250,11 +247,9 @@ function showHelp() {
 
 // Update function to handle showing the guided tour
 function startGuidedTour() {
-  // Reset state and immediately show guided tour
-  onboardingStep.value = 1 // Start directly with first step
-  showOverlay.value = true // Show overlay immediately
-  showGuidedTour.value = true
-  showOnboarding.value = true
+  // Reset state and show only the guided tour steps
+  onboardingStep.value = 1 // Start with first step
+  showOverlay.value = true // Show the steps overlay
 }
 
 // Function to close help panel
