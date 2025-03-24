@@ -59,8 +59,16 @@ const subTopics = {
 // Add a MutationObserver to automatically scroll when new messages are added
 let chatObserver: MutationObserver | null = null
 
+// Add a watch on chatHistory to ensure we scroll when messages change
+watch(() => chatHistory.value.length, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+})
+
 onMounted(() => {
-  const chatContainer = document.querySelector('.flex-1.overflow-y-auto')
+  // Use a more specific selector for the chat container
+  const chatContainer = document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')
   if (chatContainer) {
     chatObserver = new MutationObserver(() => {
       scrollToBottom()
@@ -158,7 +166,8 @@ function useEssenceWord(word: string) {
 
 function scrollToBottom() {
   nextTick(() => {
-    const chatContainer = document.querySelector('.flex-1.overflow-y-auto')
+    // More specific selector for the chat panel only
+    const chatContainer = document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')
     if (chatContainer) {
       chatContainer.scrollTop = chatContainer.scrollHeight
     }
@@ -167,8 +176,8 @@ function scrollToBottom() {
 
 function scrollEssencePanelToBottom() {
   nextTick(() => {
-    const essencePanel = document.querySelector('.flex-1.overflow-y-auto.scrollbar-thumb-gray-800')
-    if (essencePanel) {
+    const essencePanel = document.querySelector('.w-60 .flex-1.overflow-y-auto')
+    if (essencePanel && essencePanel !== document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')) {
       essencePanel.scrollTop = essencePanel.scrollHeight
     }
   })
