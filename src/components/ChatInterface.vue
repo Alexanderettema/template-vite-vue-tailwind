@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const API_KEY = 'AIzaSyAnGkMmVSqjXtA-glr372uaO_JZFobkSo0'
@@ -30,6 +30,7 @@ const selectedMainTopic = ref('')
 const showOnboarding = ref(true)
 const showEndSession = ref(false)
 const sessionSummary = ref('')
+const showScrollIndicator = ref(true)
 
 const mainTopics = {
   "Waarden": "Waarden verkenning",
@@ -169,6 +170,16 @@ function dismissOnboarding() {
   showOnboarding.value = false
 }
 
+// Check scroll position in onboarding overlay
+function checkOnboardingScroll() {
+  const onboardingContent = document.querySelector('.onboarding-content')
+  if (onboardingContent) {
+    // If we're near the bottom, hide the scroll indicator
+    const isAtBottom = onboardingContent.scrollHeight - onboardingContent.scrollTop - onboardingContent.clientHeight < 50
+    showScrollIndicator.value = !isAtBottom
+  }
+}
+
 async function endSession() {
   if (chatHistory.value.length < 2) {
     showEndSession.value = true
@@ -204,6 +215,18 @@ async function endSession() {
 
 function continueSession() {
   showEndSession.value = false
+}
+
+// Add function to scroll down when indicator is clicked
+function scrollDown() {
+  const onboardingContent = document.querySelector('.onboarding-content')
+  if (onboardingContent) {
+    // Scroll down by 300px
+    onboardingContent.scrollBy({
+      top: 300,
+      behavior: 'smooth'
+    })
+  }
 }
 </script>
 
@@ -300,7 +323,7 @@ function continueSession() {
       
       <!-- Onboarding overlay -->
       <div v-if="showOnboarding" class="absolute inset-0 bg-white/95 z-10 flex items-center justify-center p-5">
-        <div class="bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono">
+        <div class="bg-white border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono onboarding-content relative" @scroll="checkOnboardingScroll">
           <h2 class="text-center border-b-2 border-gray-800 pb-2.5 mt-0">Welkom bij de ACT Therapie App</h2>
           
           <div class="mb-4 p-2.5 border border-dashed border-gray-800">
@@ -326,10 +349,21 @@ function continueSession() {
           <div class="text-center mt-5">
             <button 
               @click="dismissOnboarding" 
-              class="p-2 px-4 text-lg bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-emerald-600 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+              class="p-2 px-4 text-lg bg-white border-2 border-gray-800 cursor-pointer transition-all shadow-sm hover:bg-gray-800 hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
             >
               Begin met ACT therapie
             </button>
+          </div>
+          
+          <!-- Scroll indicator as fixed element at bottom right -->
+          <div v-if="showScrollIndicator" 
+               @click="scrollDown"
+               class="absolute bottom-8 right-8 p-2 bg-white/90 rounded-full border-2 border-gray-800 cursor-pointer hover:bg-gray-200 shadow-md animate-pulse transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                 stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                 class="animate-bounce">
+              <path d="M7 13l5 5 5-5"></path>
+            </svg>
           </div>
         </div>
       </div>
@@ -438,5 +472,18 @@ function continueSession() {
 .user-message,
 .assistant-message {
   display: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style> 
