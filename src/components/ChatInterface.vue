@@ -254,12 +254,12 @@ function resetSession() {
       
       <!-- Essence keywords panel -->
       <div class="w-48 pt-24">
-        <div class="sticky top-8">
+        <div class="sticky top-8 flex flex-col h-[calc(100vh-12rem)]">
           <div class="text-xs uppercase text-sage-400 tracking-wider mb-3">Explore Further</div>
-          <div class="space-y-6">
+          <div class="space-y-4 overflow-y-auto pr-2 essence-panel">
             <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" 
                  class="transition-all duration-500">
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2 mb-5">
                 <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
                      @click="useEssenceWord(word)"
                      class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-400/20 text-sm text-sage-200 backdrop-blur-md
@@ -273,7 +273,7 @@ function resetSession() {
               </div>
             </div>
             
-            <div v-if="isEssenceLoading" class="flex flex-col gap-2">
+            <div v-if="isEssenceLoading" class="flex flex-col gap-2 mb-5">
               <div v-for="i in 3" :key="i" 
                    class="px-3 py-1.5 rounded-xl bg-sage-700/20 border border-sage-400/10 text-sm text-sage-400 animate-pulse">
                 &nbsp;
@@ -344,5 +344,22 @@ input[type="text"]:hover {
 
 .text-center.italic {
   animation: breathe 2s ease-in-out infinite;
+}
+
+.essence-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.essence-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.essence-panel::-webkit-scrollbar-thumb {
+  background: rgba(241, 244, 241, 0.1);
+  border-radius: 2px;
+}
+
+.essence-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(241, 244, 241, 0.2);
 }
 </style> 
