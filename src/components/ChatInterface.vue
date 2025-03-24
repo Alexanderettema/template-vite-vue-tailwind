@@ -88,8 +88,9 @@ async function sendMessage() {
 async function getEssence(text: string, messageIndex: number) {
   isEssenceLoading.value = true
   try {
-    const essencePrompt = `Summarize the following text into exactly three impactful words that capture its essence. 
-      Only respond with these three words, separated by spaces. No explanations or additional text.
+    const essencePrompt = `Create 3 separate keywords or short phrases (1-2 words each) that could serve as conversation continuations based on this text.
+      Each should offer a different direction to explore further.
+      Format: respond with exactly 3 keywords or phrases separated by spaces. No explanations or additional text.
       Text: "${text}"`
     
     const result = await model.generateContent(essencePrompt)
@@ -105,6 +106,18 @@ async function getEssence(text: string, messageIndex: number) {
   } finally {
     isEssenceLoading.value = false
   }
+}
+
+// Split a three-word essence into an array of individual words
+function splitEssence(essence: string): string[] {
+  if (!essence) return []
+  return essence.split(/\s+/).filter(word => word.trim().length > 0).slice(0, 3)
+}
+
+// Use an essence word to continue the conversation
+function useEssenceWord(word: string) {
+  userMessage.value = `Tell me more about "${word}" in the context of ACT therapy.`
+  sendMessage()
 }
 
 // Function to scroll to the bottom of the chat container
@@ -242,17 +255,29 @@ function resetSession() {
       <!-- Essence keywords panel -->
       <div class="w-48 pt-24">
         <div class="sticky top-8">
-          <div class="text-xs uppercase text-sage-400 tracking-wider mb-3">Essence Insights</div>
-          <div class="space-y-4">
+          <div class="text-xs uppercase text-sage-400 tracking-wider mb-3">Explore Further</div>
+          <div class="space-y-6">
             <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" 
-                 class="transition-all duration-500 opacity-80 hover:opacity-100">
-              <div class="px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-400/20 text-sm text-sage-200 backdrop-blur-md">
-                {{ message.essence }}
+                 class="transition-all duration-500">
+              <div class="flex flex-col gap-2">
+                <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
+                     @click="useEssenceWord(word)"
+                     class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-400/20 text-sm text-sage-200 backdrop-blur-md
+                            hover:bg-teal-500/30 hover:border-teal-400/50 transition-all duration-300 cursor-pointer
+                            hover:text-white flex items-center">
+                  <span>{{ word }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
             </div>
             
-            <div v-if="isEssenceLoading" class="px-3 py-2 rounded-xl bg-sage-700/20 border border-sage-400/10 text-sm text-sage-400 animate-pulse">
-              Distilling...
+            <div v-if="isEssenceLoading" class="flex flex-col gap-2">
+              <div v-for="i in 3" :key="i" 
+                   class="px-3 py-1.5 rounded-xl bg-sage-700/20 border border-sage-400/10 text-sm text-sage-400 animate-pulse">
+                &nbsp;
+              </div>
             </div>
           </div>
         </div>
