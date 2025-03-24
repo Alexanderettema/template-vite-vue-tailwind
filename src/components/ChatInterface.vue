@@ -101,6 +101,9 @@ async function getEssence(text: string, messageIndex: number) {
     if (chatHistory.value[messageIndex]) {
       chatHistory.value[messageIndex].essence = essence
     }
+    
+    // Scroll essence panel to bottom to show latest keywords
+    nextTick(() => scrollEssencePanelToBottom())
   } catch (error) {
     console.error('Error generating essence:', error)
   } finally {
@@ -125,6 +128,14 @@ function scrollToBottom() {
   const chatContainer = document.querySelector('.chat-container')
   if (chatContainer) {
     chatContainer.scrollTop = chatContainer.scrollHeight
+  }
+}
+
+// Function to scroll essence panel to bottom to show the latest keywords
+function scrollEssencePanelToBottom() {
+  const essencePanel = document.querySelector('.essence-panel')
+  if (essencePanel) {
+    essencePanel.scrollTop = essencePanel.scrollHeight
   }
 }
 
