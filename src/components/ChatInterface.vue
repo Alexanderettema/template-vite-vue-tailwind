@@ -6,6 +6,18 @@ const API_KEY = 'AIzaSyAnGkMmVSqjXtA-glr372uaO_JZFobkSo0'
 const genAI = new GoogleGenerativeAI(API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
+const systemInstructions = `You are an ACT (Acceptance and Commitment Therapy) expert and guide. Your role is to:
+1. Provide evidence-based ACT techniques and principles
+2. Use clear, compassionate, and practical language
+3. Focus on experiential exercises and mindfulness practices
+4. Emphasize acceptance of difficult thoughts and feelings while committing to value-aligned actions
+5. Keep responses under 50 words - be extremely concise
+6. Use examples and metaphors when helpful, but keep them brief
+7. Avoid giving medical advice or diagnosing conditions
+8. Encourage self-compassion and personal growth
+
+IMPORTANT: Your responses MUST be under 50 words. Prioritize clarity and brevity over completeness.`
+
 const userMessage = ref('')
 const chatHistory = ref<{ role: 'user' | 'assistant', content: string }[]>([])
 const isLoading = ref(false)
@@ -25,7 +37,8 @@ async function sendMessage() {
   isLoading.value = true
 
   try {
-    const result = await model.generateContent(message)
+    const fullPrompt = `${systemInstructions}\n\nUser: ${message}`
+    const result = await model.generateContent(fullPrompt)
     const response = await result.response
     const text = response.text()
     chatHistory.value.push({ role: 'assistant', content: text })
@@ -71,7 +84,7 @@ function sendExamplePrompt(prompt: string) {
         </button>
       </div>
       
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center">
         <input 
           v-model="userMessage"
           @keyup.enter="sendMessage"
@@ -82,11 +95,20 @@ function sendExamplePrompt(prompt: string) {
         <button 
           @click="sendMessage"
           :disabled="isLoading"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+          aria-label="Send message"
         >
-          Send
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
         </button>
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style>
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+</style> 
