@@ -134,116 +134,127 @@ function resetSession() {
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-sage-900 via-teal-900 to-sage-950 p-8">
-    <div class="w-full max-w-2xl mx-auto">
-      <div class="flex justify-between items-center mb-12">
-        <h1 class="text-5xl font-extralight text-sage-100 text-center tracking-widest">ACT app</h1>
-        <button 
-          @click="resetSession" 
-          class="rounded-full bg-sage-700/30 border border-sage-400/20 p-2 hover:bg-teal-400/20 
-                 transition-all duration-300 backdrop-blur-md"
-          aria-label="Reset session"
-          title="Reset session"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-sage-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
-      </div>
-      
-      <div class="bg-sage-800/30 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-8 h-[400px] overflow-y-auto border border-sage-400/10 chat-container">
-        <div v-for="(message, index) in chatHistory" :key="index" 
-             :class="['mb-6 flex', message.role === 'user' ? 'justify-end' : 'justify-start items-start']">
-          <div :class="['p-5 rounded-3xl backdrop-blur-md max-w-[75%]', 
-                        message.role === 'user' 
-                          ? 'bg-teal-400/20 text-sage-100 shadow-teal-500/10' 
-                          : 'bg-sage-700/20 text-sage-200/90 shadow-sage-700/10']">
-            {{ message.content }}
+    <div class="w-full max-w-4xl mx-auto flex gap-6">
+      <div class="flex-1 flex flex-col">
+        <div class="flex justify-between items-center mb-12">
+          <h1 class="text-5xl font-extralight text-sage-100 text-center tracking-widest">ACT app</h1>
+          <button 
+            @click="resetSession" 
+            class="rounded-full bg-sage-700/30 border border-sage-400/20 p-2 hover:bg-teal-400/20 
+                   transition-all duration-300 backdrop-blur-md"
+            aria-label="Reset session"
+            title="Reset session"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-sage-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="bg-sage-800/30 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-8 h-[400px] overflow-y-auto border border-sage-400/10 chat-container">
+          <div v-for="(message, index) in chatHistory" :key="index" 
+               :class="['mb-6', message.role === 'user' ? 'text-right' : 'text-left']">
+            <div :class="['inline-block p-5 rounded-3xl backdrop-blur-md', 
+                          message.role === 'user' 
+                            ? 'bg-teal-400/20 text-sage-100 shadow-teal-500/10' 
+                            : 'bg-sage-700/20 text-sage-200/90 shadow-sage-700/10']">
+              {{ message.content }}
+            </div>
           </div>
           
-          <!-- Essence display for assistant messages -->
-          <div v-if="message.role === 'assistant'" class="ml-3 mt-1">
-            <div v-if="message.essence" class="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-xs text-sage-300">
-              {{ message.essence }}
-            </div>
-            <div v-else-if="isEssenceLoading" class="px-3 py-1 rounded-full bg-sage-700/20 border border-sage-400/10 text-xs text-sage-400 animate-pulse">
-              ...
-            </div>
+          <div v-if="isLoading" class="text-sage-300/70 text-center italic">
+            breathing in wisdom...
           </div>
         </div>
         
-        <div v-if="isLoading" class="text-sage-300/70 text-center italic">
-          breathing in wisdom...
+        <div class="flex flex-col gap-6">
+          <!-- Topic selection buttons -->
+          <div class="grid grid-cols-3 gap-4">
+            <!-- Main topics -->
+            <template v-if="!selectedMainTopic">
+              <button 
+                v-for="(description, topic) in mainTopics" 
+                :key="topic"
+                @click="selectMainTopic(topic)"
+                :disabled="isLoading"
+                class="bg-sage-700/20 text-sage-200 rounded-3xl border border-sage-400/10 p-4
+                      hover:bg-teal-400/20 transition-all duration-500 disabled:opacity-50 text-center
+                      backdrop-blur-md shadow-lg text-sm sm:text-base"
+              >
+                {{ topic }}
+              </button>
+            </template>
+            
+            <!-- Subtopics after main topic selection -->
+            <template v-else>
+              <button 
+                v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
+                :key="index"
+                @click="sendSubTopic(subtopic)"
+                :disabled="isLoading"
+                class="bg-teal-400/30 text-sage-100 rounded-3xl border border-teal-400/20 p-4
+                      hover:bg-teal-400/40 transition-all duration-500 disabled:opacity-50 text-center
+                      backdrop-blur-md shadow-lg text-sm sm:text-base"
+              >
+                {{ subtopic }}
+              </button>
+            </template>
+          </div>
+          
+          <!-- Back button appears when subtopics are shown -->
+          <div v-if="selectedMainTopic" class="flex justify-center mb-2">
+            <button 
+              @click="selectedMainTopic = ''" 
+              class="text-sage-300 hover:text-sage-100 text-sm flex items-center gap-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to main topics
+            </button>
+          </div>
+          
+          <div class="flex gap-4 items-center bg-sage-700/20 p-3 rounded-full backdrop-blur-md border border-sage-400/10 shadow-lg">
+            <input 
+              v-model="userMessage"
+              @keyup.enter="sendMessage"
+              type="text"
+              placeholder="Share your thoughts mindfully..."
+              class="flex-1 px-5 py-2 bg-transparent text-sage-100 placeholder-sage-400/50 focus:outline-none"
+            />
+            <button 
+              @click="sendMessage"
+              :disabled="isLoading"
+              class="w-12 h-12 rounded-full bg-teal-500/20 text-sage-200 flex items-center justify-center 
+                     backdrop-blur-md hover:bg-teal-500/30 transition-all duration-500 
+                     disabled:opacity-50 disabled:hover:bg-teal-500/20 shadow-lg shadow-teal-500/20
+                     border border-teal-400/30 hover:border-teal-400/50"
+              aria-label="Send message"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       
-      <div class="flex flex-col gap-6">
-        <!-- Topic selection buttons -->
-        <div class="grid grid-cols-3 gap-4">
-          <!-- Main topics -->
-          <template v-if="!selectedMainTopic">
-            <button 
-              v-for="(description, topic) in mainTopics" 
-              :key="topic"
-              @click="selectMainTopic(topic)"
-              :disabled="isLoading"
-              class="bg-sage-700/20 text-sage-200 rounded-3xl border border-sage-400/10 p-4
-                    hover:bg-teal-400/20 transition-all duration-500 disabled:opacity-50 text-center
-                    backdrop-blur-md shadow-lg text-sm sm:text-base"
-            >
-              {{ topic }}
-            </button>
-          </template>
-          
-          <!-- Subtopics after main topic selection -->
-          <template v-else>
-            <button 
-              v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
-              :key="index"
-              @click="sendSubTopic(subtopic)"
-              :disabled="isLoading"
-              class="bg-teal-400/30 text-sage-100 rounded-3xl border border-teal-400/20 p-4
-                    hover:bg-teal-400/40 transition-all duration-500 disabled:opacity-50 text-center
-                    backdrop-blur-md shadow-lg text-sm sm:text-base"
-            >
-              {{ subtopic }}
-            </button>
-          </template>
-        </div>
-        
-        <!-- Back button appears when subtopics are shown -->
-        <div v-if="selectedMainTopic" class="flex justify-center mb-2">
-          <button 
-            @click="selectedMainTopic = ''" 
-            class="text-sage-300 hover:text-sage-100 text-sm flex items-center gap-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to main topics
-          </button>
-        </div>
-        
-        <div class="flex gap-4 items-center bg-sage-700/20 p-3 rounded-full backdrop-blur-md border border-sage-400/10 shadow-lg">
-          <input 
-            v-model="userMessage"
-            @keyup.enter="sendMessage"
-            type="text"
-            placeholder="Share your thoughts mindfully..."
-            class="flex-1 px-5 py-2 bg-transparent text-sage-100 placeholder-sage-400/50 focus:outline-none"
-          />
-          <button 
-            @click="sendMessage"
-            :disabled="isLoading"
-            class="w-12 h-12 rounded-full bg-teal-500/20 text-sage-200 flex items-center justify-center 
-                   backdrop-blur-md hover:bg-teal-500/30 transition-all duration-500 
-                   disabled:opacity-50 disabled:hover:bg-teal-500/20 shadow-lg shadow-teal-500/20
-                   border border-teal-400/30 hover:border-teal-400/50"
-            aria-label="Send message"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
+      <!-- Essence keywords panel -->
+      <div class="w-48 pt-24">
+        <div class="sticky top-8">
+          <div class="text-xs uppercase text-sage-400 tracking-wider mb-3">Essence Insights</div>
+          <div class="space-y-4">
+            <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" 
+                 class="transition-all duration-500 opacity-80 hover:opacity-100">
+              <div class="px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-400/20 text-sm text-sage-200 backdrop-blur-md">
+                {{ message.essence }}
+              </div>
+            </div>
+            
+            <div v-if="isEssenceLoading" class="px-3 py-2 rounded-xl bg-sage-700/20 border border-sage-400/10 text-sm text-sage-400 animate-pulse">
+              Distilling...
+            </div>
+          </div>
         </div>
       </div>
     </div>
