@@ -238,6 +238,10 @@ function resetSession() {
 }
 
 function startOnboarding() {
+  // Reset onboarding state
+  onboardingStep.value = 0
+  showOverlay.value = false
+  // Show the initial onboarding screen
   showOnboarding.value = true
 }
 
@@ -525,15 +529,18 @@ function goToHome() {
       </div>
       
       <!-- UI Overlay for guided onboarding - positioned over the entire screen -->
-      <div v-if="showOverlay" class="fixed inset-0 z-20 pointer-events-none">
+      <div v-if="showOverlay" class="fixed inset-0 z-40 pointer-events-none">
         <!-- Dims the entire screen except for highlighted areas -->
         <div class="absolute inset-0 bg-black/70"></div>
         
         <!-- Step 1: Highlight themes panel -->
         <div v-if="onboardingStep === 0" 
-             class="absolute left-20 top-40 w-72 p-4 rounded-lg border-2 pointer-events-auto"
+             class="absolute left-[15%] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
              :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
-          <h3 class="font-bold mb-2">1. Thema's</h3>
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
+            Stap 1 van 4
+          </div>
+          <h3 class="font-bold mb-2">Thema's</h3>
           <p class="mb-4">Begin je sessie door een van deze ACT thema's te kiezen. Elk thema bevat specifieke oefeningen.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
@@ -550,9 +557,12 @@ function goToHome() {
         
         <!-- Step 2: Highlight chat area -->
         <div v-if="onboardingStep === 1" 
-             class="absolute left-1/2 top-40 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto"
+             class="absolute left-1/2 top-[30%] -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
              :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
-          <h3 class="font-bold mb-2">2. Chat</h3>
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
+            Stap 2 van 4
+          </div>
+          <h3 class="font-bold mb-2">Chat</h3>
           <p class="mb-4">Hier vindt het gesprek plaats. Je kunt eigen vragen stellen of antwoorden op de suggesties van de assistent.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
@@ -569,9 +579,12 @@ function goToHome() {
         
         <!-- Step 3: Highlight keywords panel -->
         <div v-if="onboardingStep === 2" 
-             class="absolute right-20 top-40 w-72 p-4 rounded-lg border-2 pointer-events-auto"
+             class="absolute right-[15%] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
              :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
-          <h3 class="font-bold mb-2">3. Kernbegrippen</h3>
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
+            Stap 3 van 4
+          </div>
+          <h3 class="font-bold mb-2">Kernbegrippen</h3>
           <p class="mb-4">Na elk antwoord verschijnen hier kernbegrippen. Klik erop om meer te leren over dat specifieke onderwerp.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
@@ -588,9 +601,12 @@ function goToHome() {
         
         <!-- Step 4: Highlight input area -->
         <div v-if="onboardingStep === 3" 
-             class="absolute bottom-40 left-1/2 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto"
+             class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
              :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
-          <h3 class="font-bold mb-2">4. Begin nu</h3>
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
+            Stap 4 van 4
+          </div>
+          <h3 class="font-bold mb-2">Begin nu</h3>
           <p class="mb-4">Typ hier je eerste vraag of kies een thema links om te beginnen met je ACT sessie.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
