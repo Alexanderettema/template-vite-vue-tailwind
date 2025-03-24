@@ -48,6 +48,20 @@ const mainTopics = {
   "Compassie": "Zelfcompassie"
 }
 
+// Add new dailyChallenges object
+const dailyChallenges = {
+  "Uitstelgedrag": "Uitstelgedrag aanpakken",
+  "Piekeren": "Piekeren doorbreken",
+  "Negatief denken": "Negatieve gedachten",
+  "Vastzitten": "Doorbreken van blokkades",
+  "Frustratie": "Omgaan met frustratie",
+  "Stress": "Stress verminderen",
+  "Zelfkritiek": "Minder zelfkritisch zijn"
+}
+
+// Add reference value to track the current list mode
+const showDailyChallenges = ref(false)
+
 const subTopics = {
   "Waarden": [
     "Levensrichting",
@@ -83,6 +97,45 @@ const subTopics = {
     "Zelfvriendelijkheid",
     "Gemeenschappelijkheid",
     "Mindful aanvaarden"
+  ]
+}
+
+// Add subTopics for daily challenges
+const challengeSubTopics = {
+  "Uitstelgedrag": [
+    "Uitstel herkennen",
+    "Kleine stappen zetten",
+    "Motivatie vinden"
+  ],
+  "Piekeren": [
+    "Piekerpatronen",
+    "Gedachten loslaten",
+    "Zorgtijd inplannen"
+  ],
+  "Negatief denken": [
+    "Gedachten uitdagen",
+    "Helpende gedachten",
+    "Distantie creëren"
+  ],
+  "Vastzitten": [
+    "Patronen herkennen",
+    "Nieuwe perspectieven",
+    "Actie ondernemen"
+  ],
+  "Frustratie": [
+    "Triggers herkennen",
+    "Acceptatie oefenen",
+    "Emotieregulatie"
+  ],
+  "Stress": [
+    "Stresssignalen",
+    "Grenzen stellen",
+    "Ontspanningsoefeningen"
+  ],
+  "Zelfkritiek": [
+    "Innerlijke criticus",
+    "Zelfcompassie",
+    "Helpende gedachten"
   ]
 }
 
@@ -353,6 +406,33 @@ const themeIcons = {
   "Toewijding": "compass",
   "Compassie": "smile"
 }
+
+// Add custom icon mapping for daily challenges
+const challengeIcons = {
+  "Uitstelgedrag": "clock",
+  "Piekeren": "brain", 
+  "Negatief denken": "cloud-rain",
+  "Vastzitten": "lock",
+  "Frustratie": "bolt",
+  "Stress": "exclamation-circle",
+  "Zelfkritiek": "comment-slash"
+}
+
+// Add function to send a challenge subtopic
+function sendChallengeSubTopic(subtopic: string) {
+  const challenge = selectedMainTopic.value;
+  const fullTopic = `${dailyChallenges[challenge as keyof typeof dailyChallenges]}: ${subtopic}`;
+  userMessage.value = fullTopic;
+  sendMessage();
+  selectedMainTopic.value = '';
+}
+
+// To toggle between showing ACT themes and daily challenges
+function toggleChallengeMode() {
+  showDailyChallenges.value = !showDailyChallenges.value;
+  // Reset selected topic when switching modes
+  selectedMainTopic.value = '';
+}
 </script>
 
 <template>
@@ -365,8 +445,15 @@ const themeIcons = {
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
         <div class="font-bold flex items-center" :class="[darkMode ? 'text-white' : '']">
           <font-awesome-icon icon="list" class="mr-1" />
-          {{ !selectedMainTopic ? 'ACT Thema\'s' : 'Specifieke Oefeningen' }}
+          {{ !selectedMainTopic ? (showDailyChallenges ? 'Dagelijkse Uitdagingen' : 'ACT Thema\'s') : 'Specifieke Oefeningen' }}
         </div>
+        <!-- Add toggle button for switching between themes and challenges -->
+        <button @click="toggleChallengeMode" class="text-xs p-1 border rounded transition-all"
+                :class="[darkMode ? 'border-gray-600 hover:bg-gray-700 text-white' : 'border-gray-300 hover:bg-gray-50']"
+                :title="showDailyChallenges ? 'Toon ACT thema\'s' : 'Toon dagelijkse uitdagingen'">
+          <font-awesome-icon :icon="showDailyChallenges ? 'book' : 'tasks'" class="mr-1" />
+          {{ showDailyChallenges ? 'ACT' : 'Uitdagingen' }}
+        </button>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin scrollbar-track-white"
            :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600']">
@@ -374,23 +461,45 @@ const themeIcons = {
         <div v-if="!selectedMainTopic" class="flex flex-col gap-2.5">
           <div class="font-bold border p-1 mb-2.5 text-center flex items-center justify-center"
                :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">
-            <font-awesome-icon icon="star" class="mr-1" />
-            Kies een ACT thema:
+            <font-awesome-icon :icon="showDailyChallenges ? 'tasks' : 'star'" class="mr-1" />
+            {{ showDailyChallenges ? 'Kies een uitdaging:' : 'Kies een ACT thema:' }}
           </div>
-          <button 
-            v-for="(description, topic) in mainTopics" 
-            :key="topic"
-            @click="selectMainTopic(topic)"
-            :disabled="isLoading"
-            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
-            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
-          >
-            <font-awesome-icon :icon="themeIcons[topic as keyof typeof themeIcons] || 'bookmark'" class="mr-2" />
-            {{ topic }}
-            <span class="ml-auto text-xs opacity-70">
-              <font-awesome-icon icon="chevron-right" />
-            </span>
-          </button>
+          
+          <!-- ACT Themes list -->
+          <template v-if="!showDailyChallenges">
+            <button 
+              v-for="(description, topic) in mainTopics" 
+              :key="topic"
+              @click="selectMainTopic(topic)"
+              :disabled="isLoading"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+            >
+              <font-awesome-icon :icon="themeIcons[topic as keyof typeof themeIcons] || 'bookmark'" class="mr-2" />
+              {{ topic }}
+              <span class="ml-auto text-xs opacity-70">
+                <font-awesome-icon icon="chevron-right" />
+              </span>
+            </button>
+          </template>
+          
+          <!-- Daily Challenges list -->
+          <template v-else>
+            <button 
+              v-for="(description, challenge) in dailyChallenges" 
+              :key="challenge"
+              @click="selectMainTopic(challenge)"
+              :disabled="isLoading"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+            >
+              <font-awesome-icon :icon="challengeIcons[challenge as keyof typeof challengeIcons] || 'tasks'" class="mr-2" />
+              {{ challenge }}
+              <span class="ml-auto text-xs opacity-70">
+                <font-awesome-icon icon="chevron-right" />
+              </span>
+            </button>
+          </template>
         </div>
         
         <!-- Subtopics after main topic selection -->
@@ -400,17 +509,36 @@ const themeIcons = {
             <font-awesome-icon icon="star" class="mr-1" />
             Kies een oefening:
           </div>
-          <button 
-            v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
-            :key="index"
-            @click="sendSubTopic(subtopic)"
-            :disabled="isLoading"
-            class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
-            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
-          >
-            <font-awesome-icon icon="star" class="mr-2" />
-            {{ subtopic }}
-          </button>
+          
+          <!-- Display ACT theme subtopics -->
+          <template v-if="!showDailyChallenges && subTopics[selectedMainTopic as keyof typeof subTopics]">
+            <button 
+              v-for="(subtopic, index) in subTopics[selectedMainTopic as keyof typeof subTopics]" 
+              :key="index"
+              @click="sendSubTopic(subtopic)"
+              :disabled="isLoading"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+            >
+              <font-awesome-icon icon="star" class="mr-2" />
+              {{ subtopic }}
+            </button>
+          </template>
+          
+          <!-- Display challenge subtopics -->
+          <template v-if="showDailyChallenges && challengeSubTopics[selectedMainTopic as keyof typeof challengeSubTopics]">
+            <button 
+              v-for="(subtopic, index) in challengeSubTopics[selectedMainTopic as keyof typeof challengeSubTopics]" 
+              :key="index"
+              @click="sendChallengeSubTopic(subtopic)"
+              :disabled="isLoading"
+              class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 flex items-center"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+            >
+              <font-awesome-icon icon="tasks" class="mr-2" />
+              {{ subtopic }}
+            </button>
+          </template>
           
           <button 
             @click="selectedMainTopic = ''" 
@@ -418,7 +546,7 @@ const themeIcons = {
             :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
           >
             <font-awesome-icon icon="chevron-left" class="mr-2" />
-            Terug naar thema's
+            Terug naar {{ showDailyChallenges ? 'uitdagingen' : 'thema\'s' }}
           </button>
         </div>
       </div>
