@@ -83,9 +83,10 @@ async function sendMessage() {
 async function getEssence(text: string, messageIndex: number) {
   isEssenceLoading.value = true
   try {
-    const essencePrompt = `Create 3 separate keywords or short phrases (1-2 words each) that could serve as conversation continuations based on this text.
-      Each should offer a different direction to explore further.
-      Format: respond with exactly 3 keywords or phrases separated by spaces. No explanations or additional text.
+    const essencePrompt = `Extract exactly 3 important keywords directly from this ACT therapy response.
+      Choose words that actually appear in the text and would be meaningful for continuing the conversation.
+      Select diverse words representing different aspects or concepts mentioned.
+      Format: respond with only the 3 extracted single words separated by spaces. No explanations or additional text.
       Text: "${text}"`
     
     const result = await model.generateContent(essencePrompt)
@@ -110,7 +111,7 @@ function splitEssence(essence: string): string[] {
 }
 
 function useEssenceWord(word: string) {
-  userMessage.value = `Tell me more about "${word}" in the context of ACT therapy.`
+  userMessage.value = `Let's explore ${word} more deeply.`
   sendMessage()
 }
 
@@ -147,15 +148,17 @@ function resetSession() {
 
 <template>
   <div class="app-container">
-    <div class="main-layout">
-      <div class="header">
-        <h1>ACT app</h1>
-        <button @click="resetSession" class="reset-button">Reset</button>
+    <div class="retro-window main-layout">
+      <div class="window-header">
+        <div class="window-title">ACT therapy</div>
+        <div class="window-controls">
+          <button class="window-close" @click="resetSession">×</button>
+        </div>
       </div>
       
       <div class="chat-container">
         <div v-for="(message, index) in chatHistory" :key="index" class="message">
-          <div class="message-content">
+          <div class="message-content" :class="{'user-message': message.role === 'user', 'assistant-message': message.role === 'assistant'}">
             <strong>{{ message.role === 'user' ? 'You' : 'Assistant' }}:</strong> {{ message.content }}
           </div>
         </div>
@@ -173,7 +176,7 @@ function resetSession() {
               :key="topic"
               @click="selectMainTopic(topic)"
               :disabled="isLoading"
-              class="topic-button"
+              class="retro-button topic-button"
             >
               {{ topic }}
             </button>
@@ -186,7 +189,7 @@ function resetSession() {
               :key="index"
               @click="sendSubTopic(subtopic)"
               :disabled="isLoading"
-              class="subtopic-button"
+              class="retro-button subtopic-button"
             >
               {{ subtopic }}
             </button>
@@ -195,7 +198,7 @@ function resetSession() {
         
         <!-- Back button appears when subtopics are shown -->
         <div v-if="selectedMainTopic" class="back-button-container">
-          <button @click="selectedMainTopic = ''" class="back-button">Back to main topics</button>
+          <button @click="selectedMainTopic = ''" class="retro-button back-button">Back</button>
         </div>
         
         <div class="input-container">
@@ -203,36 +206,43 @@ function resetSession() {
             v-model="userMessage"
             @keyup.enter="sendMessage"
             type="text"
-            placeholder="Type your message..."
-            class="message-input"
+            placeholder="Enter..."
+            class="retro-input message-input"
           />
           <button 
             @click="sendMessage"
             :disabled="isLoading"
-            class="send-button"
+            class="retro-button send-button"
           >
-            Send
+            Send...
           </button>
         </div>
       </div>
     </div>
     
     <!-- Essence keywords panel -->
-    <div class="sidebar">
-      <div class="sidebar-header">Explore Further</div>
+    <div class="retro-window sidebar">
+      <div class="window-header">
+        <div class="window-title">Key Concepts</div>
+        <div class="window-controls">
+          <button class="window-minimize">_</button>
+        </div>
+      </div>
       <div class="essence-panel">
         <div v-for="(message, index) in chatHistory.filter(m => m.role === 'assistant' && m.essence)" :key="index" class="essence-group">
           <div class="essence-words">
             <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
                  @click="useEssenceWord(word)"
-                 class="essence-word">
+                 class="retro-button essence-word">
               {{ word }}
             </div>
           </div>
         </div>
         
         <div v-if="isEssenceLoading" class="essence-loading">
-          <div v-for="i in 3" :key="i" class="loading-placeholder">Loading...</div>
+          <div class="loading-bar">
+            <span class="loading-progress"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -240,97 +250,151 @@ function resetSession() {
 </template>
 
 <style>
-/* Basic layout and colors */
+/* Retro UI styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier New', monospace;
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+/* Center the app horizontally and ensure it fits in viewport */
 .app-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f0f4f8;
+  max-height: 100vh;
   padding: 20px;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.retro-window {
+  background-color: #fff;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 2px solid #000;
+  padding: 5px 10px;
+}
+
+.window-title {
+  font-weight: bold;
+}
+
+.window-controls button {
+  background: #fff;
+  border: 1px solid #000;
+  width: 20px;
+  height: 20px;
+  line-height: 16px;
+  text-align: center;
+  margin-left: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.window-close:hover {
+  background-color: #000;
+  color: #fff;
 }
 
 .main-layout {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 800px;
+  width: 600px;
+  height: calc(100vh - 40px);
 }
 
 .sidebar {
   width: 250px;
-  margin-left: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  height: calc(100vh - 40px);
 }
 
 .chat-container, .essence-panel {
-  background-color: white;
-  border-radius: 8px;
-  padding: 15px;
-  overflow-y: auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.chat-container {
-  height: 400px;
   flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #fff;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #000 #fff;
 }
 
-.essence-panel {
-  height: 400px;
+.chat-container::-webkit-scrollbar,
+.essence-panel::-webkit-scrollbar {
+  width: 10px;
 }
 
-.sidebar-header {
-  margin-bottom: 10px;
-  font-weight: bold;
+.chat-container::-webkit-scrollbar-track,
+.essence-panel::-webkit-scrollbar-track {
+  background: #fff;
+  border-left: 1px solid #000;
+}
+
+.chat-container::-webkit-scrollbar-thumb,
+.essence-panel::-webkit-scrollbar-thumb {
+  background-color: #000;
+  border: 1px solid #fff;
 }
 
 .topics-container {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  padding: 10px;
 }
 
 .input-container {
   display: flex;
   gap: 10px;
+  padding: 10px;
+  border-top: 1px solid #000;
 }
 
-.message-input {
+.retro-input {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 5px;
+  border: 2px solid #000;
+  background-color: #fff;
+  font-family: 'Courier New', monospace;
 }
 
-.send-button, .reset-button, .topic-button, .subtopic-button, .back-button {
-  padding: 8px 15px;
-  background-color: #4a6fa5;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.retro-button {
+  padding: 5px 10px;
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
   cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-weight: normal;
+  position: relative;
+  text-align: center;
 }
 
-.send-button:disabled, .topic-button:disabled, .subtopic-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.retro-button:active {
+  top: 1px;
+  left: 1px;
+  box-shadow: 1px 1px 0 #000;
+}
+
+.retro-button:not(:active) {
+  box-shadow: 2px 2px 0 #000;
 }
 
 .essence-word {
-  background-color: #e5edfd;
-  padding: 5px 10px;
-  margin-bottom: 5px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.essence-word:hover {
-  background-color: #d3e2fc;
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 .message {
@@ -338,22 +402,72 @@ function resetSession() {
 }
 
 .message-content {
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #f5f8fc;
+  padding: 8px;
+  border: 1px solid #000;
   display: inline-block;
   max-width: 80%;
+  background-color: #fff;
+}
+
+.user-message {
+  margin-right: auto;
+}
+
+.assistant-message {
+  margin-left: auto;
+  background-color: #f0f0f0;
 }
 
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
 
-.loading, .essence-loading {
+.loading {
   text-align: center;
-  color: #666;
+  padding: 10px;
   font-style: italic;
+}
+
+.loading-bar {
+  width: 100%;
+  height: 20px;
+  border: 1px solid #000;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.loading-progress {
+  display: block;
+  height: 100%;
+  width: 50%;
+  background: repeating-linear-gradient(
+    45deg,
+    #000,
+    #000 10px,
+    #fff 10px,
+    #fff 20px
+  );
+  animation: progress 1s linear infinite;
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.essence-group {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #000;
+  padding-bottom: 10px;
+}
+
+.essence-group:last-child {
+  border-bottom: none;
 }
 </style> 
