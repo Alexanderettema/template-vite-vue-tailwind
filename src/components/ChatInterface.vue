@@ -19,8 +19,9 @@ const systemInstructions = `You are an ACT (Acceptance and Commitment Therapy) e
 IMPORTANT: Your responses MUST be under 50 words. Prioritize clarity and brevity over completeness.`
 
 const userMessage = ref('')
-const chatHistory = ref<{ role: 'user' | 'assistant', content: string }[]>([])
+const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string }[]>([])
 const isLoading = ref(false)
+const isEssenceLoading = ref(false)
 const selectedMainTopic = ref('')
 
 const mainTopics = {
@@ -63,7 +64,13 @@ async function sendMessage() {
     const result = await model.generateContent(fullPrompt)
     const response = await result.response
     const text = response.text()
+    
+    // Add the assistant's response to chat history
+    const messageIndex = chatHistory.value.length
     chatHistory.value.push({ role: 'assistant', content: text })
+    
+    // Generate the three-word essence
+    getEssence(text, messageIndex)
     
     // Scroll to bottom after response is received
     nextTick(() => scrollToBottom())
@@ -75,6 +82,28 @@ async function sendMessage() {
     nextTick(() => scrollToBottom())
   } finally {
     isLoading.value = false
+  }
+}
+
+async function getEssence(text: string, messageIndex: number) {
+  isEssenceLoading.value = true
+  try {
+    const essencePrompt = `Summarize the following text into exactly three impactful words that capture its essence. 
+      Only respond with these three words, separated by spaces. No explanations or additional text.
+      Text: "${text}"`
+    
+    const result = await model.generateContent(essencePrompt)
+    const response = await result.response
+    const essence = response.text().trim()
+    
+    // Update the message with the essence
+    if (chatHistory.value[messageIndex]) {
+      chatHistory.value[messageIndex].essence = essence
+    }
+  } catch (error) {
+    console.error('Error generating essence:', error)
+  } finally {
+    isEssenceLoading.value = false
   }
 }
 
@@ -123,14 +152,25 @@ function resetSession() {
       
       <div class="bg-sage-800/30 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-8 h-[400px] overflow-y-auto border border-sage-400/10 chat-container">
         <div v-for="(message, index) in chatHistory" :key="index" 
-             :class="['mb-6', message.role === 'user' ? 'text-right' : 'text-left']">
-          <div :class="['inline-block p-5 rounded-3xl backdrop-blur-md', 
+             :class="['mb-6 flex', message.role === 'user' ? 'justify-end' : 'justify-start items-start']">
+          <div :class="['p-5 rounded-3xl backdrop-blur-md max-w-[75%]', 
                         message.role === 'user' 
                           ? 'bg-teal-400/20 text-sage-100 shadow-teal-500/10' 
                           : 'bg-sage-700/20 text-sage-200/90 shadow-sage-700/10']">
             {{ message.content }}
           </div>
+          
+          <!-- Essence display for assistant messages -->
+          <div v-if="message.role === 'assistant'" class="ml-3 mt-1">
+            <div v-if="message.essence" class="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-xs text-sage-300">
+              {{ message.essence }}
+            </div>
+            <div v-else-if="isEssenceLoading" class="px-3 py-1 rounded-full bg-sage-700/20 border border-sage-400/10 text-xs text-sage-400 animate-pulse">
+              ...
+            </div>
+          </div>
         </div>
+        
         <div v-if="isLoading" class="text-sage-300/70 text-center italic">
           breathing in wisdom...
         </div>
