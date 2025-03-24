@@ -562,19 +562,6 @@ function goToHome() {
         >
           Afronden
         </button>
-        <button
-          @click="goToHome"
-          :disabled="isLoading" 
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50"
-          :class="[
-            darkMode ? 
-              'bg-gray-500 border-gray-600 text-white hover:bg-gray-400 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,0.5)]' : 
-              'bg-gray-50 border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]'
-          ]"
-          title="Terug naar startpagina"
-        >
-          Home
-        </button>
       </div>
     </div>
     
