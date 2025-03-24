@@ -244,7 +244,7 @@ function resetSession() {
               @keyup.enter="sendMessage"
               type="text"
               placeholder="Share your thoughts mindfully..."
-              class="flex-1 px-5 py-2 bg-transparent text-sage-100 placeholder-sage-400/50 focus:outline-none"
+              class="flex-1 px-5 py-2 bg-transparent text-sage-100 placeholder-sage-400/50 focus:outline-none border-0"
             />
             <button 
               @click="sendMessage"
@@ -326,6 +326,12 @@ input[type="text"]:hover {
   cursor: text;
 }
 
+/* Remove default input focus outline */
+input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 /* Existing styles */
 .shadow-2xl {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -372,5 +378,15 @@ input[type="text"]:hover {
 
 .essence-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(241, 244, 241, 0.2);
+}
+
+/* Enhanced input styling to remove all borders and outlines */
+input, input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 </style> 
