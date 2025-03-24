@@ -243,9 +243,11 @@ function startOnboarding() {
 
 function dismissOnboarding() {
   showOnboarding.value = false
-  if (onboardingStep.value === 0) {
+  // Show the UI overlay immediately after closing the initial onboarding
+  nextTick(() => {
     showOverlay.value = true
-  }
+    onboardingStep.value = 0
+  })
 }
 
 function nextOverlayStep() {
@@ -460,13 +462,13 @@ function goToHome() {
         </div>
       </div>
       
-      <!-- Onboarding overlay -->
-      <div v-if="showOnboarding" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+      <!-- Onboarding overlay - moved outside the chat container to cover entire screen -->
+      <div v-if="showOnboarding" class="fixed inset-0 z-30 flex items-center justify-center p-5"
            :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
         <!-- Dark backdrop overlay -->
         <div class="absolute inset-0 bg-black/70"></div>
         
-        <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono onboarding-content relative z-10"
+        <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[800px] max-h-[90vh] overflow-y-auto font-mono onboarding-content relative z-10"
              :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']"
              @scroll="checkOnboardingScroll">
           <h2 class="text-center pb-2.5 mt-0 border-b-2"
@@ -522,7 +524,7 @@ function goToHome() {
         </div>
       </div>
       
-      <!-- UI Overlay for guided onboarding -->
+      <!-- UI Overlay for guided onboarding - positioned over the entire screen -->
       <div v-if="showOverlay" class="fixed inset-0 z-20 pointer-events-none">
         <!-- Dims the entire screen except for highlighted areas -->
         <div class="absolute inset-0 bg-black/70"></div>
@@ -535,12 +537,12 @@ function goToHome() {
           <p class="mb-4">Begin je sessie door een van deze ACT thema's te kiezen. Elk thema bevat specifieke oefeningen.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
-                   class="px-2 py-1 text-sm border rounded"
-                   :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
+                  class="px-2 py-1 text-sm border rounded"
+                  :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
               Overslaan
             </button>
             <button @click="nextOverlayStep" 
-                   class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                  class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
               Volgende
             </button>
           </div>
@@ -554,12 +556,12 @@ function goToHome() {
           <p class="mb-4">Hier vindt het gesprek plaats. Je kunt eigen vragen stellen of antwoorden op de suggesties van de assistent.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
-                   class="px-2 py-1 text-sm border rounded"
-                   :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
+                  class="px-2 py-1 text-sm border rounded"
+                  :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
               Overslaan
             </button>
             <button @click="nextOverlayStep" 
-                   class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                  class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
               Volgende
             </button>
           </div>
@@ -573,12 +575,12 @@ function goToHome() {
           <p class="mb-4">Na elk antwoord verschijnen hier kernbegrippen. Klik erop om meer te leren over dat specifieke onderwerp.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
-                   class="px-2 py-1 text-sm border rounded"
-                   :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
+                  class="px-2 py-1 text-sm border rounded"
+                  :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
               Overslaan
             </button>
             <button @click="nextOverlayStep" 
-                   class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                  class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
               Volgende
             </button>
           </div>
@@ -592,12 +594,12 @@ function goToHome() {
           <p class="mb-4">Typ hier je eerste vraag of kies een thema links om te beginnen met je ACT sessie.</p>
           <div class="flex justify-between">
             <button @click="skipOverlay" 
-                   class="px-2 py-1 text-sm border rounded"
-                   :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
+                  class="px-2 py-1 text-sm border rounded"
+                  :class="[darkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-50']">
               Overslaan
             </button>
             <button @click="nextOverlayStep" 
-                   class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
+                  class="px-2 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700">
               Beginnen
             </button>
           </div>
