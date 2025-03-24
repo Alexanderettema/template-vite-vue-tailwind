@@ -254,12 +254,56 @@ function scrollDown() {
     
     <!-- UI Overlay for guided onboarding - positioned at the root level -->
     <div v-if="showOverlay" class="fixed inset-0 z-[100] pointer-events-none">
-      <!-- Dims the entire screen except for highlighted areas -->
-      <div class="absolute inset-0 bg-black/70"></div>
+      <!-- No dark overlay - completely transparent -->
       
-      <!-- Step 1: Highlight themes panel -->
+      <!-- Step 1: Floating arrow pointing to themes panel -->
       <div v-if="onboardingStep === 0" 
-           class="absolute left-[15%] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
+           class="absolute left-[280px] top-[200px] z-30 transform -translate-x-1/2">
+        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </div>
+        <div class="w-40 h-1 bg-emerald-500 absolute top-1/2 right-full transform -translate-y-1/2"></div>
+      </div>
+      
+      <!-- Step 2: Floating arrow pointing to chat area -->
+      <div v-if="onboardingStep === 1" 
+           class="absolute left-1/2 top-[150px] z-30 transform -translate-x-1/2">
+        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+            <path d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+        <div class="w-1 h-40 bg-emerald-500 absolute bottom-full left-1/2 transform -translate-x-1/2"></div>
+      </div>
+      
+      <!-- Step 3: Floating arrow pointing to keywords panel -->
+      <div v-if="onboardingStep === 2" 
+           class="absolute right-[280px] top-[200px] z-30 transform translate-x-1/2">
+        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </div>
+        <div class="w-40 h-1 bg-emerald-500 absolute top-1/2 left-full transform -translate-y-1/2"></div>
+      </div>
+      
+      <!-- Step 4: Floating arrow pointing to input area -->
+      <div v-if="onboardingStep === 3" 
+           class="absolute left-1/2 bottom-[100px] z-30 transform -translate-x-1/2">
+        <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+            <path d="M19 15l-7-7-7 7" />
+          </svg>
+        </div>
+        <div class="w-1 h-40 bg-emerald-500 absolute top-full left-1/2 transform -translate-x-1/2"></div>
+      </div>
+      
+      <!-- Tooltips with pointer-events-auto to allow clicking -->
+      <!-- Step 1: Tooltip for themes panel -->
+      <div v-if="onboardingStep === 0" 
+           class="absolute left-[150px] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 1 van 4
@@ -279,9 +323,9 @@ function scrollDown() {
         </div>
       </div>
       
-      <!-- Step 2: Highlight chat area -->
+      <!-- Step 2: Tooltip for chat area -->
       <div v-if="onboardingStep === 1" 
-           class="absolute left-1/2 top-[30%] -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
+           class="absolute left-1/2 -translate-x-1/2 top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 2 van 4
@@ -301,9 +345,9 @@ function scrollDown() {
         </div>
       </div>
       
-      <!-- Step 3: Highlight keywords panel -->
+      <!-- Step 3: Tooltip for keywords panel -->
       <div v-if="onboardingStep === 2" 
-           class="absolute right-[15%] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
+           class="absolute right-[150px] top-[30%] w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 3 van 4
@@ -323,9 +367,9 @@ function scrollDown() {
         </div>
       </div>
       
-      <!-- Step 4: Highlight input area -->
+      <!-- Step 4: Tooltip for input area -->
       <div v-if="onboardingStep === 3" 
-           class="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl"
+           class="absolute bottom-[120px] left-1/2 -translate-x-1/2 w-72 p-4 rounded-lg border-2 pointer-events-auto shadow-xl z-30"
            :class="[darkMode ? 'bg-gray-800 border-emerald-600 text-white' : 'bg-white border-emerald-600']">
         <div class="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold">
           Stap 4 van 4
