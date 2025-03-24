@@ -505,12 +505,12 @@ body {
 }
 
 .user-avatar {
-  background-color: #eee;
+  background-color: #fff;
   margin-left: 10px;
 }
 
 .assistant-avatar {
-  background-color: #5D76CB;
+  background-color: #000;
   color: white;
   margin-right: 10px;
 }
@@ -525,13 +525,13 @@ body {
 
 .user-bubble {
   background-color: #fff;
-  border: 1px solid #e1e1e1;
+  border: 1px solid #000;
   border-top-right-radius: 4px;
-  text-align: right;
+  text-align: left;
 }
 
 .assistant-bubble {
-  background-color: #5D76CB;
+  background-color: #000;
   color: white;
   border-top-left-radius: 4px;
   text-align: left;
