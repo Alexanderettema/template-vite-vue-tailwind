@@ -447,13 +447,6 @@ function toggleChallengeMode() {
           <font-awesome-icon icon="list" class="mr-1" />
           {{ !selectedMainTopic ? (showDailyChallenges ? 'Dagelijkse Uitdagingen' : 'ACT Thema\'s') : 'Specifieke Oefeningen' }}
         </div>
-        <!-- Add toggle button for switching between themes and challenges -->
-        <button @click="toggleChallengeMode" class="text-xs p-1 border rounded transition-all"
-                :class="[darkMode ? 'border-gray-600 hover:bg-gray-700 text-white' : 'border-gray-300 hover:bg-gray-50']"
-                :title="showDailyChallenges ? 'Toon ACT thema\'s' : 'Toon dagelijkse uitdagingen'">
-          <font-awesome-icon :icon="showDailyChallenges ? 'book' : 'tasks'" class="mr-1" />
-          {{ showDailyChallenges ? 'ACT' : 'Uitdagingen' }}
-        </button>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin scrollbar-track-white"
            :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600']">
@@ -548,6 +541,54 @@ function toggleChallengeMode() {
             <font-awesome-icon icon="chevron-left" class="mr-2" />
             Terug naar {{ showDailyChallenges ? 'uitdagingen' : 'thema\'s' }}
           </button>
+        </div>
+      </div>
+      
+      <!-- Retro toggle switch at the bottom -->
+      <div class="p-3 border-t-2 flex items-center justify-center"
+           :class="[darkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-800 bg-white']">
+        <div class="flex flex-col items-center">
+          <div class="flex items-center space-x-3 mb-1">
+            <span class="text-xs font-mono flex flex-col items-center" 
+                  :class="[showDailyChallenges ? 'opacity-60' : 'opacity-100', darkMode ? 'text-emerald-400' : 'text-emerald-600']">
+              <font-awesome-icon icon="book" class="text-sm" />
+              <span class="text-[10px] mt-0.5">ACT</span>
+            </span>
+            
+            <!-- Retro toggle switch -->
+            <div @click="toggleChallengeMode" 
+                 class="relative inline-block w-14 h-7 border-2 rounded-full cursor-pointer transition-colors shadow-inner"
+                 :class="[darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-800 bg-gray-200']">
+              <!-- Track marks/etchings -->
+              <div class="absolute top-[10px] left-2 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[10px] left-3.5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[10px] left-5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[10px] right-2 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[10px] right-3.5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              <div class="absolute top-[10px] right-5 w-0.5 h-1 rounded bg-gray-500 opacity-30"></div>
+              
+              <!-- Toggle knob -->
+              <div class="absolute top-0.5 left-0.5 transition-transform duration-300 w-5 h-5 border-2 rounded-full shadow-md flex items-center justify-center"
+                   :class="[
+                     showDailyChallenges ? 'transform translate-x-7' : '',
+                     darkMode ? 
+                       'border-gray-600 bg-emerald-500' : 
+                       'border-gray-800 bg-emerald-600'
+                   ]">
+                <!-- Highlight reflection on knob -->
+                <div class="absolute top-0.5 left-1 w-1.5 h-0.5 bg-white opacity-60 rounded-full transform -rotate-45"></div>
+              </div>
+            </div>
+            
+            <span class="text-xs font-mono flex flex-col items-center" 
+                  :class="[!showDailyChallenges ? 'opacity-60' : 'opacity-100', darkMode ? 'text-emerald-400' : 'text-emerald-600']">
+              <font-awesome-icon icon="tasks" class="text-sm" />
+              <span class="text-[10px] mt-0.5">Uitdagingen</span>
+            </span>
+          </div>
+          <div class="text-[9px] opacity-60 font-mono" :class="[darkMode ? 'text-gray-400' : 'text-gray-600']">
+            Klik om te wisselen
+          </div>
         </div>
       </div>
     </div>
