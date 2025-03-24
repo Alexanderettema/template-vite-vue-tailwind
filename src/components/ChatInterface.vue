@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const API_KEY = 'AIzaSyAnGkMmVSqjXtA-glr372uaO_JZFobkSo0'
@@ -54,6 +54,9 @@ async function sendMessage() {
   chatHistory.value.push({ role: 'user', content: message })
   userMessage.value = ''
   isLoading.value = true
+  
+  // Scroll to bottom after user message is added
+  nextTick(() => scrollToBottom())
 
   try {
     const fullPrompt = `${systemInstructions}\n\nUser: ${message}`
@@ -61,11 +64,25 @@ async function sendMessage() {
     const response = await result.response
     const text = response.text()
     chatHistory.value.push({ role: 'assistant', content: text })
+    
+    // Scroll to bottom after response is received
+    nextTick(() => scrollToBottom())
   } catch (error) {
     console.error('Error:', error)
     chatHistory.value.push({ role: 'assistant', content: 'Sorry, there was an error processing your request.' })
+    
+    // Scroll to bottom after error message is added
+    nextTick(() => scrollToBottom())
   } finally {
     isLoading.value = false
+  }
+}
+
+// Function to scroll to the bottom of the chat container
+function scrollToBottom() {
+  const chatContainer = document.querySelector('.chat-container')
+  if (chatContainer) {
+    chatContainer.scrollTop = chatContainer.scrollHeight
   }
 }
 
@@ -104,7 +121,7 @@ function resetSession() {
         </button>
       </div>
       
-      <div class="bg-sage-800/30 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-8 h-[400px] overflow-y-auto border border-sage-400/10">
+      <div class="bg-sage-800/30 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-8 h-[400px] overflow-y-auto border border-sage-400/10 chat-container">
         <div v-for="(message, index) in chatHistory" :key="index" 
              :class="['mb-6', message.role === 'user' ? 'text-right' : 'text-left']">
           <div :class="['inline-block p-5 rounded-3xl backdrop-blur-md', 
