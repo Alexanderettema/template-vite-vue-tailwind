@@ -99,8 +99,7 @@ const count = ref(0)
 
 <template>
   <div class="min-h-screen bg-gray-900">
-    <div class="container mx-auto px-4 py-8">
-      <h1 class="text-4xl font-bold text-white mb-8 text-center">ACT app</h1>
+    <div class="">
       <ChatInterface />
     </div>
   </div>

@@ -57,7 +57,7 @@ function sendExamplePrompt(prompt: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-sage-900 via-teal-900 to-sage-950 p-4">
+  <div class="min-h-screen bg-gradient-to-br from-sage-900 via-teal-900 to-sage-950 p-8">
     <div class="w-full max-w-2xl mx-auto">
       <h1 class="text-5xl font-extralight text-sage-100 mb-12 text-center tracking-widest">ACT app</h1>
       
@@ -76,16 +76,15 @@ function sendExamplePrompt(prompt: string) {
         </div>
       </div>
       
-      <div class="flex flex-col gap-8">
-        <div class="flex flex-wrap gap-4 justify-center">
+      <div class="flex flex-col gap-6">
+        <div class="grid grid-cols-3 gap-4">
           <button 
             v-for="(prompt, index) in examplePrompts" 
             :key="index"
             @click="sendExamplePrompt(prompt)"
             :disabled="isLoading"
-            class="px-6 py-3 bg-sage-600/10 text-sage-200 rounded-full border border-sage-400/20 
-                   hover:bg-sage-500/20 hover:border-sage-400/30 disabled:opacity-50 text-sm 
-                   transition-all duration-500 backdrop-blur-md shadow-lg shadow-sage-900/20"
+            class="bg-yellow text-forest font-display text-xl p-4 border-4 border-forest
+                   hover:bg-orange disabled:opacity-50 transition-colors duration-300 text-center"
           >
             {{ prompt }}
           </button>
