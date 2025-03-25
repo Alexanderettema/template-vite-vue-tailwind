@@ -166,6 +166,24 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
+// Add font size settings reference
+const fontSize = ref('medium') // Options: small, medium, large
+
+// Function to handle font size changes
+function changeFontSize(size: string) {
+  fontSize.value = size
+  // Store preference in localStorage
+  localStorage.setItem('fontSize', size)
+}
+
+// Add settings panel state
+const showSettingsPanel = ref(false)
+
+// Function to toggle settings panel
+function toggleSettings() {
+  showSettingsPanel.value = !showSettingsPanel.value
+}
+
 onMounted(() => {
   // Use a more specific selector for the chat container
   const chatContainer = document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')
@@ -189,9 +207,18 @@ onMounted(() => {
     darkMode.value = true
   }
   
+  // Check for saved font size preference
+  const savedFontSize = localStorage.getItem('fontSize')
+  if (savedFontSize) {
+    fontSize.value = savedFontSize
+  }
+  
   // Add event listeners for help panel
   window.addEventListener('keydown', handleHelpKeyDown)
   window.addEventListener('mousedown', handleClickOutside)
+  
+  // Add event listener for settings panel
+  window.addEventListener('keydown', handleSettingsKeyDown)
 })
 
 onUnmounted(() => {
@@ -202,6 +229,7 @@ onUnmounted(() => {
   // Remove event listeners
   window.removeEventListener('keydown', handleHelpKeyDown)
   window.removeEventListener('mousedown', handleClickOutside)
+  window.removeEventListener('keydown', handleSettingsKeyDown)
 })
 
 async function sendMessage() {
@@ -433,6 +461,13 @@ function toggleChallengeMode() {
   // Reset selected topic when switching modes
   selectedMainTopic.value = '';
 }
+
+// Add method to close settings panel with escape key
+function handleSettingsKeyDown(event: KeyboardEvent) {
+  if (showSettingsPanel.value && event.key === 'Escape') {
+    toggleSettings()
+  }
+}
 </script>
 
 <template>
@@ -595,16 +630,34 @@ function toggleChallengeMode() {
     
     <div class="w-[600px] h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden relative"
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
-      <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
+      <!-- Middle panel header -->
+      <div class="flex justify-between items-center border-b-2 border-gray-800 p-2 relative overflow-hidden"
            :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
-        <div class="font-bold" :class="[darkMode ? 'text-white' : '']">
-          <font-awesome-icon icon="message" class="mr-1" /> ACT therapie
+        <!-- Scanline effect -->
+        <div class="absolute inset-0 pointer-events-none opacity-5">
+          <div class="h-full w-full" :class="[darkMode ? 'bg-scanlines-dark' : 'bg-scanlines-light']"></div>
         </div>
-        <div class="flex">
+        <!-- Pixel corners -->
+        <div class="absolute top-0.5 left-0.5 w-1 h-1 bg-emerald-500 opacity-80"></div>
+        <div class="absolute top-0.5 right-0.5 w-1 h-1 bg-emerald-500 opacity-80"></div>
+
+        <div class="font-bold relative z-10" :class="[darkMode ? 'text-white' : '']">
+          <font-awesome-icon icon="message" class="mr-1" /> 
+          <span class="relative">
+            ACT therapie
+            <span class="absolute -top-1 -right-2 text-[8px] text-emerald-500 font-mono">v1.0</span>
+          </span>
+        </div>
+        <div class="flex relative z-10">
           <button @click="toggleDarkMode" class="w-auto h-5 px-1 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110"
                   :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']" 
                   :title="darkMode ? 'Licht modus' : 'Donker modus'">
             <font-awesome-icon :icon="darkMode ? 'sun' : 'moon'" />
+          </button>
+          <button class="w-5 h-5 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110" 
+                  @click="toggleSettings" title="Instellingen"
+                  :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+            <font-awesome-icon icon="cog" />
           </button>
           <button class="w-5 h-5 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110" 
                   @click="showHelp" title="Help informatie"
@@ -709,12 +762,13 @@ function toggleChallengeMode() {
             <font-awesome-icon :icon="message.role === 'user' ? 'user' : 'robot'" />
           </div>
           <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative shadow-sm" 
-               :class="{
-                 'bg-white border border-gray-800 rounded-tr-sm text-left': message.role === 'user' && !darkMode, 
-                 'bg-gray-700 border border-gray-600 rounded-tr-sm text-left text-white': message.role === 'user' && darkMode,
-                 'bg-emerald-600 text-white rounded-tl-sm text-left': message.role === 'assistant' && !darkMode,
-                 'bg-emerald-700 text-white rounded-tl-sm text-left': message.role === 'assistant' && darkMode
-               }">
+               :class="[
+                 fontSize === 'small' ? 'text-sm' : fontSize === 'large' ? 'text-lg' : 'text-base',
+                 message.role === 'user' && !darkMode ? 'bg-white border border-gray-800 rounded-tr-sm text-left' : 
+                 message.role === 'user' && darkMode ? 'bg-gray-700 border border-gray-600 rounded-tr-sm text-left text-white' :
+                 message.role === 'assistant' && !darkMode ? 'bg-emerald-600 text-white rounded-tl-sm text-left' :
+                 'bg-emerald-700 text-white rounded-tl-sm text-left'
+               ]">
             {{ message.content }}
             <div v-if="message.role === 'assistant'" class="text-xs opacity-70 mt-1 text-right">
               <font-awesome-icon icon="clock" /> 
@@ -897,6 +951,128 @@ function toggleChallengeMode() {
         </div>
       </div>
     </div>
+    
+    <!-- Settings panel overlay -->
+    <div v-if="showSettingsPanel" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+         :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
+      <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono settings-panel-container"
+           :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
+        <div class="flex justify-between items-center border-b-2 pb-2 mb-4 relative"
+             :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+          <!-- Retro decorative scanlines -->
+          <div class="absolute inset-0 pointer-events-none opacity-5 overflow-hidden">
+            <div class="h-full w-full" :class="[darkMode ? 'bg-scanlines-dark' : 'bg-scanlines-light']"></div>
+          </div>
+          
+          <h2 class="text-xl flex items-center m-0 relative z-10">
+            <font-awesome-icon icon="cog" class="mr-2 animate-slow-spin" />
+            Instellingen
+          </h2>
+          <!-- Close settings button with ESC hint -->
+          <div class="flex items-center relative z-10">
+            <span class="text-xs mr-2 opacity-70">ESC</span>
+            <button @click="toggleSettings" class="w-5 h-5 leading-none text-center border font-bold cursor-pointer transition-all hover:scale-110"
+                    :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
+              <font-awesome-icon icon="times" />
+            </button>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          <section class="p-3 border border-dashed rounded relative"
+                  :class="[darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-800 bg-gray-100/50']">
+            <!-- Pixel corner decorations -->
+            <div class="absolute top-1 left-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
+            <div class="absolute top-1 right-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
+            <div class="absolute bottom-1 left-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
+            <div class="absolute bottom-1 right-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
+            
+            <h3 class="text-lg font-bold flex items-center mb-2">
+              <font-awesome-icon icon="text-height" class="mr-2 text-emerald-600" />
+              Tekstgrootte
+            </h3>
+            
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center mb-2">
+                <div class="w-14 text-center">
+                  <span class="text-xs">Klein</span>
+                </div>
+                <button
+                  @click="changeFontSize('small')"
+                  class="px-3 py-2 mx-1 border-2 text-sm font-small transition-all flex items-center"
+                  :class="[
+                    fontSize === 'small' ? 
+                      (darkMode ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-emerald-600 text-white border-emerald-800') : 
+                      (darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-white border-gray-800 hover:bg-gray-100'),
+                  ]"
+                >
+                  <span class="block text-center">Aa</span>
+                  <font-awesome-icon v-if="fontSize === 'small'" icon="check" class="ml-1.5 text-xs" />
+                </button>
+                
+                <button
+                  @click="changeFontSize('medium')"
+                  class="px-3 py-2 mx-1 border-2 text-base transition-all flex items-center"
+                  :class="[
+                    fontSize === 'medium' ? 
+                      (darkMode ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-emerald-600 text-white border-emerald-800') : 
+                      (darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-white border-gray-800 hover:bg-gray-100'),
+                  ]"
+                >
+                  <span class="block text-center">Aa</span>
+                  <font-awesome-icon v-if="fontSize === 'medium'" icon="check" class="ml-1.5 text-xs" />
+                </button>
+                
+                <button
+                  @click="changeFontSize('large')"
+                  class="px-3 py-2 mx-1 border-2 text-lg font-medium transition-all flex items-center"
+                  :class="[
+                    fontSize === 'large' ? 
+                      (darkMode ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-emerald-600 text-white border-emerald-800') : 
+                      (darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-white border-gray-800 hover:bg-gray-100'),
+                  ]"
+                >
+                  <span class="block text-center">Aa</span>
+                  <font-awesome-icon v-if="fontSize === 'large'" icon="check" class="ml-1.5 text-xs" />
+                </button>
+                <div class="w-14 text-center">
+                  <span class="text-xs">Groot</span>
+                </div>
+              </div>
+              
+              <!-- Preview area -->
+              <div class="mt-3 p-3 rounded-lg border-2 relative"
+                  :class="[darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-800 bg-white']">
+                <div class="absolute top-0 left-3 px-2 -translate-y-1/2 text-xs font-mono"
+                     :class="[darkMode ? 'bg-gray-800 text-emerald-400' : 'bg-white text-emerald-600']">
+                  <font-awesome-icon icon="eye" class="mr-1" /> Voorbeeld
+                </div>
+                <p :class="[
+                    fontSize === 'small' ? 'text-sm' : 
+                    fontSize === 'medium' ? 'text-base' : 
+                    'text-lg'
+                  ]"
+                >
+                  ACT therapie helpt je om bewust en flexibel om te gaan met moeilijke gedachten en gevoelens, zodat je meer kunt leven volgens jouw persoonlijke waarden.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t text-center"
+             :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+          <button 
+            @click="toggleSettings" 
+            class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center mx-auto"
+            :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+          >
+            <font-awesome-icon icon="check" class="mr-2" />
+            Instellingen opslaan
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -943,5 +1119,19 @@ function toggleChallengeMode() {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Animation for slow spinning cog */
+@keyframes slow-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-slow-spin {
+  animation: slow-spin 6s linear infinite;
 }
 </style> 
