@@ -3,6 +3,8 @@ import { supabase } from './lib/supabase'
 import LandingPage from './components/LandingPage.vue'
 import AuthPage from './components/AuthPage.vue'
 import ChatInterface from './components/ChatInterface.vue'
+import SessionBrowser from './components/SessionBrowser.vue'
+import SessionDetails from './components/SessionDetails.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -20,6 +22,18 @@ const routes: RouteRecordRaw[] = [
     name: 'chat',
     component: ChatInterface,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/sessions',
+    name: 'sessions',
+    component: SessionBrowser,
+    meta: { requiresAuth: false }  // Allow both logged in and anonymous users
+  },
+  {
+    path: '/sessions/:id',
+    name: 'session-details',
+    component: SessionDetails,
+    meta: { requiresAuth: false }  // Allow both logged in and anonymous users
   }
 ]
 

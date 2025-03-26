@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, watch, inject } from 'vue'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { useSessionManagement } from '@/composables/useSessionManagement'
 
 const router = useRouter()
+const route = useRoute()
 const { signOut } = useAuth()
+const { currentSession, startNewSession, saveCurrentSession, loadSession, updateSessionMessages, addSessionInsight, generateSessionSummary, loadSavedSessions } = useSessionManagement()
 
 // Define emits
 const emit = defineEmits(['go-to-home'])
@@ -40,7 +43,7 @@ BELANGRIJK:
 - Leg een duidelijk verband tussen jouw ACT-gerelateerde inzichten en de specifieke situatie van de gebruiker.`
 
 const userMessage = ref('')
-const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string, displayFull: boolean }[]>([])
+const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string, displayFull: boolean, timestamp?: string }[]>([])
 const isLoading = ref(false)
 const isEssenceLoading = ref(false)
 const selectedMainTopic = ref('')
@@ -158,6 +161,26 @@ watch(() => chatHistory.value.length, () => {
   })
 })
 
+// Add a watch on chatHistory to manage session data
+watch(() => chatHistory.value, (newChatHistory) => {
+  if (currentSession.value) {
+    // Update the session with new messages
+    updateSessionMessages(newChatHistory.map((msg: { role: 'user' | 'assistant', content: string, essence?: string, displayFull: boolean, timestamp?: string }) => ({
+      role: msg.role,
+      content: msg.content,
+      essence: msg.essence,
+      timestamp: msg.timestamp
+    })))
+    
+    // Auto-save session after each message
+    saveCurrentSession()
+  }
+}, { deep: true })
+
+// Add session state refs
+const showSessionEndModal = ref(false)
+const isGeneratingSummary = ref(false)
+
 // Add methods for the help panel keyboard and click outside functionality
 function handleHelpKeyDown(event: KeyboardEvent) {
   if (showHelpPanel.value && event.key === 'Escape') {
@@ -197,7 +220,12 @@ function toggleSettings() {
 function showWelcomeMessage() {
   const welcomeText = "Welkom bij je ACT therapie sessie. Ik ben je interactieve ACT Specialist, gespecialiseerd in Acceptance and Commitment Therapy. Wat zou je vandaag willen verkennen? Je kunt een thema kiezen of gewoon je gedachten delen."
   
-  chatHistory.value.push({ role: 'assistant', content: welcomeText, displayFull: false })
+  chatHistory.value.push({ 
+    role: 'assistant', 
+    content: welcomeText, 
+    displayFull: false,
+    timestamp: new Date().toISOString() 
+  })
   scrollToBottom()
   
   // Start animating the welcome message
@@ -228,7 +256,7 @@ function animateTextDisplay(text: string) {
   }, 1500)
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Use a more specific selector for the chat container
   const chatContainer = document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')
   if (chatContainer) {
@@ -251,10 +279,40 @@ onMounted(() => {
     darkMode.value = true
   }
   
-  // Check for saved font size preference
+  // Load font size preference
   const savedFontSize = localStorage.getItem('fontSize')
   if (savedFontSize) {
     fontSize.value = savedFontSize
+  }
+  
+  // Load existing sessions first to prevent duplicates
+  loadSavedSessions()
+  
+  // Check if we're continuing an existing session
+  const sessionId = route.query.sessionId as string
+  if (sessionId) {
+    const session = loadSession(sessionId)
+    if (session && session.messages.length > 0) {
+      // Load messages from the session
+      chatHistory.value = session.messages.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content,
+        essence: msg.essence,
+        displayFull: true,
+        timestamp: msg.timestamp
+      }))
+    } else {
+      // Start new session if not found
+      startNewSession()
+      showWelcomeMessage()
+    }
+  } else if (!currentSession.value) {
+    // Only start a new session if we don't have one already
+    startNewSession()
+    showWelcomeMessage()
+  } else if (chatHistory.value.length === 0) {
+    // If we have a session but no chat history, show welcome message
+    showWelcomeMessage()
   }
   
   // Add event listeners for help panel
@@ -263,11 +321,6 @@ onMounted(() => {
   
   // Add event listener for settings panel
   window.addEventListener('keydown', handleSettingsKeyDown)
-  
-  // Show welcome message if chat is empty
-  if (chatHistory.value.length === 0) {
-    showWelcomeMessage()
-  }
 })
 
 onUnmounted(() => {
@@ -286,7 +339,12 @@ async function sendMessage() {
   if (!userMessage.value.trim()) return
   
   const message = userMessage.value
-  chatHistory.value.push({ role: 'user', content: message, displayFull: false })
+  chatHistory.value.push({ 
+    role: 'user', 
+    content: message, 
+    displayFull: false,
+    timestamp: new Date().toISOString() 
+  })
   userMessage.value = ''
   isLoading.value = true
   
@@ -314,7 +372,12 @@ Antwoord op het nieuwste bericht van de gebruiker.`
     const text = response.text()
     
     const messageIndex = chatHistory.value.length
-    chatHistory.value.push({ role: 'assistant', content: text, displayFull: false })
+    chatHistory.value.push({ 
+      role: 'assistant', 
+      content: text, 
+      displayFull: false,
+      timestamp: new Date().toISOString() 
+    })
     
     // Start animating the message with the breathing effect
     animateTextDisplay(text)
@@ -324,7 +387,12 @@ Antwoord op het nieuwste bericht van de gebruiker.`
     scrollToBottom()
   } catch (error) {
     console.error('Error:', error)
-    chatHistory.value.push({ role: 'assistant', content: 'Sorry, er was een fout bij het verwerken van je verzoek.', displayFull: true })
+    chatHistory.value.push({ 
+      role: 'assistant', 
+      content: 'Sorry, er was een fout bij het verwerken van je verzoek.', 
+      displayFull: true,
+      timestamp: new Date().toISOString() 
+    })
     
     scrollToBottom()
   } finally {
@@ -440,9 +508,9 @@ function cancelReset() {
 // Add separate show states for help panel
 const showHelpPanel = ref(false)
 
-// Update function to handle showing the help panel
-function showHelp() {
-  showHelpPanel.value = true
+// Function to toggle help panel
+function toggleHelp() {
+  showHelpPanel.value = !showHelpPanel.value
 }
 
 // Update function to handle showing the guided tour
@@ -476,46 +544,52 @@ function toggleDarkMode() {
   localStorage.setItem('darkMode', darkMode.value ? 'true' : 'false')
 }
 
+// Add function to show sessions page
+function viewSessions() {
+  router.push('/sessions')
+}
+
+// Add function to end session and view summary
 async function endSession() {
-  if (chatHistory.value.length < 2) {
-    showEndSession.value = true
-    return
-  }
+  isGeneratingSummary.value = true
   
-  isLoading.value = true
   try {
-    // Alle berichten extraheren voor samenvatting
-    const conversation = chatHistory.value.map(msg => 
-      `${msg.role === 'user' ? 'Gebruiker' : 'Assistent'}: ${msg.content}`
-    ).join('\n\n');
-    
-    const summaryPrompt = `Hier is een ACT therapie gesprek. Maak een zeer korte samenvatting (max 50 woorden) 
-    met de belangrijkste inzichten en voeg een korte reflectievraag toe die de gebruiker thuis kan overdenken.
-    
-    Gesprek:
-    ${conversation}
-    
-    Format: Geef alleen de samenvatting en reflectievraag. Geen extra tekst of uitleg.`
-    
-    const result = await model.generateContent(summaryPrompt)
-    const response = await result.response
-    sessionSummary.value = response.text().trim()
+    // Always generate a summary when ending a session
+    if (currentSession.value) {
+      await generateSessionSummary()
+      
+      if (currentSession.value?.summary) {
+        sessionSummary.value = currentSession.value.summary.summary
+        
+        // Ensure we update the current session with the final summary
+        await saveCurrentSession()
+        
+        // Show the end session modal
+        showSessionEndModal.value = true
+      } else {
+        console.error('Failed to generate session summary')
+      }
+    }
   } catch (error) {
-    console.error('Error generating summary:', error)
-    sessionSummary.value = 'Dank voor je tijd. Neem even rust om te reflecteren op wat je hebt geleerd en hoe je dit kunt toepassen in je dagelijks leven.'
+    console.error('Error ending session:', error)
   } finally {
-    isLoading.value = false
-    showEndSession.value = true
+    isGeneratingSummary.value = false
   }
 }
 
-function continueSession() {
-  showEndSession.value = false
-}
-
-// Add function to go to home
-function goToHome() {
-  router.push('/')
+// Function to reset chat and start a new session
+function startNewChat() {
+  // Close the modal
+  showSessionEndModal.value = false
+  
+  // Start a new session
+  startNewSession()
+  
+  // Clear chat history
+  chatHistory.value = []
+  
+  // Show welcome message
+  showWelcomeMessage()
 }
 
 // Custom icon mapping for ACT themes
@@ -667,6 +741,16 @@ async function handleLogout() {
   } catch (error) {
     console.error('Logout error:', error)
   }
+}
+
+// Calculate session duration in minutes
+function calculateSessionDuration() {
+  if (!currentSession.value) return 0
+  
+  const startDate = new Date(currentSession.value.date)
+  const now = new Date()
+  
+  return Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60))
 }
 </script>
 
@@ -854,7 +938,7 @@ async function handleLogout() {
             <font-awesome-icon icon="cog" />
           </button>
           <button class="w-5 h-5 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110" 
-                  @click="showHelp" title="Help informatie"
+                  @click="toggleHelp" title="Help informatie"
                   :class="[darkMode ? 'border-gray-600 text-white hover:bg-emerald-700' : 'border-gray-800 hover:bg-emerald-600 hover:text-white']">
             <font-awesome-icon icon="info-circle" />
           </button>
@@ -872,7 +956,7 @@ async function handleLogout() {
       </div>
       
       <!-- End session overlay -->
-      <div v-if="showEndSession" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+      <div v-if="showSessionEndModal" class="absolute inset-0 z-10 flex items-center justify-center p-5"
            :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
         <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-[90%] max-h-[90%] overflow-y-auto font-mono text-center"
              :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
@@ -916,28 +1000,20 @@ async function handleLogout() {
           
           <div class="flex justify-center gap-5 mt-5">
             <button 
-              @click="continueSession" 
+              @click="startNewChat" 
               class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
               <font-awesome-icon icon="reply" class="mr-2" />
-              Doorgaan met sessie
-            </button>
-            <button 
-              @click="resetSession" 
-              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
-              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
-            >
-              <font-awesome-icon icon="redo" class="mr-2" />
               Nieuwe sessie starten
             </button>
             <button 
-              @click="goToHome" 
+              @click="viewSessions" 
               class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
-              :class="[darkMode ? 'bg-gray-600 border-gray-600 text-white hover:bg-gray-500' : 'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white']"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
-              <font-awesome-icon icon="home" class="mr-2" />
-              Naar startpagina
+              <font-awesome-icon icon="eye" class="mr-2" />
+              Sessies bekijken
             </button>
           </div>
         </div>
@@ -1054,20 +1130,6 @@ async function handleLogout() {
         >
           <font-awesome-icon icon="paper-plane" class="mr-1" />
           {{ chatHistory.length > 0 ? 'Versturen' : 'Start gesprek' }}
-        </button>
-        <button
-          @click="endSession"
-          :disabled="isLoading" 
-          class="whitespace-nowrap p-1 px-2.5 ml-2.5 border-2 cursor-pointer font-mono font-normal transition-all disabled:opacity-50 flex items-center shadow-sm hover:shadow-md"
-          :class="[
-            darkMode ? 
-              'bg-gray-600 border-gray-600 text-white hover:bg-gray-500' : 
-              'bg-gray-100 border-gray-800 hover:bg-gray-800 hover:text-white'
-          ]"
-          title="Beëindig deze sessie"
-        >
-          <font-awesome-icon icon="check-circle" class="mr-1" />
-          Afronden
         </button>
       </div>
     </div>
@@ -1306,6 +1368,115 @@ async function handleLogout() {
             <font-awesome-icon icon="check" class="mr-2" />
             Instellingen opslaan
           </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right sidebar -->
+    <div class="w-64 border-l hidden md:flex flex-col h-full"
+         :class="[darkMode ? 'bg-gray-900 border-gray-700 text-gray-300' : 'bg-white border-gray-200 text-gray-800']">
+      <!-- User menu -->
+      <div class="p-4 flex flex-col gap-2 justify-between border-b" 
+           :class="[darkMode ? 'border-gray-700' : 'border-gray-200']">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm font-semibold">Mijn Account</h2>
+          <button 
+            @click="signOut" 
+            class="text-xs px-3 py-1.5 rounded-full transition-colors"
+            :class="[
+              darkMode ? 
+                'bg-gray-800 hover:bg-red-800 text-gray-300' : 
+                'bg-gray-100 hover:bg-red-100 text-gray-700'
+            ]"
+          >
+            <font-awesome-icon icon="sign-out-alt" class="mr-1" />
+            Uitloggen
+          </button>
+        </div>
+        
+        <div class="flex items-center mt-2">
+          <button 
+            @click="toggleSettings" 
+            class="text-xs px-3 py-1.5 rounded-full mr-2 transition-colors flex-1 flex items-center justify-center"
+            :class="[
+              darkMode ? 
+                'bg-gray-800 hover:bg-gray-700 text-gray-300' : 
+                'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            ]"
+          >
+            <font-awesome-icon icon="cog" class="mr-1" />
+            Instellingen
+          </button>
+          <button 
+            @click="toggleHelp" 
+            class="text-xs px-3 py-1.5 rounded-full transition-colors flex-1 flex items-center justify-center"
+            :class="[
+              darkMode ? 
+                'bg-gray-800 hover:bg-gray-700 text-gray-300' : 
+                'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            ]"
+          >
+            <font-awesome-icon icon="question-circle" class="mr-1" />
+            Help
+          </button>
+        </div>
+      </div>
+      
+      <!-- Session management -->
+      <div class="p-4 border-b" :class="[darkMode ? 'border-gray-700' : 'border-gray-200']">
+        <h2 class="text-sm font-semibold mb-3">Sessie Beheer</h2>
+        
+        <div class="flex flex-col gap-2">
+          <button
+            @click="viewSessions"
+            class="w-full p-2 rounded-lg text-xs font-medium flex items-center transition-colors"
+            :class="[
+              darkMode 
+                ? 'hover:bg-gray-800 text-white' 
+                : 'hover:bg-gray-100 text-gray-800'
+            ]"
+          >
+            <font-awesome-icon icon="book" class="mr-2 w-4" />
+            Mijn Sessies
+          </button>
+          
+          <button
+            @click="startNewChat"
+            class="w-full p-2 rounded-lg text-xs font-medium flex items-center transition-colors"
+            :class="[
+              darkMode 
+                ? 'hover:bg-gray-800 text-white' 
+                : 'hover:bg-gray-100 text-gray-800'
+            ]"
+          >
+            <font-awesome-icon icon="plus" class="mr-2 w-4" />
+            Nieuwe Sessie
+          </button>
+          
+          <button
+            @click="endSession"
+            class="w-full p-2 rounded-lg text-xs font-medium flex items-center transition-colors"
+            :class="[
+              darkMode 
+                ? 'hover:bg-gray-800 text-white' 
+                : 'hover:bg-gray-100 text-gray-800'
+            ]"
+            :disabled="isGeneratingSummary"
+          >
+            <font-awesome-icon :icon="isGeneratingSummary ? 'circle-notch' : 'check-circle'" 
+              class="mr-2 w-4" :class="{ 'fa-spin': isGeneratingSummary }" />
+            Sessie Afronden
+          </button>
+        </div>
+        
+        <div v-if="currentSession" class="mt-4 text-xs p-2 rounded"
+             :class="[darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700']">
+          <div class="font-medium mb-1">Huidige Sessie:</div>
+          <div class="truncate">{{ currentSession.title }}</div>
+          <div class="mt-1 flex items-center">
+            <font-awesome-icon icon="clock" class="mr-1 opacity-70" />
+            <span>{{ calculateSessionDuration() }} min</span>
+          </div>
         </div>
       </div>
     </div>

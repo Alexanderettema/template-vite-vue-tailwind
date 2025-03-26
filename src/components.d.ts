@@ -15,6 +15,8 @@ declare module 'vue' {
     LandingPage: typeof import('./components/LandingPage.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SessionBrowser: typeof import('./components/SessionBrowser.vue')['default']
+    SessionDetails: typeof import('./components/SessionDetails.vue')['default']
     ThemeSwitcher: typeof import('./components/ThemeSwitcher.vue')['default']
   }
 }

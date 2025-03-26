@@ -219,15 +219,37 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div>
-    <!-- Main Content without any header -->
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <!-- Router view with full height -->
-      <router-view></router-view>
+  <div class="app-container min-h-screen w-full" :class="{'dark': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode}">
+    <router-view v-slot="{ Component }">
+      <component :is="Component" @start-app="startApp" @go-to-home="goToHome" />
+    </router-view>
+    
+    <!-- Fixed nav buttons that appear on all pages except ChatInterface -->
+    <div class="fixed bottom-4 right-4 flex space-x-2 z-10" v-if="$route.name !== 'chat'">
+      <button @click="toggleDarkMode" 
+        class="rounded-full p-3 transition-all border-2"
+        :class="[
+          darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600 text-yellow-200' : 
+                    'bg-white border-gray-800 hover:bg-gray-100 text-gray-800'
+        ]"
+      >
+        <font-awesome-icon :icon="darkMode ? 'sun' : 'moon'" />
+      </button>
+      
+      <router-link 
+        to="/sessions" 
+        class="rounded-full p-3 transition-all border-2 flex items-center justify-center"
+        :class="[
+          darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600 text-white' : 
+                    'bg-white border-gray-800 hover:bg-gray-100 text-gray-800'
+        ]"
+      >
+        <font-awesome-icon icon="book" />
+      </router-link>
     </div>
-
-    <!-- UI Overlay for guided tour ONLY - no explanation screen -->
-    <div v-if="showOverlay" class="fixed inset-0 z-[100] pointer-events-none">
+    
+    <!-- Onboarding overlay -->
+    <div v-if="showOverlay" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <!-- Semi-transparent overlay that helps focus attention while maintaining visibility -->
       <div class="absolute inset-0 bg-black/15 backdrop-blur-[0.5px]"></div>
       
