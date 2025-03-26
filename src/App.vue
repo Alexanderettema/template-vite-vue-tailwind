@@ -211,8 +211,8 @@ async function handleLogout() {
   try {
     await signOut()
     console.log('Logout successful')
-    // Force a hard navigation to the home page
-    window.location.href = '/'
+    // Navigate to the home page
+    router.push('/')
   } catch (error) {
     console.error('Logout error:', error)
   }

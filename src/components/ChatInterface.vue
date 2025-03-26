@@ -737,6 +737,11 @@ async function handleLogout() {
   try {
     await signOut()
     console.log('Logout successful')
+    // Save the current session before navigating away
+    if (currentSession.value) {
+      await saveCurrentSession()
+    }
+    // Navigate to the landing page
     router.push('/')
   } catch (error) {
     console.error('Logout error:', error)
@@ -1381,7 +1386,7 @@ function calculateSessionDuration() {
         <div class="flex justify-between items-center">
           <h2 class="text-sm font-semibold">Mijn Account</h2>
           <button 
-            @click="signOut" 
+            @click="handleLogout" 
             class="text-xs px-3 py-1.5 rounded-full transition-colors"
             :class="[
               darkMode ? 
