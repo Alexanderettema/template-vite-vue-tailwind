@@ -182,6 +182,7 @@ watch(() => chatHistory.value, (newChatHistory) => {
 
 // Add session state refs
 const showSessionEndModal = ref(false)
+const showNoInputModal = ref(false)
 const isGeneratingSummary = ref(false)
 
 // Add methods for the help panel keyboard and click outside functionality
@@ -554,36 +555,38 @@ function viewSessions() {
 
 // Add function to end session and view summary
 async function endSession() {
-  isGeneratingSummary.value = true
+  // Check if there are user messages in the session
+  const hasUserInput = currentSession.value?.messages.some(msg => msg.role === 'user') || false;
+  
+  if (!hasUserInput) {
+    // Show the no-input modal instead of ending the session
+    showNoInputModal.value = true;
+    return;
+  }
+  
+  isGeneratingSummary.value = true;
   
   try {
     // Only generate a summary when ending a session if there are user messages
     if (currentSession.value) {
-      const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
+      await generateSessionSummary();
       
-      if (hasUserInput) {
-        await generateSessionSummary()
+      if (currentSession.value?.summary) {
+        sessionSummary.value = currentSession.value.summary.summary;
         
-        if (currentSession.value?.summary) {
-          sessionSummary.value = currentSession.value.summary.summary
-          
-          // Ensure we update the current session with the final summary
-          await saveCurrentSession()
-          
-          // Show the end session modal
-          showSessionEndModal.value = true
-        } else {
-          console.error('Failed to generate session summary')
-        }
+        // Ensure we update the current session with the final summary
+        await saveCurrentSession();
+        
+        // Show the end session modal
+        showSessionEndModal.value = true;
       } else {
-        // If no user input, just start a new session without saving
-        startNewChat()
+        console.error('Failed to generate session summary');
       }
     }
   } catch (error) {
-    console.error('Error ending session:', error)
+    console.error('Error ending session:', error);
   } finally {
-    isGeneratingSummary.value = false
+    isGeneratingSummary.value = false;
   }
 }
 
@@ -1032,6 +1035,49 @@ function calculateSessionDuration() {
             >
               <font-awesome-icon icon="eye" class="mr-2" />
               Sessies bekijken
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- No Input Modal -->
+      <div v-if="showNoInputModal" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+           :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
+        <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-md overflow-y-auto font-mono text-center"
+             :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
+          <h2 class="text-center pb-2.5 mt-0 border-b-2 flex items-center justify-center"
+              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <font-awesome-icon icon="comment-slash" class="mr-2 text-yellow-500" />
+            Geen input gevonden
+          </h2>
+          
+          <div class="my-4 text-left">
+            <p>Het lijkt erop dat je nog geen berichten hebt verstuurd in deze sessie.</p>
+            <p class="text-sm opacity-70 mt-2">Om een sessie op te slaan en een samenvatting te krijgen, moet je eerst een bericht sturen.</p>
+          </div>
+          
+          <div class="p-4 my-4 border rounded"
+               :class="[darkMode ? 'border-emerald-600 bg-emerald-900/30' : 'border-emerald-600 bg-emerald-50']">
+            <div class="flex items-center mb-2">
+              <font-awesome-icon icon="lightbulb" class="mr-2 text-yellow-500" />
+              <span class="font-medium">Suggesties om te beginnen:</span>
+            </div>
+            <ul class="list-disc list-inside space-y-2 text-sm text-left">
+              <li>Deel wat je vandaag bezighoudt</li>
+              <li>Stel een vraag over mindfulness of acceptatie</li>
+              <li>Vertel over een uitdaging waar je tegenaan loopt</li>
+              <li>Kies een ACT thema in het linkerpaneel</li>
+            </ul>
+          </div>
+          
+          <div class="flex justify-center gap-5 mt-5">
+            <button 
+              @click="showNoInputModal = false" 
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
+              :class="[darkMode ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 'bg-emerald-600 border-emerald-700 text-white hover:bg-emerald-500']"
+            >
+              <font-awesome-icon icon="arrow-left" class="mr-2" />
+              Terug naar gesprek
             </button>
           </div>
         </div>
