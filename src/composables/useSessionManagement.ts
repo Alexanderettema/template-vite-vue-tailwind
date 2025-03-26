@@ -79,6 +79,10 @@ export function useSessionManagement() {
   async function saveCurrentSession() {
     if (!currentSession.value) return null
 
+    // Don't save sessions without any user input
+    const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
+    if (!hasUserInput) return null
+
     try {
       isLoading.value = true
       
@@ -194,6 +198,10 @@ export function useSessionManagement() {
   // Generate a session summary using AI
   async function generateSessionSummary() {
     if (!currentSession.value || currentSession.value.messages.length === 0) return
+    
+    // Don't generate summaries for sessions without user input
+    const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
+    if (!hasUserInput) return
     
     try {
       // Extract the full conversation

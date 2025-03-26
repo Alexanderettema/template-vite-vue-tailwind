@@ -172,8 +172,11 @@ watch(() => chatHistory.value, (newChatHistory) => {
       timestamp: msg.timestamp
     })))
     
-    // Auto-save session after each message
-    saveCurrentSession()
+    // Only auto-save session if there's at least one user message
+    const hasUserInput = newChatHistory.some(msg => msg.role === 'user')
+    if (hasUserInput) {
+      saveCurrentSession()
+    }
   }
 }, { deep: true })
 
@@ -554,20 +557,27 @@ async function endSession() {
   isGeneratingSummary.value = true
   
   try {
-    // Always generate a summary when ending a session
+    // Only generate a summary when ending a session if there are user messages
     if (currentSession.value) {
-      await generateSessionSummary()
+      const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
       
-      if (currentSession.value?.summary) {
-        sessionSummary.value = currentSession.value.summary.summary
+      if (hasUserInput) {
+        await generateSessionSummary()
         
-        // Ensure we update the current session with the final summary
-        await saveCurrentSession()
-        
-        // Show the end session modal
-        showSessionEndModal.value = true
+        if (currentSession.value?.summary) {
+          sessionSummary.value = currentSession.value.summary.summary
+          
+          // Ensure we update the current session with the final summary
+          await saveCurrentSession()
+          
+          // Show the end session modal
+          showSessionEndModal.value = true
+        } else {
+          console.error('Failed to generate session summary')
+        }
       } else {
-        console.error('Failed to generate session summary')
+        // If no user input, just start a new session without saving
+        startNewChat()
       }
     }
   } catch (error) {
@@ -737,9 +747,12 @@ async function handleLogout() {
   try {
     await signOut()
     console.log('Logout successful')
-    // Save the current session before navigating away
+    // Save the current session before navigating away, but only if it has user messages
     if (currentSession.value) {
-      await saveCurrentSession()
+      const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
+      if (hasUserInput) {
+        await saveCurrentSession()
+      }
     }
     // Navigate to the landing page
     router.push('/')
