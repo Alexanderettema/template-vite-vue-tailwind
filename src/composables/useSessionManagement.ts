@@ -209,7 +209,13 @@ export function useSessionManagement() {
       if (currentSession.value.messages.length >= 2) {
         summaryPrompt = `
         Maak een korte, betekenisvolle samenvatting (maximaal 2 zinnen) van deze ACT-therapie conversatie. 
-        Focus op de kernthema's en inzichten die aan bod kwamen.
+        Focus op:
+        1. De kernthema's die aan bod kwamen
+        2. De specifieke ACT-concepten die werden besproken
+        3. De belangrijkste persoonlijke inzichten of leerpunten
+        4. De voornaamste uitdagingen of doelen
+
+        Houd de samenvatting concreet, informatief en specifiek voor deze gebruiker.
         
         Conversatie:
         ${conversation}
@@ -222,7 +228,10 @@ export function useSessionManagement() {
         if (userMessage) {
           summaryPrompt = `
           Maak een korte, betekenisvolle samenvatting (maximaal 2 zinnen) van deze korte ACT-therapie vraag. 
-          Focus op het thema van de vraag en mogelijke ACT-relevantie.
+          Focus op:
+          1. Het centrale thema of de kwestie in de vraag
+          2. Welke ACT-concepten hierbij relevant zijn
+          3. Mogelijke persoonlijke uitdagingen of doelen die zichtbaar zijn
           
           Vraag van gebruiker:
           ${userMessage.content}
@@ -250,10 +259,13 @@ export function useSessionManagement() {
       // Generate personalized reflective questions
       const reflectiveQuestions = await generateReflectiveQuestions(conversation, uniqueThemes)
       
+      // Generate meaningful title based on summary and conversation
+      const sessionTitle = await generateMeaningfulTitle(conversation, uniqueThemes, summaryText)
+      
       // Create session summary
       currentSession.value.summary = {
         id: currentSession.value.id,
-        title: generateMeaningfulTitle(conversation, uniqueThemes),
+        title: sessionTitle,
         date: currentSession.value.date,
         duration: calculateSessionDuration(),
         keyThemes: uniqueThemes,
@@ -313,20 +325,70 @@ export function useSessionManagement() {
       .map(([theme, _]) => theme)
   }
 
-  // Function to generate a meaningful title based on conversation content
-  function generateMeaningfulTitle(conversation: string, themes: string[]) {
-    if (themes.length >= 2) {
-      return `${themes[0].charAt(0).toUpperCase() + themes[0].slice(1)} & ${themes[1]}`
-    } else if (themes.length === 1) {
-      return `${themes[0].charAt(0).toUpperCase() + themes[0].slice(1)} Verkenning`
-    } else {
-      // If no themes, create a title based on the first question
-      const lines = conversation.split('\n\n')
-      const firstUserMessage = lines.find(line => line.startsWith('Gebruiker:'))
-      if (firstUserMessage) {
-        const topic = firstUserMessage.substring(11, 30).trim()
-        return `Verkenning: ${topic}...`
+  // Function to generate a meaningful title based on conversation content and summary
+  async function generateMeaningfulTitle(conversation: string, themes: string[], summary?: string) {
+    try {
+      // If we have enough content, use AI to generate a more meaningful title
+      if (conversation.length > 100) {
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+        
+        const prompt = `
+        Genereer een korte, pakkende titel (maximaal 5 woorden) voor deze ACT-therapie sessie.
+        De titel moet:
+        1. Direct verband houden met de inhoud van het gesprek
+        2. Relevant zijn voor de ACT-thema's die aan bod kwamen
+        3. In het Nederlands zijn
+        4. Beschrijvend en herkenbaar zijn voor de gebruiker
+        5. Aansluiten bij de samenvatting van het gesprek
+
+        Thema's in het gesprek: ${themes.join(', ')}
+        
+        ${summary ? `Samenvatting van het gesprek: ${summary}` : ''}
+        
+        Eerste deel van de conversatie:
+        ${conversation.substring(0, Math.min(500, conversation.length))}
+        
+        Geef alleen de titel, zonder aanhalingstekens of andere opmaak.
+        `
+        
+        try {
+          const result = await model.generateContent(prompt)
+          const response = await result.response
+          const generatedTitle = response.text().trim()
+          
+          // If we got a valid title from the AI, use it
+          if (generatedTitle && generatedTitle.length > 0 && generatedTitle.length <= 50) {
+            return generatedTitle
+          }
+        } catch (error) {
+          console.error('Error generating title with AI:', error)
+          // Continue with fallback methods
+        }
       }
+      
+      // Fallback 1: Use themes if available
+      if (themes.length >= 2) {
+        return `${themes[0].charAt(0).toUpperCase() + themes[0].slice(1)} & ${themes[1]}`
+      } else if (themes.length === 1) {
+        return `${themes[0].charAt(0).toUpperCase() + themes[0].slice(1)} Verkenning`
+      } else {
+        // Fallback 2: Create a title based on the first question
+        const lines = conversation.split('\n\n')
+        const firstUserMessage = lines.find(line => line.startsWith('Gebruiker:'))
+        if (firstUserMessage) {
+          const topic = firstUserMessage.substring(11, 40).trim()
+          if (topic.length > 5) {
+            return `Verkenning: ${topic}${topic.length >= 30 ? '...' : ''}`
+          }
+        }
+        
+        // Fallback 3: Use date with friendly format
+        const date = new Date()
+        const options = { weekday: 'long', day: 'numeric', month: 'long' } as const
+        return `ACT Sessie ${date.toLocaleDateString('nl-NL', options)}`
+      }
+    } catch (error) {
+      console.error('Error in title generation:', error)
       return "ACT Sessie " + new Date().toLocaleDateString('nl-NL')
     }
   }
