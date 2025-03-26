@@ -191,7 +191,7 @@ function toggleSettings() {
 
 // Add welcome message when component is first loaded
 function showWelcomeMessage() {
-  const welcomeText = "Welkom bij je ACT therapie sessie. Ik ben je AI-therapeut, gespecialiseerd in Acceptance and Commitment Therapy. Wat zou je vandaag willen verkennen? Je kunt een thema kiezen of gewoon je gedachten delen."
+  const welcomeText = "Welkom bij je ACT therapie sessie. Ik ben je interactieve ACT Specialist, gespecialiseerd in Acceptance and Commitment Therapy. Wat zou je vandaag willen verkennen? Je kunt een thema kiezen of gewoon je gedachten delen."
   
   chatHistory.value.push({ role: 'assistant', content: welcomeText })
   scrollToBottom()
