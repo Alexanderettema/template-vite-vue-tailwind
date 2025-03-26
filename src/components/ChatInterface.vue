@@ -189,6 +189,17 @@ function toggleSettings() {
   showSettingsPanel.value = !showSettingsPanel.value
 }
 
+// Add welcome message when component is first loaded
+function showWelcomeMessage() {
+  const welcomeText = "Welkom bij je ACT therapie sessie. Ik ben je AI-therapeut, gespecialiseerd in Acceptance and Commitment Therapy. Wat zou je vandaag willen verkennen? Je kunt een thema kiezen of gewoon je gedachten delen."
+  
+  chatHistory.value.push({ role: 'assistant', content: welcomeText })
+  scrollToBottom()
+  
+  // Generate essence words for the welcome message
+  getEssence(welcomeText, 0)
+}
+
 onMounted(() => {
   // Use a more specific selector for the chat container
   const chatContainer = document.querySelector('.w-\\[600px\\] .flex-1.overflow-y-auto')
@@ -224,6 +235,11 @@ onMounted(() => {
   
   // Add event listener for settings panel
   window.addEventListener('keydown', handleSettingsKeyDown)
+  
+  // Show welcome message if chat is empty
+  if (chatHistory.value.length === 0) {
+    showWelcomeMessage()
+  }
 })
 
 onUnmounted(() => {
