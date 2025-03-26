@@ -87,9 +87,23 @@ function startApp() {
         Start de Therapie Sessie
       </button>
       
-      <p class="mt-8 text-sm opacity-70">
-        Ontwikkeld met behulp van moderne ACT principes en AI technologie
-      </p>
+      <div class="mt-8 text-sm space-y-2">
+        <p class="opacity-70">
+          Ontwikkeld met behulp van moderne ACT principes en AI technologie
+        </p>
+        <!-- Subtle Roadmap Link -->
+        <a href="/docs/client-sessions.md" 
+           target="_blank"
+           class="inline-flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity"
+           :class="[
+             darkMode ? 
+               'text-gray-400 hover:text-gray-300' : 
+               'text-gray-600 hover:text-gray-800'
+           ]">
+          <font-awesome-icon :icon="['fas', 'map']" class="text-xs" />
+          <span class="text-xs">Ontwikkeling Roadmap</span>
+        </a>
+      </div>
     </div>
   </div>
 </template> 
