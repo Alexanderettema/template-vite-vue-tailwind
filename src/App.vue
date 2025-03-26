@@ -227,8 +227,8 @@ async function handleLogout() {
       </router-view>
     </div>
     
-    <!-- Fixed nav buttons that appear on all pages except ChatInterface -->
-    <div class="fixed bottom-4 right-4 flex space-x-2 z-10" v-if="$route.name !== 'chat'">
+    <!-- Fixed nav buttons that appear on specific pages only -->
+    <div class="fixed bottom-4 right-4 flex space-x-2 z-10" v-if="$route.name === 'sessions' || $route.name === 'session-details' || $route.name === 'home'">
       <button @click="toggleDarkMode" 
         class="rounded-full p-3 transition-all border-2"
         :class="[
@@ -240,6 +240,7 @@ async function handleLogout() {
       </button>
       
       <router-link 
+        v-if="$route.name === 'home' || $route.name === 'session-details'"
         to="/sessions" 
         class="rounded-full p-3 transition-all border-2 flex items-center justify-center"
         :class="[
@@ -249,12 +250,24 @@ async function handleLogout() {
       >
         <font-awesome-icon icon="book" />
       </router-link>
+
+      <router-link 
+        v-if="$route.name === 'sessions'"
+        to="/" 
+        class="rounded-full p-3 transition-all border-2 flex items-center justify-center"
+        :class="[
+          darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600 text-white' : 
+                    'bg-white border-gray-800 hover:bg-gray-100 text-gray-800'
+        ]"
+      >
+        <font-awesome-icon icon="home" />
+      </router-link>
     </div>
     
     <!-- Onboarding overlay -->
-    <div v-if="showOverlay" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div v-if="showOverlay" class="fixed inset-0 flex items-center justify-center z-50">
       <!-- Semi-transparent overlay that helps focus attention while maintaining visibility -->
-      <div class="absolute inset-0 bg-black/15 backdrop-blur-[0.5px]"></div>
+      <div class="absolute inset-0 bg-black/40"></div>
       
       <!-- Tooltips with pointer-events-auto to allow clicking -->
       <!-- Step 1: Tooltip for themes panel -->

@@ -1148,12 +1148,6 @@ function calculateSessionDuration() {
           <font-awesome-icon icon="tag" class="mr-1" />
           Kernbegrippen
         </div>
-        <!-- Logout button in the top right of the right panel -->
-        <button @click="handleLogout" 
-                class="px-2 py-1 text-xs border-2 font-mono transition-all"
-                :class="[darkMode ? 'border-gray-600 bg-gray-700 text-white hover:bg-white hover:text-black' : 'border-black bg-white hover:bg-black hover:text-white']">
-          Uitloggen
-        </button>
       </div>
       <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin"
            :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-gray-600 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-gray-800 scrollbar-track-white']">
