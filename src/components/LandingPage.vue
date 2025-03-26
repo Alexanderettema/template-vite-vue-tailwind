@@ -104,7 +104,7 @@ function closeRoadmap() {
           </div>
         </div>
         <h1 class="text-4xl font-bold mb-1">ACT</h1>
-        <p class="opacity-75">Acceptance and Commitment Therapy</p>
+        <p class="opacity-75">Interactieve sessies met een AI-therapeut</p>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
@@ -112,16 +112,14 @@ function closeRoadmap() {
              :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
           <h2 class="text-xl font-bold mb-2">Wat is ACT?</h2>
           <p class="text-left">
-            Acceptance and Commitment Therapy helpt je om lastige gedachten en gevoelens te accepteren 
-            terwijl je stappen zet richting een waardevol leven.
+            Acceptance and Commitment Therapy leert je om moeilijke gevoelens te accepteren en te handelen volgens je eigen waarden. Onze app maakt deze therapie toegankelijk voor iedereen.
           </p>
         </div>
         <div class="border-2 p-4 rounded-lg"
              :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
           <h2 class="text-xl font-bold mb-2">Hoe werkt het?</h2>
           <p class="text-left">
-            Verken thema's zoals Waarden, Defusie, Mindfulness en meer door te chatten 
-            met een AI-assistent gespecialiseerd in ACT therapie.
+            Voer korte, interactieve gesprekken met onze AI-therapeut die gespecialiseerd is in ACT. Verken thema's zoals Waarden, Mindfulness en Acceptatie op je eigen tempo.
           </p>
         </div>
       </div>
@@ -160,7 +158,7 @@ function closeRoadmap() {
       
       <div class="mt-5 text-sm space-y-2">
         <p class="opacity-70">
-          Ontwikkeld met behulp van moderne ACT principes en AI technologie
+          Ontdek de kracht van ACT therapie met geavanceerde AI-technologie
         </p>
         <!-- Retro Roadmap Link -->
         <button @click="openRoadmap"
