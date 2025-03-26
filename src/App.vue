@@ -229,7 +229,7 @@ async function handleLogout() {
     </div>
     
     <!-- Fixed nav buttons that appear on specific pages only -->
-    <div class="fixed bottom-4 right-4 flex space-x-2 z-10" v-if="$route.name === 'sessions' || $route.name === 'session-details' || $route.name === 'home'">
+    <div class="fixed bottom-4 right-4 flex space-x-2 z-10" v-if="$route.name === 'sessions' || $route.name === 'session-details'">
       <button @click="toggleDarkMode" 
         class="rounded-full p-3 transition-all border-2"
         :class="[
@@ -240,18 +240,6 @@ async function handleLogout() {
         <font-awesome-icon :icon="darkMode ? 'sun' : 'moon'" />
       </button>
       
-      <router-link 
-        v-if="$route.name === 'home' || $route.name === 'session-details'"
-        to="/sessions" 
-        class="rounded-full p-3 transition-all border-2 flex items-center justify-center"
-        :class="[
-          darkMode ? 'bg-gray-700 border-gray-600 hover:bg-gray-600 text-white' : 
-                    'bg-white border-gray-800 hover:bg-gray-100 text-gray-800'
-        ]"
-      >
-        <font-awesome-icon icon="book" />
-      </router-link>
-
       <router-link 
         v-if="$route.name === 'sessions'"
         to="/" 

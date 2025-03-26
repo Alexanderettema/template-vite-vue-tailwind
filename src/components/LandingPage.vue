@@ -66,15 +66,6 @@ function closeRoadmap() {
   <div class="min-h-screen flex flex-col items-center justify-center p-5 w-full" 
        :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800 text-white' : 'bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800']">
     
-    <!-- Dark mode toggle -->
-    <div class="absolute top-5 right-5">
-      <button @click="toggleDarkMode" 
-              class="p-2 border-2 rounded-full shadow-md transition-all" 
-              :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-800']">
-        {{ darkMode ? '☀️' : '🌙' }}
-      </button>
-    </div>
-    
     <div class="max-w-3xl w-full border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-8 text-center -mt-24"
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-800']">
       
@@ -104,7 +95,7 @@ function closeRoadmap() {
           </div>
         </div>
         <h1 class="text-4xl font-bold mb-1">ACT</h1>
-        <p class="opacity-75">Interactieve sessies met een AI-therapeut</p>
+        <p class="opacity-75">Interactieve sessies met een Adaptieve ACT Expert</p>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
@@ -119,7 +110,7 @@ function closeRoadmap() {
              :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
           <h2 class="text-xl font-bold mb-2">Hoe werkt het?</h2>
           <p class="text-left">
-            Voer korte, interactieve gesprekken met onze AI-therapeut die gespecialiseerd is in ACT. Verken thema's zoals Waarden, Mindfulness en Acceptatie op je eigen tempo.
+            Voer korte, interactieve gesprekken met onze Adaptieve ACT Expert die gespecialiseerd is in ACT. Verken thema's zoals Waarden, Mindfulness en Acceptatie op je eigen tempo.
           </p>
         </div>
       </div>
@@ -158,7 +149,7 @@ function closeRoadmap() {
       
       <div class="mt-5 text-sm space-y-2">
         <p class="opacity-70">
-          Ontdek de kracht van ACT therapie met geavanceerde AI-technologie
+          Ontdek de kracht van ACT therapie met geavanceerde Adaptieve ACT-technologie
         </p>
         <!-- Retro Roadmap Link -->
         <button @click="openRoadmap"
