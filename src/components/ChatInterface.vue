@@ -468,6 +468,101 @@ function handleSettingsKeyDown(event: KeyboardEvent) {
     toggleSettings()
   }
 }
+
+const getSubTopicIcon = (subtopic: string) => {
+  const icons: { [key: string]: string } = {
+    'Acceptance': 'heart',
+    'Commitment': 'flag',
+    'Values': 'star',
+    'Mindfulness': 'brain',
+    'Self-as-Context': 'user',
+    'Defusion': 'cloud',
+    'Present Moment': 'clock',
+    'Psychological Flexibility': 'route',
+    'Values Clarification': 'compass',
+    'Committed Action': 'walking',
+    'Mindful Breathing': 'wind',
+    'Body Scan': 'spa',
+    'Thought Defusion': 'cloud-rain',
+    'Values-Based Goals': 'target',
+    'Self-Compassion': 'hands-helping',
+    'Mindful Walking': 'shoe-prints',
+    'Acceptance Exercise': 'hands',
+    'Values Visualization': 'eye',
+    'Mindful Eating': 'apple-alt',
+    'Gratitude Practice': 'heart',
+    'Mindful Movement': 'running',
+    'Stress Management': 'shield-alt',
+    'Emotional Awareness': 'smile',
+    'Mindful Communication': 'comments',
+    'Personal Growth': 'seedling',
+    'Life Balance': 'balance-scale',
+    'Resilience': 'umbrella',
+    'Self-Care': 'spa',
+    'Positive Psychology': 'sun',
+    'Well-being': 'heartbeat'
+  }
+  return icons[subtopic] || 'star'
+}
+
+const getChallengeIcon = (subtopic: string) => {
+  const icons: { [key: string]: string } = {
+    'Daily Meditation': 'spa',
+    'Gratitude Journal': 'book',
+    'Mindful Walking': 'shoe-prints',
+    'Values Check-in': 'compass',
+    'Stress Management': 'shield-alt',
+    'Emotional Awareness': 'smile',
+    'Mindful Communication': 'comments',
+    'Personal Growth': 'seedling',
+    'Life Balance': 'balance-scale',
+    'Resilience': 'umbrella',
+    'Self-Care': 'spa',
+    'Positive Psychology': 'sun',
+    'Well-being': 'heartbeat'
+  }
+  return icons[subtopic] || 'tasks'
+}
+
+const getKeywordIcon = (word: string) => {
+  const icons: { [key: string]: string } = {
+    'Acceptance': 'heart',
+    'Commitment': 'flag',
+    'Values': 'star',
+    'Mindfulness': 'brain',
+    'Present': 'clock',
+    'Awareness': 'eye',
+    'Flexibility': 'route',
+    'Growth': 'seedling',
+    'Balance': 'balance-scale',
+    'Resilience': 'umbrella',
+    'Well-being': 'heartbeat',
+    'Peace': 'dove',
+    'Joy': 'smile',
+    'Love': 'heart',
+    'Gratitude': 'hands-helping',
+    'Compassion': 'hands',
+    'Wisdom': 'lightbulb',
+    'Strength': 'fist-raised',
+    'Courage': 'shield-alt',
+    'Hope': 'sun',
+    'Purpose': 'compass',
+    'Meaning': 'star',
+    'Connection': 'users',
+    'Change': 'sync',
+    'Freedom': 'dove',
+    'Truth': 'check-circle',
+    'Beauty': 'flower',
+    'Harmony': 'music'
+  }
+  return icons[word] || 'tag'
+}
+
+// Add the exploreKeyword method
+const exploreKeyword = (word: string) => {
+  userMessage.value = `Tell me more about ${word} in the context of ACT therapy.`
+  sendMessage()
+}
 </script>
 
 <template>
@@ -548,7 +643,7 @@ function handleSettingsKeyDown(event: KeyboardEvent) {
               class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
-              <font-awesome-icon icon="star" class="mr-2" />
+              <font-awesome-icon :icon="getSubTopicIcon(subtopic)" class="mr-2" />
               {{ subtopic }}
             </button>
           </template>
@@ -563,7 +658,7 @@ function handleSettingsKeyDown(event: KeyboardEvent) {
               class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
               :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
             >
-              <font-awesome-icon icon="tasks" class="mr-2" />
+              <font-awesome-icon :icon="getChallengeIcon(subtopic)" class="mr-2" />
               {{ subtopic }}
             </button>
           </template>
@@ -848,15 +943,10 @@ function handleSettingsKeyDown(event: KeyboardEvent) {
              :class="[darkMode ? 'border-b border-gray-600' : 'border-b border-gray-800']">
           <div class="flex flex-wrap">
             <div v-for="(word, wordIndex) in splitEssence(message.essence)" :key="wordIndex"
-                 @click="useEssenceWord(word)"
-                 class="inline-block mr-2.5 mb-2.5 p-1 px-2.5 border-2 cursor-pointer font-mono font-normal transition-all hover:shadow-md flex items-center"
-                 :class="[
-                   darkMode ? 
-                     'bg-gray-700 border-gray-600 text-white hover:bg-gray-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)]' : 
-                     'bg-white border-gray-800 hover:bg-gray-800 hover:text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]'
-                 ]"
-            >
-              <font-awesome-icon icon="tag" class="mr-1" />
+                 class="inline-flex items-center px-2 py-1 m-1 rounded-full text-sm cursor-pointer transition-all"
+                 :class="[darkMode ? 'bg-gray-700 text-white hover:bg-emerald-700' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white']"
+                 @click="exploreKeyword(word)">
+              <font-awesome-icon :icon="getKeywordIcon(word)" class="mr-1" />
               {{ word }}
             </div>
           </div>
