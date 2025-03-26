@@ -738,10 +738,7 @@ const exploreKeyword = (word: string) => {
 
         <div class="font-bold relative z-10" :class="[darkMode ? 'text-white' : '']">
           <font-awesome-icon icon="message" class="mr-1" /> 
-          <span class="relative">
-            ACT therapie
-            <span class="absolute -top-1 -right-2 text-[8px] text-emerald-500 font-mono">v1.0</span>
-          </span>
+          ACT therapie
         </div>
         <div class="flex relative z-10">
           <button @click="toggleDarkMode" class="w-auto h-5 px-1 leading-none text-center border mr-1 font-bold cursor-pointer transition-all hover:scale-110"
