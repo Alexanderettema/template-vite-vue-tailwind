@@ -51,7 +51,7 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+  <div class="min-h-screen flex items-center justify-center p-4 w-full bg-gradient-to-b from-gray-50 to-gray-100 dark:bg-gradient-to-b dark:from-gray-900 dark:to-gray-800">
     <div class="w-full max-w-md">
       <!-- Auth Card -->
       <div class="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 p-8 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] dark:drop-shadow-[6px_6px_0px_rgba(17,24,39,0.8)]">

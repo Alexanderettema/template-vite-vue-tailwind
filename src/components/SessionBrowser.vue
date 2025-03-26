@@ -1,5 +1,5 @@
 <template>
-  <div class="session-browser p-6 md:p-8" :class="{ 'dark-mode': darkMode }">
+  <div class="session-browser p-6 md:p-8 w-full" :class="{ 'dark-mode': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode }">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-semibold" :class="{ 'text-gray-800': !darkMode, 'text-white': darkMode }">

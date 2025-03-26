@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, provide, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useHead } from '@vueuse/head'
 import ChatInterface from './components/ChatInterface.vue'
 import LandingPage from './components/LandingPage.vue'
 import { useAuth } from './composables/useAuth'
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
@@ -221,7 +222,7 @@ async function handleLogout() {
 
 <template>
   <div class="app-container min-h-screen w-full" :class="{'dark': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode}">
-    <div class="container mx-auto" :class="{'max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6': $route.name === 'sessions' || $route.name === 'session-details'}">
+    <div class="w-full" :class="{'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6': $route.name === 'sessions' || $route.name === 'session-details'}">
       <router-view v-slot="{ Component }">
         <component :is="Component" @start-app="startApp" @go-to-home="goToHome" />
       </router-view>

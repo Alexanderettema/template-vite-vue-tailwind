@@ -1,5 +1,5 @@
 <template>
-  <div class="session-details pt-6 md:pt-8" :class="{ 'dark-mode': darkMode }">
+  <div class="session-details pt-6 md:pt-8 w-full" :class="{ 'dark-mode': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode }">
     <!-- Back button and header -->
     <div class="flex items-center mb-6 mt-4">
       <button 

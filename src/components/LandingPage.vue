@@ -63,8 +63,8 @@ function closeRoadmap() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center p-5" 
-       :class="[darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800']">
+  <div class="min-h-screen flex flex-col items-center justify-center p-5 w-full" 
+       :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800 text-white' : 'bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800']">
     
     <!-- Dark mode toggle -->
     <div class="absolute top-5 right-5">

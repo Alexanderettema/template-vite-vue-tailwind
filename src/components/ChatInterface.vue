@@ -760,8 +760,8 @@ function calculateSessionDuration() {
 </script>
 
 <template>
-  <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5" 
-       :class="[darkMode ? 'bg-gray-900' : 'bg-gray-100']">
+  <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5 w-full" 
+       :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-gray-50 to-gray-100']">
     <!-- Themes panel (new left sidebar) -->
     <div class="w-72 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first"
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
