@@ -19,6 +19,7 @@
     "@nanostores/vue": "^0.11.0",
     "@tailwindcss/vite": "^4.0.0",
     "@vueuse/head": "^2.0.0",
+    "marked": "^15.0.7",
     "nanostores": "^0.11.0",
     "vue": "^3.4.27"
   },

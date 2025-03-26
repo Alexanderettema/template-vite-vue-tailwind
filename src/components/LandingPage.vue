@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { marked } from 'marked'
 
 // Define props and emits
 const emit = defineEmits(['start-app'])
 
 const darkMode = ref(false)
+const showRoadmap = ref(false)
+const roadmapContent = ref('')
 
 // Load dark mode preference from localStorage
 if (typeof window !== 'undefined') {
@@ -24,6 +27,23 @@ function toggleDarkMode() {
 // Start the app
 function startApp() {
   emit('start-app')
+}
+
+// Load and show roadmap
+async function openRoadmap() {
+  try {
+    const response = await fetch('/docs/client-sessions.md')
+    const text = await response.text()
+    roadmapContent.value = marked(text)
+    showRoadmap.value = true
+  } catch (error) {
+    console.error('Failed to load roadmap:', error)
+  }
+}
+
+// Close roadmap dialog
+function closeRoadmap() {
+  showRoadmap.value = false
 }
 </script>
 
@@ -91,19 +111,56 @@ function startApp() {
         <p class="opacity-70">
           Ontwikkeld met behulp van moderne ACT principes en AI technologie
         </p>
-        <!-- Subtle Roadmap Link -->
-        <a href="/docs/client-sessions.md" 
-           target="_blank"
-           class="inline-flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity"
-           :class="[
-             darkMode ? 
-               'text-gray-400 hover:text-gray-300' : 
-               'text-gray-600 hover:text-gray-800'
-           ]">
-          <font-awesome-icon :icon="['fas', 'map']" class="text-xs" />
-          <span class="text-xs">Ontwikkeling Roadmap</span>
-        </a>
+        <!-- Retro Roadmap Link -->
+        <button @click="openRoadmap"
+                class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
+                :class="[
+                  darkMode ? 
+                    'border-gray-600 hover:bg-gray-600' : 
+                    'border-black hover:bg-black'
+                ]">
+          <font-awesome-icon :icon="['fas', 'map']" 
+                            class="transform transition-transform group-hover:-translate-y-0.5" />
+          <span class="tracking-wide">[ROADMAP_v1.0]</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Roadmap Dialog -->
+    <div v-if="showRoadmap" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-600 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+           :class="[darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black']">
+        <!-- Dialog Header -->
+        <div class="flex items-center justify-between p-4 border-b-2 border-black dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
+          <h2 class="font-mono text-lg flex items-center gap-2">
+            <font-awesome-icon :icon="['fas', 'map']" />
+            <span>System Roadmap</span>
+          </h2>
+          <button @click="closeRoadmap" 
+                  class="w-8 h-8 flex items-center justify-center border-2 border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-gray-600 transition-colors">
+            ×
+          </button>
+        </div>
+        <!-- Dialog Content -->
+        <div class="p-6 overflow-y-auto prose dark:prose-invert max-w-none"
+             v-html="roadmapContent">
+        </div>
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style>
+/* Add any additional styles here */
+.prose {
+  font-size: 0.9rem;
+}
+
+.prose pre {
+  background-color: #1a1a1a;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+}
+</style> 
