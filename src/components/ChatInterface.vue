@@ -357,12 +357,30 @@ function sendSubTopic(subtopic: string) {
   selectedMainTopic.value = ''
 }
 
+// Add confirmation state for reset
+const showResetConfirm = ref(false)
+
+// Update resetSession function to clear chat and show welcome message
 function resetSession() {
+  // Show confirmation dialog instead of immediate reset
+  showResetConfirm.value = true
+}
+
+// Confirm reset function
+function confirmReset() {
   chatHistory.value = []
   selectedMainTopic.value = ''
   showEndSession.value = false
   sessionSummary.value = ''
-  router.push('/')
+  showResetConfirm.value = false
+  
+  // Show welcome message again
+  showWelcomeMessage()
+}
+
+// Cancel reset function
+function cancelReset() {
+  showResetConfirm.value = false
 }
 
 // Add separate show states for help panel
@@ -866,6 +884,43 @@ async function handleLogout() {
             >
               <font-awesome-icon icon="home" class="mr-2" />
               Naar startpagina
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reset confirmation dialog -->
+      <div v-if="showResetConfirm" class="absolute inset-0 z-10 flex items-center justify-center p-5"
+           :class="[darkMode ? 'bg-gray-900/95' : 'bg-white/95']">
+        <div class="border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-5 max-w-md overflow-y-auto font-mono text-center"
+             :class="[darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-800']">
+          <h2 class="text-center pb-2.5 mt-0 border-b-2 flex items-center justify-center"
+              :class="[darkMode ? 'border-gray-600' : 'border-gray-800']">
+            <font-awesome-icon icon="exclamation-triangle" class="mr-2 text-yellow-500" />
+            Gesprek opnieuw beginnen?
+          </h2>
+          
+          <div class="my-4 text-left">
+            <p>Weet je zeker dat je het huidige gesprek wilt wissen en opnieuw wilt beginnen?</p>
+            <p class="text-sm opacity-70 mt-2">Alle berichten in dit gesprek zullen verloren gaan.</p>
+          </div>
+          
+          <div class="flex justify-center gap-5 mt-5">
+            <button 
+              @click="confirmReset" 
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
+              :class="[darkMode ? 'bg-red-700 border-red-600 text-white hover:bg-red-600' : 'bg-red-600 border-red-700 text-white hover:bg-red-500']"
+            >
+              <font-awesome-icon icon="trash" class="mr-2" />
+              Ja, begin opnieuw
+            </button>
+            <button 
+              @click="cancelReset" 
+              class="p-2 px-4 border-2 cursor-pointer transition-all shadow-sm hover:shadow-md flex items-center"
+              :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 'bg-white border-gray-800 hover:bg-gray-100']"
+            >
+              <font-awesome-icon icon="times" class="mr-2" />
+              Annuleren
             </button>
           </div>
         </div>
