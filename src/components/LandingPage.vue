@@ -79,8 +79,31 @@ function closeRoadmap() {
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-800']">
       
       <div class="mb-5 text-xl">
-        <div class="text-6xl mb-2">🧠</div>
-        <h1 class="text-4xl font-bold mb-1">ACT Therapie App</h1>
+        <div class="text-6xl mb-2 flex justify-center">
+          <!-- Simple mandala-like breathing circle logo -->
+          <div class="relative w-24 h-24 flex items-center justify-center">
+            <!-- Outer breathing circle -->
+            <div class="absolute inset-0 border-4 rounded-full animate-pulse-slow" 
+                 :class="darkMode ? 'border-emerald-600' : 'border-emerald-500'"></div>
+            
+            <!-- Mandala pattern - middle circle -->
+            <div class="absolute w-16 h-16 border-2 rounded-full"
+                 :class="darkMode ? 'border-emerald-500' : 'border-emerald-600'"></div>
+                 
+            <!-- Mandala pattern - decorative dotted circle -->
+            <div class="absolute w-20 h-20 rounded-full border-dashed border-2 animate-spin-very-slow"
+                 :class="darkMode ? 'border-emerald-500/50' : 'border-emerald-600/50'"></div>
+            
+            <!-- Mandala pattern - inner circle -->
+            <div class="absolute w-8 h-8 border-1 rounded-full"
+                 :class="darkMode ? 'border-emerald-600' : 'border-emerald-700'"></div>
+            
+            <!-- Center dot -->
+            <div class="relative z-10 w-3 h-3 rounded-full"
+                 :class="darkMode ? 'bg-emerald-500' : 'bg-emerald-600'"></div>
+          </div>
+        </div>
+        <h1 class="text-4xl font-bold mb-1">ACT</h1>
         <p class="opacity-75">Acceptance and Commitment Therapy</p>
       </div>
       
@@ -190,5 +213,34 @@ function closeRoadmap() {
   color: #fff;
   padding: 1rem;
   border-radius: 4px;
+}
+
+/* Custom animations */
+@keyframes pulse-slow {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+@keyframes spin-very-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-very-slow {
+  animation: spin-very-slow 20s infinite linear;
 }
 </style> 
