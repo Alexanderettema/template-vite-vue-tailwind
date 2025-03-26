@@ -33,7 +33,11 @@ BELANGRIJK:
 - Je antwoorden MOETEN onder 50 woorden blijven. Prioriteer duidelijkheid en beknoptheid boven volledigheid.
 - Eindigen ALTIJD op een manier die het gesprek open houdt voor vervolgvragen of verdieping.
 - Stel een subtiele vervolgvraag of geef een impliciete uitnodiging in je laatste zin.
-- VERMIJD het eindigen met "laat me weten of je vragen hebt" of gelijksoortige expliciete uitnodigingen.`
+- VERMIJD het eindigen met "laat me weten of je vragen hebt" of gelijksoortige expliciete uitnodigingen.
+- Verwijs ALTIJD specifiek naar wat de gebruiker zojuist heeft gedeeld, toon dat je echt luistert.
+- Bouw voort op eerdere uitwisselingen en verdiep het gesprek, in plaats van alleen generieke ACT principes te delen.
+- Personaliseer je antwoorden door elementen uit het verhaal van de gebruiker te integreren.
+- Leg een duidelijk verband tussen jouw ACT-gerelateerde inzichten en de specifieke situatie van de gebruiker.`
 
 const userMessage = ref('')
 const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string }[]>([])
@@ -264,7 +268,22 @@ async function sendMessage() {
   scrollToBottom()
 
   try {
-    const fullPrompt = `${systemInstructions}\n\nUser: ${message}`
+    // Get up to 5 previous messages for context
+    const previousMessages = chatHistory.value
+      .slice(-10)  // Take the last 10 messages (or fewer if there aren't 10)
+      .map(msg => `${msg.role === 'user' ? 'Gebruiker' : 'Assistent'}: ${msg.content}`)
+      .join('\n\n');
+    
+    // Include previous messages in the prompt for context
+    const fullPrompt = `${systemInstructions}
+
+Vorige berichten (gebruik dit voor context):
+${previousMessages}
+
+Denk eraan om direct te verwijzen naar wat de gebruiker deelt, dus niet alleen ACT-principes vertellen, maar ook personaliseren en voortbouwen op eerdere uitwisselingen.
+
+Antwoord op het nieuwste bericht van de gebruiker.`
+    
     const result = await model.generateContent(fullPrompt)
     const response = await result.response
     const text = response.text()
