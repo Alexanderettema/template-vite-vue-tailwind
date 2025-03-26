@@ -732,9 +732,6 @@ const exploreKeyword = (word: string) => {
         <div class="absolute inset-0 pointer-events-none opacity-5">
           <div class="h-full w-full" :class="[darkMode ? 'bg-scanlines-dark' : 'bg-scanlines-light']"></div>
         </div>
-        <!-- Pixel corners -->
-        <div class="absolute top-0.5 left-0.5 w-1 h-1 bg-emerald-500 opacity-80"></div>
-        <div class="absolute top-0.5 right-0.5 w-1 h-1 bg-emerald-500 opacity-80"></div>
 
         <div class="font-bold relative z-10" :class="[darkMode ? 'text-white' : '']">
           <font-awesome-icon icon="message" class="mr-1" /> 
@@ -1068,12 +1065,6 @@ const exploreKeyword = (word: string) => {
         <div class="space-y-4">
           <section class="p-3 border border-dashed rounded relative"
                   :class="[darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-800 bg-gray-100/50']">
-            <!-- Pixel corner decorations -->
-            <div class="absolute top-1 left-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
-            <div class="absolute top-1 right-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
-            <div class="absolute bottom-1 left-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
-            <div class="absolute bottom-1 right-1 w-1 h-1 bg-emerald-500 opacity-80"></div>
-            
             <h3 class="text-lg font-bold flex items-center mb-2">
               <font-awesome-icon icon="text-height" class="mr-2 text-emerald-600" />
               Tekstgrootte
