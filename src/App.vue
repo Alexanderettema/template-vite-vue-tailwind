@@ -220,27 +220,9 @@ async function handleLogout() {
 
 <template>
   <div>
-    <!-- Navigation Bar -->
-    <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 fixed w-full top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex">
-            <router-link to="/" class="flex items-center px-2 py-2 text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400">
-              🧠 ACT Therapie
-            </router-link>
-          </div>
-          <div class="flex items-center">
-            <button @click="handleLogout" 
-                    class="px-3 py-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-              Uitloggen
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Main Content with padding for the fixed navbar -->
-    <div class="pt-16">
+    <!-- Main Content without any header -->
+    <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <!-- Router view with full height -->
       <router-view></router-view>
     </div>
 

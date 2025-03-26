@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { marked } from 'marked'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 // Define props and emits
 const emit = defineEmits(['start-app'])
@@ -11,6 +12,7 @@ const showRoadmap = ref(false)
 const roadmapContent = ref('')
 
 const router = useRouter()
+const { user, initUser } = useAuth()
 
 // Load dark mode preference from localStorage
 if (typeof window !== 'undefined') {
@@ -19,6 +21,11 @@ if (typeof window !== 'undefined') {
     darkMode.value = true
   }
 }
+
+// Check auth state on component mount
+onMounted(async () => {
+  await initUser()
+})
 
 // Toggle dark mode
 function toggleDarkMode() {
@@ -29,7 +36,12 @@ function toggleDarkMode() {
 
 // Start the app
 function startApp() {
-  emit('start-app')
+  router.push('/chat')
+}
+
+// Go to auth page
+function goToAuth() {
+  router.push('/auth')
 }
 
 // Load and show roadmap
@@ -37,7 +49,7 @@ async function openRoadmap() {
   try {
     const response = await fetch('/docs/client-sessions.md')
     const text = await response.text()
-    roadmapContent.value = marked(text)
+    roadmapContent.value = marked(text) as string
     showRoadmap.value = true
   } catch (error) {
     console.error('Failed to load roadmap:', error)
@@ -63,16 +75,16 @@ function closeRoadmap() {
       </button>
     </div>
     
-    <div class="max-w-3xl w-full border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-8 text-center"
+    <div class="max-w-3xl w-full border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-8 text-center -mt-24"
          :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-800']">
       
-      <div class="mb-8 text-xl mt-10">
-        <div class="text-6xl mb-4">🧠</div>
-        <h1 class="text-4xl font-bold mb-2">ACT Therapie App</h1>
+      <div class="mb-5 text-xl">
+        <div class="text-6xl mb-2">🧠</div>
+        <h1 class="text-4xl font-bold mb-1">ACT Therapie App</h1>
         <p class="opacity-75">Acceptance and Commitment Therapy</p>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
         <div class="border-2 p-4 rounded-lg"
              :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
           <h2 class="text-xl font-bold mb-2">Wat is ACT?</h2>
@@ -100,8 +112,10 @@ function closeRoadmap() {
         </div>
       </div>
       
-      <button @click="startApp" 
-              class="text-lg px-6 py-3 mt-5 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
+      <!-- Show Start Session button if logged in, otherwise show Login/Register button -->
+      <button v-if="user" 
+              @click="startApp" 
+              class="text-lg px-6 py-3 mt-3 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
               :class="[
                 darkMode ? 
                   'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 
@@ -109,15 +123,19 @@ function closeRoadmap() {
               ]">
         Start de Therapie Sessie
       </button>
-
-      <div class="mt-4">
-        <router-link to="/auth" 
-                    class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
-          Login / Sign Up
-        </router-link>
-      </div>
       
-      <div class="mt-8 text-sm space-y-2">
+      <button v-else
+              @click="goToAuth" 
+              class="text-lg px-6 py-3 mt-3 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
+              :class="[
+                darkMode ? 
+                  'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 
+                  'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500'
+              ]">
+        Inloggen / Registreren
+      </button>
+      
+      <div class="mt-5 text-sm space-y-2">
         <p class="opacity-70">
           Ontwikkeld met behulp van moderne ACT principes en AI technologie
         </p>
