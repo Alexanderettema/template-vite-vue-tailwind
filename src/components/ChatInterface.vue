@@ -40,7 +40,7 @@ BELANGRIJK:
 - Leg een duidelijk verband tussen jouw ACT-gerelateerde inzichten en de specifieke situatie van de gebruiker.`
 
 const userMessage = ref('')
-const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string }[]>([])
+const chatHistory = ref<{ role: 'user' | 'assistant', content: string, essence?: string, displayFull: boolean }[]>([])
 const isLoading = ref(false)
 const isEssenceLoading = ref(false)
 const selectedMainTopic = ref('')
@@ -197,11 +197,35 @@ function toggleSettings() {
 function showWelcomeMessage() {
   const welcomeText = "Welkom bij je ACT therapie sessie. Ik ben je interactieve ACT Specialist, gespecialiseerd in Acceptance and Commitment Therapy. Wat zou je vandaag willen verkennen? Je kunt een thema kiezen of gewoon je gedachten delen."
   
-  chatHistory.value.push({ role: 'assistant', content: welcomeText })
+  chatHistory.value.push({ role: 'assistant', content: welcomeText, displayFull: false })
   scrollToBottom()
+  
+  // Start animating the welcome message
+  animateTextDisplay(welcomeText)
   
   // Generate essence words for the welcome message
   getEssence(welcomeText, 0)
+}
+
+// Add state for animated text display
+const animatingMessage = ref(false)
+const displayedText = ref('')
+const fullText = ref('')
+const currentCharIndex = ref(0)
+const typingSpeed = ref(30) // ms per character
+const messageFadeIn = ref(true)
+
+// Function to animate text display with breathing effect
+function animateTextDisplay(text: string) {
+  animatingMessage.value = true
+  fullText.value = text
+  displayedText.value = text
+  messageFadeIn.value = true
+  
+  // Set timeout to end animation after 1.5 seconds
+  setTimeout(() => {
+    animatingMessage.value = false
+  }, 1500)
 }
 
 onMounted(() => {
@@ -257,11 +281,12 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleSettingsKeyDown)
 })
 
+// Update sendMessage to use the animation
 async function sendMessage() {
   if (!userMessage.value.trim()) return
   
   const message = userMessage.value
-  chatHistory.value.push({ role: 'user', content: message })
+  chatHistory.value.push({ role: 'user', content: message, displayFull: false })
   userMessage.value = ''
   isLoading.value = true
   
@@ -289,18 +314,28 @@ Antwoord op het nieuwste bericht van de gebruiker.`
     const text = response.text()
     
     const messageIndex = chatHistory.value.length
-    chatHistory.value.push({ role: 'assistant', content: text })
+    chatHistory.value.push({ role: 'assistant', content: text, displayFull: false })
+    
+    // Start animating the message with the breathing effect
+    animateTextDisplay(text)
     
     getEssence(text, messageIndex)
     
     scrollToBottom()
   } catch (error) {
     console.error('Error:', error)
-    chatHistory.value.push({ role: 'assistant', content: 'Sorry, er was een fout bij het verwerken van je verzoek.' })
+    chatHistory.value.push({ role: 'assistant', content: 'Sorry, er was een fout bij het verwerken van je verzoek.', displayFull: true })
     
     scrollToBottom()
   } finally {
     isLoading.value = false
+  }
+}
+
+// Add function to show full message immediately (for skipping animation)
+function skipAnimation() {
+  if (animatingMessage.value) {
+    animatingMessage.value = false
   }
 }
 
@@ -957,7 +992,8 @@ async function handleLogout() {
                }">
             <font-awesome-icon :icon="message.role === 'user' ? 'user' : 'robot'" />
           </div>
-          <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative shadow-sm" 
+          <div class="p-2.5 px-4 rounded-2xl max-w-[70%] break-words relative shadow-sm cursor-pointer"
+               @click="skipAnimation"
                :class="[
                  fontSize === 'small' ? 'text-sm' : fontSize === 'large' ? 'text-lg' : 'text-base',
                  message.role === 'user' && !darkMode ? 'bg-white border border-gray-800 rounded-tr-sm text-left' : 
@@ -965,7 +1001,16 @@ async function handleLogout() {
                  message.role === 'assistant' && !darkMode ? 'bg-emerald-600 text-white rounded-tl-sm text-left' :
                  'bg-emerald-700 text-white rounded-tl-sm text-left'
                ]">
-            {{ message.content }}
+            <!-- Show animated text for latest assistant message, or full text for all other messages -->
+            <template v-if="message.role === 'assistant' && index === chatHistory.length - 1 && animatingMessage">
+              <div class="message-fade-in">
+                {{ displayedText }}
+              </div>
+            </template>
+            <template v-else>
+              {{ message.content }}
+            </template>
+            
             <div v-if="message.role === 'assistant'" class="text-xs opacity-70 mt-1 text-right">
               <font-awesome-icon icon="clock" /> 
               {{ new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
@@ -1275,6 +1320,37 @@ async function handleLogout() {
   100% {
     transform: translateX(100%);
   }
+}
+
+@keyframes blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeBreath {
+  0% { opacity: 0; filter: blur(2px); }
+  30% { opacity: 0.7; filter: blur(1px); }
+  70% { opacity: 0.9; filter: blur(0.5px); }
+  100% { opacity: 1; filter: blur(0); }
+}
+
+/* This gives a subtle pulse after the message appears */
+@keyframes subtlePulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.95; }
+  100% { opacity: 1; }
+}
+
+.message-fade-in {
+  animation: fadeBreath 1.2s ease-in-out forwards, subtlePulse 2s ease-in-out 1.2s infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
 }
 
 /* Scrollbar styling for browsers that support it */
