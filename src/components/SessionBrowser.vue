@@ -1,7 +1,7 @@
 <template>
-  <div class="session-browser" :class="{ 'dark-mode': darkMode }">
+  <div class="session-browser p-6 md:p-8" :class="{ 'dark-mode': darkMode }">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-semibold" :class="{ 'text-gray-800': !darkMode, 'text-white': darkMode }">
         Mijn Sessies
       </h2>
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="mb-4 p-2 rounded-lg flex flex-wrap gap-2 items-center" :class="{ 'bg-gray-100': !darkMode, 'bg-gray-800': darkMode }">
+    <div class="mb-6 p-4 rounded-lg flex flex-wrap gap-3 items-center" :class="{ 'bg-gray-100': !darkMode, 'bg-gray-800': darkMode }">
       <input 
         type="text" 
         v-model="searchQuery" 
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center py-8">
+    <div v-if="isLoading" class="flex justify-center items-center py-12">
       <div class="animate-pulse flex flex-col items-center">
         <div class="h-12 w-12 rounded-full bg-emerald-500 opacity-75 mb-4"></div>
         <p :class="{ 'text-gray-600': !darkMode, 'text-gray-300': darkMode }">Sessies laden...</p>
@@ -70,13 +70,13 @@
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="filteredSessions.length === 0" class="py-10 px-4 flex flex-col items-center justify-center border-2 border-dashed rounded-lg"
+    <div v-else-if="filteredSessions.length === 0" class="py-12 px-6 flex flex-col items-center justify-center border-2 border-dashed rounded-lg"
          :class="{ 'border-gray-300 bg-gray-50': !darkMode, 'border-gray-700 bg-gray-800': darkMode }">
       <font-awesome-icon icon="book" class="text-4xl mb-4" :class="{ 'text-gray-400': !darkMode, 'text-gray-500': darkMode }" />
-      <h3 class="text-lg font-medium mb-2" :class="{ 'text-gray-700': !darkMode, 'text-gray-200': darkMode }">
+      <h3 class="text-lg font-medium mb-3" :class="{ 'text-gray-700': !darkMode, 'text-gray-200': darkMode }">
         Geen sessies gevonden
       </h3>
-      <p class="text-center mb-4" :class="{ 'text-gray-500': !darkMode, 'text-gray-400': darkMode }">
+      <p class="text-center mb-6" :class="{ 'text-gray-500': !darkMode, 'text-gray-400': darkMode }">
         Je hebt nog geen therapie sessies of er zijn geen resultaten die overeenkomen met je zoekopdracht.
       </p>
       <button 
@@ -92,7 +92,7 @@
     </div>
 
     <!-- Sessions grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div 
         v-for="session in filteredSessions" 
         :key="session.id"
@@ -104,19 +104,19 @@
         @click="viewSession(session.id)"
       >
         <!-- Card header -->
-        <div class="p-4 border-b" :class="{ 'border-gray-200': !darkMode, 'border-gray-700': darkMode }">
+        <div class="p-5 border-b" :class="{ 'border-gray-200': !darkMode, 'border-gray-700': darkMode }">
           <div class="flex justify-between items-start">
             <h3 class="font-medium" :class="{ 'text-gray-800': !darkMode, 'text-white': darkMode }">
               {{ session.title }}
             </h3>
-            <div class="text-xs rounded-full px-2 py-1" :class="{ 
+            <div class="text-xs rounded-full px-2.5 py-1.5" :class="{ 
               'bg-emerald-100 text-emerald-800': !darkMode, 
               'bg-emerald-900 text-emerald-200': darkMode 
             }">
               {{ formatDuration(session.duration) }}
             </div>
           </div>
-          <div class="text-sm mt-1" :class="{ 'text-gray-500': !darkMode, 'text-gray-400': darkMode }">
+          <div class="text-sm mt-1.5" :class="{ 'text-gray-500': !darkMode, 'text-gray-400': darkMode }">
             {{ formatDate(session.date) }}
           </div>
           <!-- Session ID as small text to help identify duplicates -->
@@ -126,9 +126,9 @@
         </div>
 
         <!-- Card body -->
-        <div class="p-4">
-          <div v-if="session.summary" class="mb-3">
-            <div class="text-sm font-medium mb-1" :class="{ 'text-gray-700': !darkMode, 'text-gray-300': darkMode }">
+        <div class="p-5">
+          <div v-if="session.summary" class="mb-4">
+            <div class="text-sm font-medium mb-1.5" :class="{ 'text-gray-700': !darkMode, 'text-gray-300': darkMode }">
               Samenvatting:
             </div>
             <p class="text-sm line-clamp-2" :class="{ 'text-gray-600': !darkMode, 'text-gray-400': darkMode }">
@@ -137,11 +137,11 @@
           </div>
 
           <!-- Tags -->
-          <div class="flex flex-wrap gap-1.5 mb-3">
+          <div class="flex flex-wrap gap-2 mb-4">
             <span 
               v-for="(theme, index) in session.summary?.keyThemes || []" 
               :key="index"
-              class="text-xs px-2 py-0.5 rounded-full"
+              class="text-xs px-2.5 py-1 rounded-full"
               :class="{ 
                 'bg-gray-100 text-gray-600': !darkMode, 
                 'bg-gray-700 text-gray-300': darkMode 
@@ -153,7 +153,7 @@
 
           <!-- Reflective questions preview -->
           <div v-if="session.summary?.reflectiveQuestions?.length">
-            <div class="text-sm font-medium mb-1" :class="{ 'text-gray-700': !darkMode, 'text-gray-300': darkMode }">
+            <div class="text-sm font-medium mb-1.5" :class="{ 'text-gray-700': !darkMode, 'text-gray-300': darkMode }">
               Reflectieve vraag:
             </div>
             <p class="text-sm italic line-clamp-2" :class="{ 'text-gray-600': !darkMode, 'text-gray-400': darkMode }">
@@ -163,22 +163,22 @@
         </div>
 
         <!-- Card footer -->
-        <div class="p-3 flex justify-between items-center border-t" 
+        <div class="p-4 flex justify-between items-center border-t" 
              :class="{ 'border-gray-200 bg-gray-50': !darkMode, 'border-gray-700 bg-gray-900': darkMode }">
           <button 
             @click.stop="continueSession(session.id)" 
-            class="text-xs font-medium px-3 py-1.5 rounded transition-colors"
+            class="text-xs font-medium px-3.5 py-2 rounded transition-colors"
             :class="{ 
               'bg-emerald-100 text-emerald-700 hover:bg-emerald-200': !darkMode, 
               'bg-emerald-900 text-emerald-200 hover:bg-emerald-800': darkMode 
             }"
           >
-            <font-awesome-icon icon="play" class="mr-1" />
+            <font-awesome-icon icon="play" class="mr-1.5" />
             Voortzetten
           </button>
           <button 
             @click.stop="deleteSession(session.id)" 
-            class="text-xs px-2 py-1.5 rounded transition-colors"
+            class="text-xs px-2.5 py-2 rounded transition-colors"
             :class="{ 
               'text-gray-500 hover:text-red-500 hover:bg-red-50': !darkMode, 
               'text-gray-400 hover:text-red-400 hover:bg-gray-800': darkMode 

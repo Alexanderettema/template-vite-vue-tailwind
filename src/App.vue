@@ -5,6 +5,8 @@ import LandingPage from './components/LandingPage.vue'
 import { useAuth } from './composables/useAuth'
 import { useRouter } from 'vue-router'
 
+const router = useRouter()
+
 const title = 'Vite template for Vue 3, TypeScript, and TailwindCSS'
 const description = 'An open-source Vite template for Vue 3, TypeScript and TailwindCSS. Dark mode enabled, auto-import enabled, persistent localStorage enabled using Nano Stores'
 const url = import.meta.env.VITE_BASE_URL
@@ -110,7 +112,6 @@ provide('onboardingStep', onboardingStep)
 provide('darkMode', darkMode)
 
 const { initUser, signOut } = useAuth()
-const router = useRouter()
 
 function startApp() {
   showChat.value = true
@@ -220,9 +221,11 @@ async function handleLogout() {
 
 <template>
   <div class="app-container min-h-screen w-full" :class="{'dark': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode}">
-    <router-view v-slot="{ Component }">
-      <component :is="Component" @start-app="startApp" @go-to-home="goToHome" />
-    </router-view>
+    <div class="container mx-auto" :class="{'max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6': $route.name === 'sessions' || $route.name === 'session-details'}">
+      <router-view v-slot="{ Component }">
+        <component :is="Component" @start-app="startApp" @go-to-home="goToHome" />
+      </router-view>
+    </div>
     
     <!-- Fixed nav buttons that appear on all pages except ChatInterface -->
     <div class="fixed bottom-4 right-4 flex space-x-2 z-10" v-if="$route.name !== 'chat'">

@@ -1,7 +1,7 @@
 <template>
-  <div class="session-details" :class="{ 'dark-mode': darkMode }">
+  <div class="session-details pt-6 md:pt-8" :class="{ 'dark-mode': darkMode }">
     <!-- Back button and header -->
-    <div class="flex items-center mb-6">
+    <div class="flex items-center mb-6 mt-4">
       <button 
         @click="goBack" 
         class="mr-4 p-2 rounded-full transition-all"
