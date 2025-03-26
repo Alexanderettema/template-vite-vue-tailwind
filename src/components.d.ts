@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AuthPage: typeof import('./components/AuthPage.vue')['default']
     BsIcon: typeof import('./components/BsIcon.vue')['default']
     ChatInterface: typeof import('./components/ChatInterface.vue')['default']
     Header: typeof import('./components/Header.vue')['default']

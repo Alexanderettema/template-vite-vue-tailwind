@@ -2,6 +2,7 @@ import './style.css'
 import App from './App.vue'
 import { createApp } from 'vue'
 import { createHead } from '@unhead/vue'
+import router from './router'
 
 // Font Awesome setup
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -16,6 +17,9 @@ library.add(fas, far, fab, faMap)
 
 const app = createApp(App)
 const head = createHead()
+
+// Use router
+app.use(router)
 
 // Register Font Awesome component globally
 app.component('font-awesome-icon', FontAwesomeIcon)

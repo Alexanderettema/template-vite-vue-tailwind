@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { marked } from 'marked'
+import { useRouter } from 'vue-router'
 
 // Define props and emits
 const emit = defineEmits(['start-app'])
@@ -8,6 +9,8 @@ const emit = defineEmits(['start-app'])
 const darkMode = ref(false)
 const showRoadmap = ref(false)
 const roadmapContent = ref('')
+
+const router = useRouter()
 
 // Load dark mode preference from localStorage
 if (typeof window !== 'undefined') {
@@ -106,6 +109,13 @@ function closeRoadmap() {
               ]">
         Start de Therapie Sessie
       </button>
+
+      <div class="mt-4">
+        <router-link to="/auth" 
+                    class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+          Login / Sign Up
+        </router-link>
+      </div>
       
       <div class="mt-8 text-sm space-y-2">
         <p class="opacity-70">

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, watch, inject } from 'vue'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+
+const router = useRouter()
+const { signOut } = useAuth()
 
 // Define emits
 const emit = defineEmits(['go-to-home'])
@@ -341,6 +346,7 @@ function resetSession() {
   selectedMainTopic.value = ''
   showEndSession.value = false
   sessionSummary.value = ''
+  router.push('/')
 }
 
 // Add separate show states for help panel
@@ -421,7 +427,7 @@ function continueSession() {
 
 // Add function to go to home
 function goToHome() {
-  emit('go-to-home')
+  router.push('/')
 }
 
 // Custom icon mapping for ACT themes
