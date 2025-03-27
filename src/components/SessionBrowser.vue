@@ -217,12 +217,17 @@ const searchQuery = ref('')
 const sortOption = ref('date-desc')
 
 // Load sessions when component mounts
-onMounted(() => {
-  const sessions = loadSavedSessions();
+onMounted(async () => {
+  console.log("SessionBrowser mounted, loading sessions...")
+  await loadSavedSessions()
   
   // Update all sessions with recalculated durations and regenerate summaries if needed
-  if (sessions && sessions.length > 0) {
-    sessions.forEach(updateSessionInfo);
+  if (savedSessions.value && savedSessions.value.length > 0) {
+    console.log("Updating session information...")
+    for (const session of savedSessions.value) {
+      await updateSessionInfo(session)
+    }
+    console.log("Session information updated")
   }
 })
 
@@ -256,13 +261,15 @@ async function updateSessionInfo(session: TherapySession) {
     currentSession.value = originalSession;
   }
   
-  // Generate session summary if missing
-  if (!session.summary) {
+  // Generate session summary if missing and we have messages
+  if (!session.summary && session.messages && session.messages.length >= 2) {
+    console.log(`Generating summary for session ${session.id}`)
     const originalSession = currentSession.value;
     currentSession.value = session;
     await generateSessionSummary();
     await saveCurrentSession();
     currentSession.value = originalSession;
+    console.log(`Summary generated for session ${session.id}`)
   }
 }
 
@@ -316,9 +323,11 @@ function continueSession(sessionId: string) {
 }
 
 // Delete a session
-function deleteSession(sessionId: string) {
+async function deleteSession(sessionId: string) {
   if (confirm('Weet je zeker dat je deze sessie wilt verwijderen?')) {
-    removeSession(sessionId)
+    await removeSession(sessionId)
+    // Reload sessions after deletion
+    await loadSavedSessions()
   }
 }
 
@@ -347,10 +356,11 @@ function formatDuration(minutes: number) {
 }
 
 // Add function to confirm and delete all sessions
-function confirmDeleteAll() {
+async function confirmDeleteAll() {
   if (confirm('Weet je zeker dat je ALLE sessies wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) {
-    if (deleteAllSessions()) {
-      // Optionally show success message or refresh the page
+    if (await deleteAllSessions()) {
+      // Reload sessions after deletion
+      await loadSavedSessions()
     }
   }
 }

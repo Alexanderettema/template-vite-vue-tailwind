@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Type definitions for our database
 export type Database = {
@@ -17,25 +17,31 @@ export type Database = {
         Row: {
           id: string
           user_id: string
+          title: string
           created_at: string
+          duration: number
+          insights: string[]
           summary: string | null
-          selected_topics: string[]
-          is_archived: boolean
+          is_archived?: boolean
         }
         Insert: {
           id?: string
           user_id: string
+          title: string
           created_at?: string
+          duration?: number
+          insights?: string[]
           summary?: string | null
-          selected_topics?: string[]
           is_archived?: boolean
         }
         Update: {
           id?: string
           user_id?: string
+          title?: string
           created_at?: string
+          duration?: number
+          insights?: string[]
           summary?: string | null
-          selected_topics?: string[]
           is_archived?: boolean
         }
       }
@@ -45,24 +51,24 @@ export type Database = {
           session_id: string
           role: 'user' | 'assistant'
           content: string
-          essence: string[] | null
-          created_at: string
+          essence?: string
+          timestamp: string
         }
         Insert: {
           id?: string
           session_id: string
           role: 'user' | 'assistant'
           content: string
-          essence?: string[] | null
-          created_at?: string
+          essence?: string
+          timestamp?: string
         }
         Update: {
           id?: string
           session_id?: string
           role?: 'user' | 'assistant'
           content?: string
-          essence?: string[] | null
-          created_at?: string
+          essence?: string
+          timestamp?: string
         }
       }
     }

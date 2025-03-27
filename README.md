@@ -176,3 +176,81 @@ Go to [Vercel](https://vercel.com/dashboard) and click `Add new` -> `Project`. T
 ## Contact
 
 Le Minh Tri [@ansidev](https://ansidev.xyz/about).
+
+## Sessiedata Migratie: Van localStorage naar Supabase
+
+### Overzicht
+
+Dit document beschrijft de implementatie van Supabase voor gebruikerssessies terwijl de lokale opslag wordt behouden voor anonieme gebruikers.
+
+### Belangrijkste wijzigingen
+
+1. **Dual Storage Strategy**: 
+   - Ingelogde gebruikers: Sessies worden opgeslagen in Supabase
+   - Anonieme gebruikers: Sessies worden opgeslagen in localStorage
+
+2. **Aangepaste datastructuur**:
+   - Sessions tabel: ID, gebruiker ID, titel, datum, duur, inzichten, en samenvatting
+   - Messages tabel: Sessie ID, role (user/assistant), content, en timestamp
+
+3. **Belangrijkste functies**:
+   - `saveCurrentSession`: Controleert of de gebruiker is ingelogd en slaat de sessie op in Supabase of localStorage
+   - `loadSavedSessions`: Laadt sessies van Supabase voor ingelogde gebruikers of van localStorage voor anonieme gebruikers
+   - `loadSession`: Laadt een specifieke sessie van de juiste bron
+   - `deleteSession`: Verwijdert een sessie en alle gekoppelde berichten
+
+### SQL Schema
+
+```sql
+-- Sessions tabel
+create table sessions (
+  id text primary key,
+  user_id uuid references auth.users,
+  title text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  duration integer default 0,
+  insights text[] default '{}',
+  summary jsonb,
+  is_archived boolean default false
+);
+
+-- Messages tabel
+create table messages (
+  id uuid default uuid_generate_v4() primary key,
+  session_id text references sessions on delete cascade,
+  role text check (role in ('user', 'assistant')),
+  content text,
+  essence text,
+  timestamp timestamp with time zone default timezone('utc'::text, now())
+);
+```
+
+### Fallback Mechanisme
+
+We hebben een fallback mechanisme geïmplementeerd:
+
+1. Als het opslaan in Supabase mislukt, proberen we het alsnog in localStorage op te slaan
+2. Als het laden uit Supabase mislukt, proberen we te laden vanuit localStorage
+3. Bij het inloggen worden anonieme sessies uit localStorage automatisch gemigreerd naar Supabase
+
+### Toekomstige verbeteringen
+
+1. Implementeer synchronisatie van sessies tussen apparaten
+2. Voeg versiebeheer toe aan sessies
+3. Implementeer offline-first voor verbeterde betrouwbaarheid
+4. Voeg encryptie toe voor gevoelige sessie-informatie
+
+## Werken met dit project
+
+### Vereisten
+- Node.js 18 of hoger
+- Een Supabase account en project
+- Google Gemini API key
+
+### Installatie
+
+1. Clone de repository
+2. Installeer afhankelijkheden met `npm install`
+3. Kopieer `.env.example` naar `.env` en vul de benodigde API sleutels in
+4. Voer het SQL schema uit in je Supabase project
+5. Start de ontwikkelserver met `npm run dev`

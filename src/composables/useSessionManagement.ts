@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { supabase } from '@/lib/supabase'
 
 // Initialize Gemini AI
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
@@ -42,7 +43,7 @@ export function useSessionManagement() {
   const isLoading = ref(false)
 
   // Initialize a new session
-  function startNewSession() {
+  async function startNewSession() {
     // Check if we have an existing session created in the last 10 seconds
     // This prevents duplicate sessions when navigating or component remounting
     if (currentSession.value) {
@@ -67,6 +68,24 @@ export function useSessionManagement() {
       insights: []
     }
 
+    // If user is logged in, create an empty session record in Supabase
+    if (user.value?.id) {
+      try {
+        await supabase.from('sessions').insert({
+          id: sessionId,
+          user_id: user.value.id,
+          title: "Nieuwe sessie",
+          created_at: new Date().toISOString(),
+          duration: 0,
+          insights: [],
+          summary: null
+        })
+      } catch (error) {
+        console.error('Error creating initial session in Supabase:', error)
+        // Continue even if this fails - we'll retry on first save
+      }
+    }
+
     return sessionId
   }
 
@@ -86,37 +105,35 @@ export function useSessionManagement() {
     try {
       isLoading.value = true
       
-      // Generate a session summary if it doesn't exist
-      if (!currentSession.value.summary) {
+      // Generate a session summary if it doesn't exist and we have enough messages
+      if (!currentSession.value.summary && currentSession.value.messages.length >= 2) {
         await generateSessionSummary()
       }
       
-      // Store in localStorage
-      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
+      // Update duration before saving
+      currentSession.value.duration = calculateSessionDuration()
       
-      // Check if session already exists to update it
-      const existingSessionIndex = sessions.findIndex((s: TherapySession) => 
-        s.id === currentSession.value?.id
-      )
+      let savedSessionId = null
       
-      if (existingSessionIndex >= 0) {
-        sessions[existingSessionIndex] = currentSession.value
-      } else {
-        sessions.push(currentSession.value)
-      }
-      
-      localStorage.setItem('actTherapySessions', JSON.stringify(sessions))
-      
-      // Correctly filter sessions for the current user
+      // If user is logged in, save to Supabase
       if (user.value?.id) {
-        savedSessions.value = sessions.filter((s: TherapySession) => 
-          s.userId === user.value?.id || s.userId === null
-        )
-      } else {
-        savedSessions.value = sessions.filter((s: TherapySession) => s.userId === null)
+        savedSessionId = await saveToSupabase(currentSession.value)
       }
       
-      return currentSession.value.id
+      // Always save to localStorage as backup and for anonymous users
+      savedSessionId = await saveToLocalStorage(currentSession.value)
+      
+      // Reload saved sessions to update the list
+      await loadSavedSessions()
+      
+      console.log("Saved current session:", {
+        id: savedSessionId,
+        title: currentSession.value.title,
+        messageCount: currentSession.value.messages.length,
+        storage: user.value?.id ? 'Supabase + localStorage' : 'localStorage'
+      })
+      
+      return savedSessionId
     } catch (error) {
       console.error('Error saving session:', error)
       return null
@@ -125,33 +142,315 @@ export function useSessionManagement() {
     }
   }
 
-  // Load saved sessions
-  function loadSavedSessions() {
+  // Helper function to save session to Supabase
+  async function saveToSupabase(session: TherapySession) {
     try {
-      isLoading.value = true
+      // Check if session already exists in Supabase
+      const { data: existingSession } = await supabase
+        .from('sessions')
+        .select('id')
+        .eq('id', session.id)
+        .single()
+      
+      // Prepare session data for Supabase
+      const sessionData = {
+        id: session.id,
+        user_id: user.value!.id,
+        title: session.title,
+        created_at: session.date,
+        duration: session.duration,
+        insights: session.insights,
+        summary: session.summary ? JSON.stringify(session.summary) : null,
+      }
+      
+      if (existingSession) {
+        // Update existing session
+        await supabase
+          .from('sessions')
+          .update(sessionData)
+          .eq('id', session.id)
+      } else {
+        // Insert new session
+        await supabase
+          .from('sessions')
+          .insert(sessionData)
+      }
+      
+      // Save or update messages
+      for (const message of session.messages) {
+        // Ensure timestamp exists
+        const timestamp = message.timestamp || new Date().toISOString()
+        
+        // Check if message exists by comparing content and timestamp
+        const { data: messages } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('session_id', session.id)
+          .eq('content', message.content)
+          .eq('role', message.role)
+        
+        const messageData = {
+          session_id: session.id,
+          role: message.role,
+          content: message.content,
+          essence: message.essence || '',
+          timestamp: timestamp
+        }
+        
+        if (messages && messages.length > 0) {
+          // Update existing message
+          await supabase
+            .from('messages')
+            .update(messageData)
+            .eq('id', messages[0].id)
+        } else {
+          // Insert new message
+          await supabase
+            .from('messages')
+            .insert(messageData)
+        }
+      }
+      
+      return session.id
+    } catch (error) {
+      console.error('Error saving to Supabase:', error)
+      // Fallback to localStorage if Supabase fails
+      return await saveToLocalStorage(session)
+    }
+  }
+
+  // Helper function to save session to localStorage
+  async function saveToLocalStorage(session: TherapySession) {
+    try {
+      // Get existing sessions
       const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
       
-      // Filter sessions by current user if logged in
-      if (user.value?.id) {
-        savedSessions.value = sessions.filter((s: TherapySession) => 
-          s.userId === user.value?.id || s.userId === null
-        )
+      // Check if session already exists
+      const existingIndex = sessions.findIndex((s: TherapySession) => s.id === session.id)
+      
+      if (existingIndex >= 0) {
+        sessions[existingIndex] = session
       } else {
-        // For non-logged in users, only show anonymous sessions
+        sessions.push(session)
+      }
+      
+      // Save back to localStorage
+      localStorage.setItem('actTherapySessions', JSON.stringify(sessions))
+      
+      // Update savedSessions for anonymous users
+      if (!user.value?.id) {
         savedSessions.value = sessions.filter((s: TherapySession) => s.userId === null)
       }
+      
+      console.log("Saved session to localStorage:", {
+        id: session.id,
+        title: session.title,
+        messageCount: session.messages.length
+      })
+      
+      return session.id
+    } catch (error) {
+      console.error('Error saving to localStorage:', error)
+      return null
+    }
+  }
+
+  // Load saved sessions
+  async function loadSavedSessions() {
+    try {
+      isLoading.value = true
+      let loadedSessions = [];
+      
+      if (user.value?.id) {
+        // Load from Supabase for logged-in users
+        loadedSessions = await loadFromSupabase()
+      } else {
+        // Load from localStorage for anonymous users
+        loadedSessions = loadFromLocalStorage()
+      }
+      
+      // Ensure we're updating the reactive ref with a new array
+      savedSessions.value = loadedSessions.filter(Boolean) // Filter out any null/undefined sessions
+      
+      console.log("Loaded sessions:", {
+        count: savedSessions.value.length,
+        source: user.value?.id ? 'Supabase' : 'localStorage',
+        sessions: savedSessions.value.map(s => ({
+          id: s.id,
+          title: s.title,
+          messageCount: s.messages.length
+        }))
+      })
       
       return savedSessions.value
     } catch (error) {
       console.error('Error loading sessions:', error)
+      savedSessions.value = []
       return []
     } finally {
       isLoading.value = false
     }
   }
 
+  // Helper function to load sessions from Supabase
+  async function loadFromSupabase() {
+    try {
+      // Get sessions
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('user_id', user.value!.id)
+        .order('created_at', { ascending: false })
+      
+      if (sessionError) throw sessionError
+      
+      // Map sessions to our format
+      const sessions: TherapySession[] = []
+      
+      for (const session of sessionData) {
+        // Get messages for each session
+        const { data: messagesData, error: messagesError } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('session_id', session.id)
+          .order('timestamp', { ascending: true })
+        
+        if (messagesError) throw messagesError
+        
+        // Parse the summary if it's a string, otherwise use as-is
+        let parsedSummary = undefined
+        if (session.summary) {
+          try {
+            // Check if it's already an object or needs parsing
+            parsedSummary = typeof session.summary === 'string' 
+              ? JSON.parse(session.summary) 
+              : session.summary
+          } catch (e) {
+            console.error('Error parsing summary:', e)
+          }
+        }
+        
+        // Format session
+        const therapySession: TherapySession = {
+          id: session.id,
+          userId: session.user_id,
+          title: session.title,
+          date: session.created_at,
+          duration: session.duration,
+          insights: session.insights || [],
+          messages: messagesData.map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            essence: msg.essence,
+            timestamp: msg.timestamp,
+            displayFull: true
+          })),
+          summary: parsedSummary
+        }
+        
+        sessions.push(therapySession)
+      }
+      
+      return sessions
+    } catch (error) {
+      console.error('Error loading from Supabase:', error)
+      // Fallback to localStorage if Supabase fails
+      return loadFromLocalStorage()
+    }
+  }
+
+  // Helper function to load sessions from localStorage
+  function loadFromLocalStorage() {
+    try {
+      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
+      
+      // For non-logged in users, only show anonymous sessions
+      return sessions.filter((s: TherapySession) => s.userId === null)
+    } catch (error) {
+      console.error('Error loading from localStorage:', error)
+      return []
+    }
+  }
+
   // Load a specific session
-  function loadSession(sessionId: string) {
+  async function loadSession(sessionId: string) {
+    try {
+      if (user.value?.id) {
+        // Load from Supabase for logged-in users
+        return await loadSessionFromSupabase(sessionId)
+      } else {
+        // Load from localStorage for anonymous users
+        return loadSessionFromLocalStorage(sessionId)
+      }
+    } catch (error) {
+      console.error('Error loading session:', error)
+      return null
+    }
+  }
+
+  // Helper function to load a session from Supabase
+  async function loadSessionFromSupabase(sessionId: string) {
+    try {
+      // Get session
+      const { data: session, error: sessionError } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single()
+      
+      if (sessionError) throw sessionError
+      
+      // Get messages
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('timestamp', { ascending: true })
+      
+      if (messagesError) throw messagesError
+      
+      // Parse the summary if it's a string, otherwise use as-is
+      let parsedSummary = undefined
+      if (session.summary) {
+        try {
+          // Check if it's already an object or needs parsing
+          parsedSummary = typeof session.summary === 'string' 
+            ? JSON.parse(session.summary) 
+            : session.summary
+        } catch (e) {
+          console.error('Error parsing summary:', e)
+        }
+      }
+      
+      // Format session
+      const therapySession: TherapySession = {
+        id: session.id,
+        userId: session.user_id,
+        title: session.title,
+        date: session.created_at,
+        duration: session.duration,
+        insights: session.insights || [],
+        messages: messagesData.map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          essence: msg.essence,
+          timestamp: msg.timestamp,
+          displayFull: true
+        })),
+        summary: parsedSummary
+      }
+      
+      currentSession.value = therapySession
+      return therapySession
+    } catch (error) {
+      console.error('Error loading session from Supabase:', error)
+      // Fallback to localStorage if Supabase fails
+      return loadSessionFromLocalStorage(sessionId)
+    }
+  }
+
+  // Helper function to load a session from localStorage
+  function loadSessionFromLocalStorage(sessionId: string) {
     try {
       const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
       const session = sessions.find((s: TherapySession) => s.id === sessionId)
@@ -163,8 +462,71 @@ export function useSessionManagement() {
       
       return null
     } catch (error) {
-      console.error('Error loading session:', error)
+      console.error('Error loading session from localStorage:', error)
       return null
+    }
+  }
+
+  // Delete a session
+  async function deleteSession(sessionId: string) {
+    try {
+      if (user.value?.id) {
+        // Delete from Supabase for logged-in users
+        await deleteSessionFromSupabase(sessionId)
+      } else {
+        // Delete from localStorage for anonymous users
+        deleteSessionFromLocalStorage(sessionId)
+      }
+      
+      // Remove from current session if it's the one being deleted
+      if (currentSession.value?.id === sessionId) {
+        currentSession.value = null
+      }
+      
+      // Remove from saved sessions list
+      savedSessions.value = savedSessions.value.filter(s => s.id !== sessionId)
+      
+      return true
+    } catch (error) {
+      console.error('Error deleting session:', error)
+      return false
+    }
+  }
+
+  // Helper function to delete a session from Supabase
+  async function deleteSessionFromSupabase(sessionId: string) {
+    try {
+      // Delete messages first (due to foreign key constraints)
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('session_id', sessionId)
+      
+      // Then delete the session
+      await supabase
+        .from('sessions')
+        .delete()
+        .eq('id', sessionId)
+        .eq('user_id', user.value!.id)
+      
+      return true
+    } catch (error) {
+      console.error('Error deleting session from Supabase:', error)
+      // Fallback to localStorage if Supabase fails
+      return deleteSessionFromLocalStorage(sessionId)
+    }
+  }
+
+  // Helper function to delete a session from localStorage
+  function deleteSessionFromLocalStorage(sessionId: string) {
+    try {
+      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
+      const filteredSessions = sessions.filter((s: TherapySession) => s.id !== sessionId)
+      localStorage.setItem('actTherapySessions', JSON.stringify(filteredSessions))
+      return true
+    } catch (error) {
+      console.error('Error deleting session from localStorage:', error)
+      return false
     }
   }
 
@@ -195,348 +557,298 @@ export function useSessionManagement() {
     return Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60))
   }
 
-  // Generate a session summary using AI
+  // Generate a summary for the current session
   async function generateSessionSummary() {
-    if (!currentSession.value || currentSession.value.messages.length === 0) return
+    if (!currentSession.value) return null
     
-    // Don't generate summaries for sessions without user input
-    const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
-    if (!hasUserInput) return
+    // Don't generate summary for sessions without any user input
+    if (!currentSession.value.messages.some(msg => msg.role === 'user')) {
+      return null
+    }
     
     try {
-      // Extract the full conversation
-      const conversation = currentSession.value.messages.map(msg => 
-        `${msg.role === 'user' ? 'Gebruiker' : 'Assistent'}: ${msg.content}`
-      ).join('\n\n')
+      // Extract the conversation
+      const conversation = currentSession.value.messages
+        .map(msg => `${msg.role === 'user' ? 'CLIENT' : 'THERAPEUT'}: ${msg.content}`)
+        .join('\n\n')
       
-      // Use Gemini API to create a real summary regardless of conversation length
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-      
-      // Create different prompts based on conversation length
-      let summaryPrompt = ''
-      if (currentSession.value.messages.length >= 2) {
-        summaryPrompt = `
-        Maak een korte, betekenisvolle samenvatting (maximaal 2 zinnen) van deze ACT-therapie conversatie. 
-        Focus op:
-        1. De kernthema's die aan bod kwamen
-        2. De specifieke ACT-concepten die werden besproken
-        3. De belangrijkste persoonlijke inzichten of leerpunten
-        4. De voornaamste uitdagingen of doelen
-
-        Houd de samenvatting concreet, informatief en specifiek voor deze gebruiker.
-        
-        Conversatie:
-        ${conversation}
-        
-        Samenvatting:
-        `
+      // Choose prompt based on conversation length
+      let prompt = ""
+      if (conversation.length > 8000) {
+        // For very long conversations, use a more concise prompt
+        prompt = `Maak een beknopte samenvatting van deze ACT therapiesessie, met nadruk op de belangrijkste thema's, inzichten, besproken uitdagingen en therapeutische vooruitgang. Focus op specifieke client-issues, niet op algemene beschrijvingen.\n\n${conversation}`
       } else {
-        // Special prompt for very short conversations (1 or 0 messages)
-        const userMessage = currentSession.value.messages.find(m => m.role === 'user')
-        if (userMessage) {
-          summaryPrompt = `
-          Maak een korte, betekenisvolle samenvatting (maximaal 2 zinnen) van deze korte ACT-therapie vraag. 
-          Focus op:
-          1. Het centrale thema of de kwestie in de vraag
-          2. Welke ACT-concepten hierbij relevant zijn
-          3. Mogelijke persoonlijke uitdagingen of doelen die zichtbaar zijn
-          
-          Vraag van gebruiker:
-          ${userMessage.content}
-          
-          Samenvatting:
-          `
-        } else {
-          // In case there is somehow no user message
-          summaryPrompt = `
-          Maak een korte, betekenisvolle samenvatting voor het begin van een ACT-therapie sessie.
-          
-          Samenvatting:
-          `
-        }
+        // For shorter conversations, use a more detailed prompt
+        prompt = `Dit is een ACT (Acceptance and Commitment Therapy) therapiesessie gesprek. 
+Maak een gedetailleerde samenvatting (maximaal 250 woorden) van dit gesprek die het volgende belicht:
+1. De kernuitdagingen, zorgen of worstelingen die de client heeft gedeeld
+2. Belangrijke ACT-concepten die in het gesprek aanwezig waren (bijv. cognitieve fusie, experiëntiële vermijding, waardenverduidelijking)
+3. Specifieke inzichten of momenten van helderheid die de client heeft ervaren
+4. Eventuele toezeggingen, oefeningen of praktijken waar de client mee heeft ingestemd
+
+Wees concreet en specifiek voor de situatie van deze client - vermijd algemene therapeutische uitspraken.
+Verzin geen details die niet zijn besproken. Als iets niet duidelijk is uit het gesprek, neem het dan niet op.
+
+GESPREK:
+${conversation}`
       }
       
-      // Generate the summary with AI
-      const result = await model.generateContent(summaryPrompt)
-      const response = await result.response
-      const summaryText = response.text().trim()
+      // Generate summary with Gemini AI
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const result = await model.generateContent(prompt)
+      const summaryText = result.response.text().trim()
       
-      // Extract unique themes from the conversation
-      const uniqueThemes = extractThemesFromConversation(conversation)
+      // Extract themes
+      const themes = await extractThemes(conversation)
       
-      // Generate personalized reflective questions
-      const reflectiveQuestions = await generateReflectiveQuestions(conversation, uniqueThemes)
+      // Generate reflective questions
+      const reflectiveQuestions = await generateReflectiveQuestions(conversation, themes)
       
-      // Generate meaningful title based on summary and conversation
-      const sessionTitle = await generateMeaningfulTitle(conversation, uniqueThemes, summaryText)
+      // Create a meaningful title
+      const title = await generateMeaningfulTitle(summaryText, conversation)
       
-      // Create session summary
-      currentSession.value.summary = {
+      // Create and store the summary
+      const summary: SessionSummary = {
         id: currentSession.value.id,
-        title: sessionTitle,
+        title: title,
         date: currentSession.value.date,
         duration: calculateSessionDuration(),
-        keyThemes: uniqueThemes,
+        keyThemes: themes,
         summary: summaryText,
         reflectiveQuestions: reflectiveQuestions
       }
       
-      // Update title
-      if (currentSession.value.summary) {
-        currentSession.value.title = currentSession.value.summary.title
-      }
+      // Update the session
+      currentSession.value.summary = summary
+      currentSession.value.title = title
       
-      return currentSession.value.summary
+      return summary
     } catch (error) {
-      console.error('Error generating session summary:', error)
-      // Create a simple summary as fallback in case of error
-      const fallbackSummary = {
+      console.error('Error generating summary:', error)
+      
+      // Create a fallback summary
+      const fallbackSummary: SessionSummary = {
         id: currentSession.value.id,
-        title: "ACT Sessie " + new Date().toLocaleDateString('nl-NL'),
+        title: generateFallbackTitle(),
         date: currentSession.value.date,
         duration: calculateSessionDuration(),
         keyThemes: [],
-        summary: "Deze sessie onderzocht ACT-therapie concepten en persoonlijke reflecties.",
-        reflectiveQuestions: getDefaultReflectiveQuestions()
+        summary: "Er kon geen samenvatting worden gegenereerd voor deze sessie.",
+        reflectiveQuestions: []
       }
       
+      // Update the session with fallback
       currentSession.value.summary = fallbackSummary
       currentSession.value.title = fallbackSummary.title
       
       return fallbackSummary
     }
   }
-
-  // Helper function to extract themes from conversation
-  function extractThemesFromConversation(conversation: string) {
-    // Analyze the conversation to identify themes
-    const actThemes = [
-      'acceptatie', 'waarden', 'commitment', 'zelf', 'defusie', 
-      'mindfulness', 'actie', 'perspectief', 'zelfcompassie', 
-      'flexibiliteit', 'emoties', 'gedachten', 'bewustzijn'
-    ]
-    
-    // Simple frequency analysis
-    const themeCounts: Record<string, number> = {}
-    
-    actThemes.forEach(theme => {
-      const regex = new RegExp(`\\b${theme}\\b`, 'gi')
-      const matches = conversation.match(regex) || []
-      themeCounts[theme] = matches.length
-    })
-    
-    // Sort by frequency and take the top 5
-    return Object.entries(themeCounts)
-      .filter(([_, count]) => count > 0)
-      .sort(([_, countA], [__, countB]) => countB - countA)
-      .slice(0, 5)
-      .map(([theme, _]) => theme)
-  }
-
-  // Function to generate a meaningful title based on conversation content and summary
-  async function generateMeaningfulTitle(conversation: string, themes: string[], summary?: string) {
+  
+  // Extract unique themes from the conversation
+  async function extractThemes(conversation: string) {
     try {
-      // If we have enough content, use AI to generate a more meaningful title
-      if (conversation.length > 100) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-        
-        const prompt = `
-        Genereer een korte, pakkende titel (maximaal 5 woorden) voor deze ACT-therapie sessie.
-        De titel moet:
-        1. Direct verband houden met de inhoud van het gesprek
-        2. Relevant zijn voor de ACT-thema's die aan bod kwamen
-        3. In het Nederlands zijn
-        4. Beschrijvend en herkenbaar zijn voor de gebruiker
-        5. Aansluiten bij de samenvatting van het gesprek
-
-        Thema's in het gesprek: ${themes.join(', ')}
-        
-        ${summary ? `Samenvatting van het gesprek: ${summary}` : ''}
-        
-        Eerste deel van de conversatie:
-        ${conversation.substring(0, Math.min(500, conversation.length))}
-        
-        Geef alleen de titel, zonder aanhalingstekens of andere opmaak.
-        `
-        
-        try {
-          const result = await model.generateContent(prompt)
-          const response = await result.response
-          const generatedTitle = response.text().trim()
-          
-          // If we got a valid title from the AI, use it
-          if (generatedTitle && generatedTitle.length > 0 && generatedTitle.length <= 50) {
-            return generatedTitle
-          }
-        } catch (error) {
-          console.error('Error generating title with AI:', error)
-          // Continue with fallback methods
-        }
-      }
+      const actThemes = [
+        "Acceptatie", "Waarden", "Toegewijd handelen", "Zelf als context", 
+        "Cognitieve defusie", "Mindfulness", "Experiëntiële vermijding", 
+        "Psychologische flexibiliteit", "Hier en nu", "Perspectief nemen", 
+        "Zelfcompassie", "Emotieregulatie", "Gedragsverandering"
+      ]
       
-      // Fallback 1: Use themes if available
-      if (themes.length >= 2) {
-        return `${themes[0].charAt(0).toUpperCase() + themes[0].slice(1)} & ${themes[1]}`
-      } else if (themes.length === 1) {
-        return `${themes[0].charAt(0).toUpperCase() + themes[0].slice(1)} Verkenning`
-      } else {
-        // Fallback 2: Create a title based on the first question
-        const lines = conversation.split('\n\n')
-        const firstUserMessage = lines.find(line => line.startsWith('Gebruiker:'))
-        if (firstUserMessage) {
-          const topic = firstUserMessage.substring(11, 40).trim()
-          if (topic.length > 5) {
-            return `Verkenning: ${topic}${topic.length >= 30 ? '...' : ''}`
-          }
-        }
-        
-        // Fallback 3: Use date with friendly format
-        const date = new Date()
-        const options = { weekday: 'long', day: 'numeric', month: 'long' } as const
-        return `ACT Sessie ${date.toLocaleDateString('nl-NL', options)}`
-      }
+      const prompt = `Analyseer deze ACT therapie conversatie en bepaal de 2-4 belangrijkste ACT-gerelateerde thema's die aan bod kwamen. 
+Kies uit deze lijst: ${actThemes.join(", ")}
+
+Probeer zo precies mogelijk te zijn in je evaluatie - lees en begrijp de conversatie zorgvuldig.
+Geef je antwoord als een eenvoudige lijst met alleen de thema's, gescheiden door komma's, zonder extra tekst, uitleg of inleiding.
+
+CONVERSATIE:
+${conversation}`
+      
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const result = await model.generateContent(prompt)
+      const themesText = result.response.text().trim()
+      
+      // Split by commas and clean up
+      let themesList = themesText.split(/,\s*/).map(theme => theme.trim())
+      
+      // Ensure we have no more than 4 themes
+      themesList = themesList.slice(0, 4)
+      
+      return themesList
     } catch (error) {
-      console.error('Error in title generation:', error)
-      return "ACT Sessie " + new Date().toLocaleDateString('nl-NL')
+      console.error('Error extracting themes:', error)
+      return []
     }
   }
-
-  // Function to get default reflective questions
-  function getDefaultReflectiveQuestions() {
-    const defaultQuestions = [
-      "Hoe kun je vandaag één kleine stap zetten richting wat echt belangrijk voor je is?",
-      "Welke gedachten of gevoelens zijn moeilijk om te accepteren?",
-      "Wat zou een vriendelijke manier zijn om jezelf te benaderen wanneer je vastzit?"
-    ]
-    
-    // Add a time-specific question for more variety
-    const now = new Date()
-    const timeBasedQuestions = [
-      `Wat is één ding waar je vandaag (${now.getDate()} ${now.toLocaleString('nl-NL', {month: 'long'})}) dankbaar voor bent?`,
-      `Hoe zou je beste zelf omgaan met de uitdagingen van vandaag?`,
-      `Wat is één waarde die je deze week belangrijk vindt om te leven?`
-    ]
-    
-    const selectedQuestions = [...defaultQuestions]
-    selectedQuestions.push(timeBasedQuestions[now.getMinutes() % timeBasedQuestions.length])
-    
-    // Choose 3 unique questions
-    return selectedQuestions.slice(0, 3)
-  }
-
-  // Function to generate personalized reflective questions
+  
+  // Generate reflective questions based on the conversation
   async function generateReflectiveQuestions(conversation: string, themes: string[]) {
-    let questions: string[] = []
-    
-    // Try to generate questions using AI for a more personalized approach
     try {
-      if (conversation.length > 100) { // Only use AI if there's sufficient conversation
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-        
-        const prompt = `
-        Genereer 3 reflectievragen op basis van deze ACT-therapie conversatie. 
-        De vragen moeten:
-        1. Direct verband houden met de inhoud van het gesprek
-        2. Gericht zijn op verdere zelfreflectie
-        3. In het Nederlands zijn
-        4. Kort en krachtig zijn (maximaal 15 woorden per vraag)
-        5. Aansluiten bij ACT-principes
-        
-        Conversatie:
-        ${conversation.substring(0, 2000)} ${conversation.length > 2000 ? '...' : ''}
-        
-        Formatteer als een lijst van exact 3 vragen, één per regel.
-        `
-        
-        const result = await model.generateContent(prompt)
-        const response = await result.response
-        const generatedText = response.text().trim()
-        
-        // Extract questions from the response
-        questions = generatedText
-          .split('\n')
-          .map(line => line.trim())
-          .filter(line => line.endsWith('?') || line.length > 10)
-          .slice(0, 3)
+      const prompt = `Gebaseerd op deze ACT therapie conversatie, genereer 3 doordachte, reflectieve vragen die de cliënt kunnen helpen om 
+dieper na te denken over de besproken onderwerpen. Deze vragen moeten specifiek betrekking hebben op wat de cliënt heeft gedeeld, 
+en gebaseerd zijn op ACT-principes, in het bijzonder: ${themes.join(", ")}.
+
+Zorg ervoor dat de vragen:
+- Geen ja/nee-antwoorden uitlokken
+- Aanzetten tot verdere reflectie of verkenning
+- Specifiek zijn voor deze cliënt (niet algemeen)
+- In de eerste persoon geschreven zijn (bijv. "Hoe kan ik..." in plaats van "Hoe kan de cliënt...")
+
+Geef je antwoord als een lijst met slechts de 3 vragen, één per regel, zonder nummering of extra tekst.
+
+CONVERSATIE:
+${conversation}`
+      
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const result = await model.generateContent(prompt)
+      const questionsText = result.response.text().trim()
+      
+      // Split by newlines
+      let questions = questionsText.split(/\n+/).map(q => q.trim()).filter(q => q.length > 0)
+      
+      // Ensure we have exactly 3 questions
+      questions = questions.slice(0, 3)
+      while (questions.length < 3) {
+        questions.push("Hoe kan ik het geleerde toepassen in mijn dagelijks leven?")
       }
+      
+      return questions
     } catch (error) {
       console.error('Error generating reflective questions:', error)
+      return [
+        "Wat neem ik uit deze sessie mee?",
+        "Hoe kan ik het geleerde toepassen in mijn dagelijks leven?",
+        "Wat zou mijn volgende stap kunnen zijn?"
+      ]
     }
-    
-    // If AI generation failed or produced insufficient questions, fall back to theme-based questions
-    if (questions.length < 3) {
-      // Theme-specific questions
-      if (themes.includes('waarden') || themes.includes('commitment')) {
-        questions.push("Welke kleine actie kun je nemen die in lijn is met je waarden?")
+  }
+  
+  // Generate a meaningful title based on the conversation
+  async function generateMeaningfulTitle(summary: string, conversation: string) {
+    try {
+      const prompt = `Genereer een korte, betekenisvolle titel (maximaal 5 woorden) voor deze ACT therapie sessie gebaseerd op de samenvatting en oorspronkelijke conversatie. 
+De titel moet:
+- Kort en krachtig zijn (maximaal 5 woorden)
+- De essentie of het hoofdthema van het gesprek vatten
+- Niet te algemeen zijn (niet simpelweg "ACT Sessie" of "Therapiegesprek")
+- Bij voorkeur een belangrijk ACT-concept of inzicht bevatten
+- Geen aanhalingstekens of andere opmaak bevatten
+
+Geef alleen de titel als antwoord, zonder inleiding of uitleg.
+
+SAMENVATTING:
+${summary}
+
+CONVERSATIE (indien nodig om context te begrijpen):
+${conversation.substring(0, 5000)}`
+      
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const result = await model.generateContent(prompt)
+      let title = result.response.text().trim()
+      
+      // Remove quotes if present
+      title = title.replace(/^["'](.*)["']$/, '$1').trim()
+      
+      if (title.length > 30) {
+        title = title.substring(0, 30) + "..."
       }
       
-      if (themes.includes('acceptatie') || themes.includes('mindfulness')) {
-        questions.push("Welk moeilijk gevoel kun je vandaag met meer zachtheid observeren?")
+      return title
+    } catch (error) {
+      console.error('Error generating title:', error)
+      return generateFallbackTitle()
+    }
+  }
+  
+  // Generate a fallback title if AI title generation fails
+  function generateFallbackTitle() {
+    const extractTitleFromUserMessages = () => {
+      if (!currentSession.value || currentSession.value.messages.length === 0) {
+        return null
       }
       
-      if (themes.includes('zelf') || themes.includes('perspectief')) {
-        questions.push("Hoe zou je situatie eruit zien als je het vanuit een afstand kon bekijken?")
-      }
+      // Try to find the first substantive user message
+      const userMessages = currentSession.value.messages
+        .filter(msg => msg.role === 'user')
+        .map(msg => msg.content)
       
-      if (themes.includes('defusie') || themes.includes('gedachten')) {
-        questions.push("Welke gedachte kun je vandaag wat losser vasthouden?")
-      }
-      
-      // General questions for fallback
-      const generalQuestions = [
-        "Hoe kun je vandaag één kleine stap zetten richting wat echt belangrijk voor je is?",
-        "Welke gedachten of gevoelens zijn moeilijk om te accepteren?",
-        "Wat zou een vriendelijke manier zijn om jezelf te benaderen wanneer je vastzit?",
-        "Hoe kan mindfulness je helpen bij de uitdagingen die je nu ervaart?",
-        "Welke waarde zou je vandaag meer aandacht willen geven in je leven?"
-      ]
-      
-      // Add time-specific questions for more variety and uniqueness
-      const now = new Date()
-      const timeBasedQuestions = [
-        `Wat is één ding waar je vandaag (${now.getDate()} ${now.toLocaleString('nl-NL', {month: 'long'})}) dankbaar voor bent?`,
-        `Hoe zou je beste zelf omgaan met de uitdagingen van vandaag?`,
-        `Wat is één waarde die je deze week belangrijk vindt om te leven?`
-      ]
-      
-      // Ensure we have at least one time-specific question
-      const timeQuestion = timeBasedQuestions[now.getMinutes() % timeBasedQuestions.length]
-      if (!questions.includes(timeQuestion)) {
-        questions.push(timeQuestion)
-      }
-      
-      // Fill up to 3 unique questions
-      while (questions.length < 3) {
-        const randomIndex = Math.floor(Math.random() * generalQuestions.length)
-        const question = generalQuestions[randomIndex]
+      if (userMessages.length > 0) {
+        const firstMessage = userMessages[0]
         
-        if (!questions.includes(question)) {
-          questions.push(question)
-          generalQuestions.splice(randomIndex, 1)
+        // If message is short enough, use it directly
+        if (firstMessage.length <= 30) {
+          return firstMessage
         }
+        
+        // Otherwise, take the first sentence or fragment
+        const firstSentence = firstMessage.split(/[.!?]/).filter(s => s.trim().length > 0)[0]
+        if (firstSentence && firstSentence.length <= 35) {
+          return firstSentence
+        }
+        
+        // Last resort: first few words
+        return firstMessage.split(' ').slice(0, 5).join(' ') + '...'
       }
+      
+      return null
     }
     
-    return questions
+    // Try to extract from messages
+    const messageTitle = extractTitleFromUserMessages()
+    if (messageTitle) {
+      return messageTitle
+    }
+    
+    // Fall back to date
+    const date = currentSession.value ? new Date(currentSession.value.date) : new Date()
+    const formattedDate = date.toLocaleDateString('nl-NL', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+    
+    return `Gesprek op ${formattedDate}`
   }
 
-  // Delete a session
-  function deleteSession(sessionId: string) {
+  // Add function to delete all sessions
+  async function deleteAllSessions() {
     try {
-      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
-      const updatedSessions = sessions.filter((s: TherapySession) => s.id !== sessionId)
-      
-      localStorage.setItem('actTherapySessions', JSON.stringify(updatedSessions))
-      savedSessions.value = savedSessions.value.filter(s => s.id !== sessionId)
-      
-      // Reset current session if it's the one being deleted
-      if (currentSession.value?.id === sessionId) {
-        currentSession.value = null
+      if (user.value?.id) {
+        // For logged-in users, delete all sessions from Supabase
+        // First get all user's sessions
+        const { data: sessions } = await supabase
+          .from('sessions')
+          .select('id')
+          .eq('user_id', user.value.id)
+        
+        if (sessions && sessions.length > 0) {
+          // Delete all messages for these sessions
+          const sessionIds = sessions.map(s => s.id)
+          await supabase
+            .from('messages')
+            .delete()
+            .in('session_id', sessionIds)
+          
+          // Then delete all sessions
+          await supabase
+            .from('sessions')
+            .delete()
+            .eq('user_id', user.value.id)
+        }
+      } else {
+        // For anonymous users, clear localStorage
+        localStorage.removeItem('actTherapySessions')
       }
+      
+      // Clear in-memory sessions
+      savedSessions.value = []
+      currentSession.value = null
       
       return true
     } catch (error) {
-      console.error('Error deleting session:', error)
+      console.error('Error deleting all sessions:', error)
       return false
     }
   }
@@ -549,27 +861,11 @@ export function useSessionManagement() {
     saveCurrentSession,
     loadSavedSessions,
     loadSession,
+    deleteSession,
     updateSessionMessages,
     addSessionInsight,
     generateSessionSummary,
-    deleteSession,
-    // Add function to delete all sessions
-    deleteAllSessions() {
-      try {
-        // Clear sessions from localStorage
-        localStorage.removeItem('actTherapySessions')
-        
-        // Clear the sessions array in memory
-        savedSessions.value = []
-        
-        // Reset current session if there is one
-        currentSession.value = null
-        
-        return true
-      } catch (error) {
-        console.error('Error deleting all sessions:', error)
-        return false
-      }
-    }
+    calculateSessionDuration,
+    deleteAllSessions
   }
 } 
