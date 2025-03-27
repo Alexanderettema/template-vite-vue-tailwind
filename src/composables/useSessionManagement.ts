@@ -432,13 +432,23 @@ export function useSessionManagement() {
 
   // Load a specific session
   async function loadSession(sessionId: string) {
+    // Wait a moment for auth state to stabilize if needed
+    if (!isInitialized.value) {
+      console.log("Waiting for auth state before loading session...")
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
     if (!user.value?.id) {
       console.error('Cannot load session: User not logged in')
       return null
     }
 
     try {
-      return await loadSessionFromSupabase(sessionId)
+      const session = await loadSessionFromSupabase(sessionId)
+      if (session) {
+        currentSession.value = session
+      }
+      return session
     } catch (error) {
       console.error('Error loading session:', error)
       return null
@@ -448,6 +458,8 @@ export function useSessionManagement() {
   // Helper function to load a session from Supabase
   async function loadSessionFromSupabase(sessionId: string) {
     try {
+      console.log("Loading session from Supabase:", sessionId)
+      
       // Get session
       const { data: session, error: sessionError } = await supabase
         .from('sessions')
@@ -455,22 +467,32 @@ export function useSessionManagement() {
         .eq('id', sessionId)
         .single()
       
-      if (sessionError) throw sessionError
+      if (sessionError) {
+        console.error("Error loading session:", sessionError)
+        throw sessionError
+      }
+      
+      if (!session) {
+        console.error("Session not found:", sessionId)
+        return null
+      }
       
       // Get messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
         .eq('session_id', sessionId)
-        .order('timestamp', { ascending: true })
+        .order('created_at', { ascending: true })
       
-      if (messagesError) throw messagesError
+      if (messagesError) {
+        console.error("Error loading messages:", messagesError)
+        throw messagesError
+      }
       
       // Parse the summary if it's a string, otherwise use as-is
       let parsedSummary = undefined
       if (session.summary) {
         try {
-          // Check if it's already an object or needs parsing
           parsedSummary = typeof session.summary === 'string' 
             ? JSON.parse(session.summary) 
             : session.summary
@@ -483,44 +505,24 @@ export function useSessionManagement() {
       const therapySession: TherapySession = {
         id: session.id,
         userId: session.user_id,
-        title: session.title,
+        title: session.title || "Nieuwe sessie",
         date: session.created_at,
-        duration: session.duration,
-        insights: session.selected_topics || [],
+        duration: session.duration || 0,
+        insights: session.insights || [],
         messages: messagesData.map(msg => ({
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
-          essence: msg.essence,
-          timestamp: msg.timestamp,
+          essence: msg.essence || undefined,
+          timestamp: msg.created_at,
           displayFull: true
         })),
         summary: parsedSummary
       }
       
-      currentSession.value = therapySession
       return therapySession
     } catch (error) {
       console.error('Error loading session from Supabase:', error)
-      // Fallback to localStorage if Supabase fails
-      return loadSessionFromLocalStorage(sessionId)
-    }
-  }
-
-  // Helper function to load a session from localStorage
-  function loadSessionFromLocalStorage(sessionId: string) {
-    try {
-      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
-      const session = sessions.find((s: TherapySession) => s.id === sessionId)
-      
-      if (session) {
-        currentSession.value = session
-        return session
-      }
-      
-      return null
-    } catch (error) {
-      console.error('Error loading session from localStorage:', error)
-      return null
+      throw error
     }
   }
 

@@ -252,30 +252,30 @@
 <script setup lang="ts">
 import { ref, onMounted, inject, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useSessionManagement, TherapySession } from '@/composables/useSessionManagement'
+import { useSessionManagement, type TherapySession, type SessionSummary } from '@/composables/useSessionManagement'
 
 // Inject dark mode
 const darkMode = inject('darkMode', ref(false))
 
 const route = useRoute()
 const router = useRouter()
-const { 
-  loadSession, 
-  isLoading, 
-  deleteSession: removeSession,
-  currentSession,
-  generateSessionSummary,
-  saveCurrentSession
-} = useSessionManagement()
+const { loadSession, currentSession, saveCurrentSession, generateSessionSummary, deleteSession: removeSession } = useSessionManagement()
 
 const session = ref<TherapySession | null>(null)
+const isLoading = ref(false)
 const isGeneratingSummary = ref(false)
 
-// Load session on component mount
+// Load session on mount
 onMounted(async () => {
   const sessionId = route.params.id as string
-  if (sessionId) {
-    const loadedSession = loadSession(sessionId)
+  if (!sessionId) {
+    router.push('/sessions')
+    return
+  }
+
+  try {
+    isLoading.value = true
+    const loadedSession = await loadSession(sessionId)
     if (loadedSession) {
       session.value = loadedSession
       
@@ -283,35 +283,56 @@ onMounted(async () => {
       if (!loadedSession.summary) {
         await regenerateSessionSummary()
       }
+    } else {
+      router.push('/sessions')
     }
+  } catch (error) {
+    console.error('Error loading session:', error)
+    router.push('/sessions')
+  } finally {
+    isLoading.value = false
   }
 })
 
-// Function to regenerate session summary
+// Function to regenerate the session summary
 async function regenerateSessionSummary() {
-  if (!session.value) return
-  
+  if (!session.value || !session.value.messages || session.value.messages.length < 2) {
+    console.log("Not enough messages to generate summary")
+    return
+  }
+
   try {
-    isGeneratingSummary.value = true
+    isLoading.value = true
     
-    // Store original session
+    // Store the original session
     const originalSession = currentSession.value
     
-    // Set current session for generating summary
-    currentSession.value = session.value
+    // Set current session for summary generation
+    const sessionForSummary: TherapySession = {
+      ...session.value,
+      messages: [...session.value.messages],
+      insights: [...session.value.insights]
+    }
+    currentSession.value = sessionForSummary
     
-    // Generate summary
-    await generateSessionSummary()
+    // Generate new summary
+    const newSummary = await generateSessionSummary()
     
-    // Save changes
-    await saveCurrentSession()
+    if (newSummary && session.value) {
+      // Update the local session with new summary
+      session.value.summary = newSummary
+      session.value.title = newSummary.title
+      
+      // Save changes
+      await saveCurrentSession()
+    }
     
     // Restore original session
     currentSession.value = originalSession
   } catch (error) {
     console.error('Error regenerating summary:', error)
   } finally {
-    isGeneratingSummary.value = false
+    isLoading.value = false
   }
 }
 
