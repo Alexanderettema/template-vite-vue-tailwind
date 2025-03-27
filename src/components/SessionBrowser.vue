@@ -5,17 +5,44 @@
       <h2 class="text-xl font-semibold" :class="{ 'text-gray-800': !darkMode, 'text-white': darkMode }">
         Mijn Sessies
       </h2>
-      <button 
-        @click="goToChat" 
-        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-        :class="{ 
-          'bg-emerald-600 text-white hover:bg-emerald-700': !darkMode, 
-          'bg-emerald-700 text-white hover:bg-emerald-800': darkMode 
-        }"
-      >
-        <font-awesome-icon icon="plus" class="mr-2" />
-        Nieuwe Sessie
-      </button>
+      <div class="flex items-center gap-2">
+        <!-- Theme Toggle -->
+        <button 
+          @click="toggleDarkMode" 
+          class="px-3 py-2 border-2 text-sm font-medium transition-all"
+          :class="{ 
+            'border-black bg-white text-black hover:bg-black hover:text-white': !darkMode, 
+            'border-white bg-black text-white hover:bg-white hover:text-black': darkMode 
+          }"
+        >
+          <font-awesome-icon :icon="darkMode ? 'sun' : 'moon'" />
+        </button>
+
+        <!-- Home Button -->
+        <button 
+          @click="goToHome" 
+          class="px-3 py-2 border-2 text-sm font-medium transition-all"
+          :class="{ 
+            'border-black bg-white text-black hover:bg-black hover:text-white': !darkMode, 
+            'border-white bg-black text-white hover:bg-white hover:text-black': darkMode 
+          }"
+        >
+          <font-awesome-icon icon="home" />
+        </button>
+
+        <!-- New Session Button -->
+        <button 
+          @click="goToChat" 
+          class="px-4 py-2 border-2 text-sm font-medium transition-all flex items-center"
+          :class="{ 
+            'border-black bg-white text-black hover:bg-black hover:text-white': !darkMode, 
+            'border-white bg-black text-white hover:bg-white hover:text-black': darkMode 
+          }"
+        >
+          <font-awesome-icon icon="plus" class="mr-2" />
+          Nieuwe Sessie
+        </button>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -202,10 +229,9 @@ import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSessionManagement, TherapySession } from '@/composables/useSessionManagement'
 
-// Inject dark mode
+const router = useRouter()
 const darkMode = inject('darkMode', ref(false))
 
-const router = useRouter()
 const { 
   savedSessions, 
   isLoading, 
@@ -315,7 +341,19 @@ const filteredSessions = computed(() => {
   })
 })
 
-// Navigate to chat page to start a new session
+// Function to toggle dark mode
+function toggleDarkMode() {
+  darkMode.value = !darkMode.value
+  // Store preference in localStorage
+  localStorage.setItem('darkMode', darkMode.value ? 'true' : 'false')
+}
+
+// Function to go to home page
+function goToHome() {
+  router.push('/')
+}
+
+// Function to go to chat page
 function goToChat() {
   router.push('/chat')
 }
