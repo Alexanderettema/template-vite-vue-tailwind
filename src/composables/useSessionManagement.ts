@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuth } from './useAuth'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { supabase } from '@/lib/supabase'
@@ -41,97 +41,127 @@ export function useSessionManagement() {
   const currentSession = ref<TherapySession | null>(null)
   const savedSessions = ref<TherapySession[]>([])
   const isLoading = ref(false)
+  const isInitialized = ref(false)
+
+  // Watch for user auth state changes
+  watch(() => user.value?.id, async (newUserId, oldUserId) => {
+    console.log("Auth state changed:", { newUserId, oldUserId })
+    
+    if (newUserId) {
+      // User just logged in
+      if (!isInitialized.value) {
+        console.log("Initializing session management for user:", newUserId)
+        await loadSavedSessions()
+        isInitialized.value = true
+      }
+    } else {
+      // User logged out
+      console.log("Clearing session data due to logout")
+      currentSession.value = null
+      savedSessions.value = []
+      isInitialized.value = false
+    }
+  }, { immediate: true })
+
+  // Generate a unique session ID
+  function generateSessionId() {
+    // Generate a UUID v4
+    return crypto.randomUUID()
+  }
 
   // Initialize a new session
   async function startNewSession() {
+    // Wait a moment for auth state to stabilize if needed
+    if (!isInitialized.value) {
+      console.log("Waiting for session management to initialize...")
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    if (!user.value?.id) {
+      console.error('Cannot start session: User not logged in')
+      return null
+    }
+
     // Check if we have an existing session created in the last 10 seconds
-    // This prevents duplicate sessions when navigating or component remounting
     if (currentSession.value) {
-      const creationTime = new Date(currentSession.value.date).getTime();
-      const now = new Date().getTime();
-      const timeDiff = now - creationTime;
+      const creationTime = new Date(currentSession.value.date).getTime()
+      const now = new Date().getTime()
+      const timeDiff = now - creationTime
       
-      // If session was created less than 10 seconds ago, return the existing session
       if (timeDiff < 10000) {
-        return currentSession.value.id;
+        return currentSession.value.id
       }
     }
     
     const sessionId = generateSessionId()
-    currentSession.value = {
-      id: sessionId,
-      userId: user.value?.id || null,
-      title: "Nieuwe sessie",
-      date: new Date().toISOString(),
-      duration: 0,
-      messages: [],
-      insights: []
-    }
+    const now = new Date().toISOString()
+    
+    try {
+      // First create the session in Supabase
+      const { error: insertError } = await supabase.from('sessions').insert({
+        id: sessionId,
+        user_id: user.value.id,
+        title: "Nieuwe sessie",
+        created_at: now,
+        duration: 0,
+        insights: [],
+        summary: null,
+        is_archived: false
+      })
 
-    // If user is logged in, create an empty session record in Supabase
-    if (user.value?.id) {
-      try {
-        await supabase.from('sessions').insert({
-          id: sessionId,
-          user_id: user.value.id,
-          title: "Nieuwe sessie",
-          created_at: new Date().toISOString(),
-          duration: 0,
-          insights: [],
-          summary: null
-        })
-      } catch (error) {
-        console.error('Error creating initial session in Supabase:', error)
-        // Continue even if this fails - we'll retry on first save
+      if (insertError) {
+        console.error('Error creating session in Supabase:', insertError)
+        return null
       }
+
+      // Then set it as current session
+      currentSession.value = {
+        id: sessionId,
+        userId: user.value.id,
+        title: "Nieuwe sessie",
+        date: now,
+        duration: 0,
+        messages: [],
+        insights: []
+      }
+
+      return sessionId
+    } catch (error) {
+      console.error('Error creating session:', error)
+      currentSession.value = null
+      return null
     }
-
-    return sessionId
-  }
-
-  // Generate a unique session ID
-  function generateSessionId() {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
   }
 
   // Save current session
   async function saveCurrentSession() {
-    if (!currentSession.value) return null
+    if (!currentSession.value || !user.value?.id) return null
 
     // Don't save sessions without any user input
-    const hasUserInput = currentSession.value.messages.some(msg => msg.role === 'user')
-    if (!hasUserInput) return null
+    const hasUserInput = currentSession.value.messages.some(msg => {
+      console.log("Checking message:", msg) // Debug log
+      return msg.role === 'user' && msg.content.trim().length > 0
+    })
+    
+    if (!hasUserInput) {
+      console.log("No valid user messages found in session:", {
+        messageCount: currentSession.value.messages.length,
+        messages: currentSession.value.messages
+      })
+      return null
+    }
 
     try {
       isLoading.value = true
       
-      // Generate a session summary if it doesn't exist and we have enough messages
       if (!currentSession.value.summary && currentSession.value.messages.length >= 2) {
         await generateSessionSummary()
       }
       
-      // Update duration before saving
       currentSession.value.duration = calculateSessionDuration()
       
-      let savedSessionId = null
-      
-      // If user is logged in, save to Supabase
-      if (user.value?.id) {
-        savedSessionId = await saveToSupabase(currentSession.value)
-      }
-      
-      // Always save to localStorage as backup and for anonymous users
-      savedSessionId = await saveToLocalStorage(currentSession.value)
-      
-      // Reload saved sessions to update the list
+      const savedSessionId = await saveToSupabase(currentSession.value)
       await loadSavedSessions()
-      
-      console.log("Saved current session:", {
-        id: savedSessionId,
-        title: currentSession.value.title,
-        messageCount: currentSession.value.messages.length,
-        storage: user.value?.id ? 'Supabase + localStorage' : 'localStorage'
-      })
       
       return savedSessionId
     } catch (error) {
@@ -145,12 +175,23 @@ export function useSessionManagement() {
   // Helper function to save session to Supabase
   async function saveToSupabase(session: TherapySession) {
     try {
+      console.log("=== Starting saveToSupabase ===")
+      console.log("Session details:", {
+        id: session.id,
+        userId: user.value?.id,
+        messageCount: session.messages.length,
+        title: session.title,
+        date: session.date
+      })
+      
       // Check if session already exists in Supabase
-      const { data: existingSession } = await supabase
+      const { data: existingSession, error: checkError } = await supabase
         .from('sessions')
         .select('id')
         .eq('id', session.id)
         .single()
+      
+      console.log("Existing session check:", { existingSession, checkError })
       
       // Prepare session data for Supabase
       const sessionData = {
@@ -161,127 +202,126 @@ export function useSessionManagement() {
         duration: session.duration,
         insights: session.insights,
         summary: session.summary ? JSON.stringify(session.summary) : null,
+        is_archived: false
       }
       
+      console.log("Prepared session data:", sessionData)
+      
+      let result
       if (existingSession) {
-        // Update existing session
-        await supabase
+        console.log("Updating existing session...")
+        result = await supabase
           .from('sessions')
           .update(sessionData)
           .eq('id', session.id)
       } else {
-        // Insert new session
-        await supabase
+        console.log("Inserting new session...")
+        result = await supabase
           .from('sessions')
           .insert(sessionData)
       }
       
+      console.log("Session save result:", result)
+      
+      if (result.error) {
+        console.error("Error saving session to Supabase:", result.error)
+        throw result.error
+      }
+      
       // Save or update messages
+      console.log("Starting to save messages...")
       for (const message of session.messages) {
-        // Ensure timestamp exists
         const timestamp = message.timestamp || new Date().toISOString()
         
-        // Check if message exists by comparing content and timestamp
-        const { data: messages } = await supabase
+        console.log("Processing message:", {
+          role: message.role,
+          content: message.content.substring(0, 50) + "...",
+          timestamp,
+          essence: message.essence
+        })
+        
+        // Check if message exists in this specific session
+        const { data: messages, error: messageCheckError } = await supabase
           .from('messages')
           .select('id')
           .eq('session_id', session.id)
           .eq('content', message.content)
           .eq('role', message.role)
+          .eq('created_at', timestamp)
+        
+        if (messageCheckError) {
+          console.error("Error checking for existing message:", messageCheckError)
+          continue
+        }
+        
+        console.log("Message existence check:", { exists: messages?.length > 0 })
+        
+        // Handle essence field - ensure it's a string or null
+        let essence = null
+        if (message.essence) {
+          essence = typeof message.essence === 'string' ? message.essence : null
+        }
         
         const messageData = {
           session_id: session.id,
           role: message.role,
           content: message.content,
-          essence: message.essence || '',
-          timestamp: timestamp
+          essence: essence,
+          created_at: timestamp
         }
         
+        console.log("Prepared message data:", messageData)
+        
+        let messageResult
         if (messages && messages.length > 0) {
-          // Update existing message
-          await supabase
+          console.log("Updating existing message...")
+          messageResult = await supabase
             .from('messages')
             .update(messageData)
             .eq('id', messages[0].id)
         } else {
-          // Insert new message
-          await supabase
+          console.log("Inserting new message...")
+          messageResult = await supabase
             .from('messages')
             .insert(messageData)
         }
+        
+        if (messageResult.error) {
+          console.error("Error saving message to Supabase:", messageResult.error)
+          console.log("Failed message data:", messageData)
+        } else {
+          console.log("Successfully saved message")
+        }
       }
       
+      console.log("=== Completed saveToSupabase ===")
       return session.id
     } catch (error) {
-      console.error('Error saving to Supabase:', error)
-      // Fallback to localStorage if Supabase fails
-      return await saveToLocalStorage(session)
-    }
-  }
-
-  // Helper function to save session to localStorage
-  async function saveToLocalStorage(session: TherapySession) {
-    try {
-      // Get existing sessions
-      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
-      
-      // Check if session already exists
-      const existingIndex = sessions.findIndex((s: TherapySession) => s.id === session.id)
-      
-      if (existingIndex >= 0) {
-        sessions[existingIndex] = session
-      } else {
-        sessions.push(session)
-      }
-      
-      // Save back to localStorage
-      localStorage.setItem('actTherapySessions', JSON.stringify(sessions))
-      
-      // Update savedSessions for anonymous users
-      if (!user.value?.id) {
-        savedSessions.value = sessions.filter((s: TherapySession) => s.userId === null)
-      }
-      
-      console.log("Saved session to localStorage:", {
-        id: session.id,
-        title: session.title,
-        messageCount: session.messages.length
-      })
-      
-      return session.id
-    } catch (error) {
-      console.error('Error saving to localStorage:', error)
-      return null
+      console.error('Error in saveToSupabase:', error)
+      throw error
     }
   }
 
   // Load saved sessions
   async function loadSavedSessions() {
+    // Wait a moment for auth state to stabilize if needed
+    if (!isInitialized.value) {
+      console.log("Waiting for auth state before loading sessions...")
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    if (!user.value?.id) {
+      console.error('Cannot load sessions: User not logged in')
+      savedSessions.value = []
+      return []
+    }
+
     try {
+      console.log("Loading sessions for user:", user.value.id)
       isLoading.value = true
-      let loadedSessions = [];
-      
-      if (user.value?.id) {
-        // Load from Supabase for logged-in users
-        loadedSessions = await loadFromSupabase()
-      } else {
-        // Load from localStorage for anonymous users
-        loadedSessions = loadFromLocalStorage()
-      }
-      
-      // Ensure we're updating the reactive ref with a new array
-      savedSessions.value = loadedSessions.filter(Boolean) // Filter out any null/undefined sessions
-      
-      console.log("Loaded sessions:", {
-        count: savedSessions.value.length,
-        source: user.value?.id ? 'Supabase' : 'localStorage',
-        sessions: savedSessions.value.map(s => ({
-          id: s.id,
-          title: s.title,
-          messageCount: s.messages.length
-        }))
-      })
-      
+      const loadedSessions = await loadFromSupabase()
+      savedSessions.value = loadedSessions.filter(Boolean)
+      console.log("Successfully loaded sessions:", savedSessions.value.length)
       return savedSessions.value
     } catch (error) {
       console.error('Error loading sessions:', error)
@@ -295,6 +335,8 @@ export function useSessionManagement() {
   // Helper function to load sessions from Supabase
   async function loadFromSupabase() {
     try {
+      console.log("Loading sessions from Supabase for user:", user.value?.id)
+      
       // Get sessions
       const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
@@ -302,7 +344,15 @@ export function useSessionManagement() {
         .eq('user_id', user.value!.id)
         .order('created_at', { ascending: false })
       
-      if (sessionError) throw sessionError
+      if (sessionError) {
+        console.error("Error loading sessions from Supabase:", sessionError)
+        throw sessionError
+      }
+      
+      console.log("Found sessions in Supabase:", {
+        count: sessionData?.length || 0,
+        sessionIds: sessionData?.map(s => s.id) || []
+      })
       
       // Map sessions to our format
       const sessions: TherapySession[] = []
@@ -313,15 +363,17 @@ export function useSessionManagement() {
           .from('messages')
           .select('*')
           .eq('session_id', session.id)
-          .order('timestamp', { ascending: true })
+          .order('created_at', { ascending: true })
         
-        if (messagesError) throw messagesError
+        if (messagesError) {
+          console.error("Error loading messages from Supabase:", messagesError)
+          throw messagesError
+        }
         
         // Parse the summary if it's a string, otherwise use as-is
         let parsedSummary = undefined
         if (session.summary) {
           try {
-            // Check if it's already an object or needs parsing
             parsedSummary = typeof session.summary === 'string' 
               ? JSON.parse(session.summary) 
               : session.summary
@@ -334,15 +386,15 @@ export function useSessionManagement() {
         const therapySession: TherapySession = {
           id: session.id,
           userId: session.user_id,
-          title: session.title,
+          title: session.title || "Nieuwe sessie",
           date: session.created_at,
-          duration: session.duration,
+          duration: session.duration || 0,
           insights: session.insights || [],
           messages: messagesData.map(msg => ({
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
-            essence: msg.essence,
-            timestamp: msg.timestamp,
+            essence: msg.essence || undefined,
+            timestamp: msg.created_at,
             displayFull: true
           })),
           summary: parsedSummary
@@ -351,10 +403,16 @@ export function useSessionManagement() {
         sessions.push(therapySession)
       }
       
+      console.log("Successfully loaded sessions from Supabase:", {
+        count: sessions.length,
+        sessionIds: sessions.map(s => s.id)
+      })
+      
       return sessions
     } catch (error) {
       console.error('Error loading from Supabase:', error)
       // Fallback to localStorage if Supabase fails
+      console.log("Falling back to localStorage due to Supabase error")
       return loadFromLocalStorage()
     }
   }
@@ -374,14 +432,13 @@ export function useSessionManagement() {
 
   // Load a specific session
   async function loadSession(sessionId: string) {
+    if (!user.value?.id) {
+      console.error('Cannot load session: User not logged in')
+      return null
+    }
+
     try {
-      if (user.value?.id) {
-        // Load from Supabase for logged-in users
-        return await loadSessionFromSupabase(sessionId)
-      } else {
-        // Load from localStorage for anonymous users
-        return loadSessionFromLocalStorage(sessionId)
-      }
+      return await loadSessionFromSupabase(sessionId)
     } catch (error) {
       console.error('Error loading session:', error)
       return null
@@ -429,7 +486,7 @@ export function useSessionManagement() {
         title: session.title,
         date: session.created_at,
         duration: session.duration,
-        insights: session.insights || [],
+        insights: session.selected_topics || [],
         messages: messagesData.map(msg => ({
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
@@ -469,23 +526,19 @@ export function useSessionManagement() {
 
   // Delete a session
   async function deleteSession(sessionId: string) {
+    if (!user.value?.id) {
+      console.error('Cannot delete session: User not logged in')
+      return false
+    }
+
     try {
-      if (user.value?.id) {
-        // Delete from Supabase for logged-in users
-        await deleteSessionFromSupabase(sessionId)
-      } else {
-        // Delete from localStorage for anonymous users
-        deleteSessionFromLocalStorage(sessionId)
-      }
+      await deleteSessionFromSupabase(sessionId)
       
-      // Remove from current session if it's the one being deleted
       if (currentSession.value?.id === sessionId) {
         currentSession.value = null
       }
       
-      // Remove from saved sessions list
       savedSessions.value = savedSessions.value.filter(s => s.id !== sessionId)
-      
       return true
     } catch (error) {
       console.error('Error deleting session:', error)
@@ -512,21 +565,7 @@ export function useSessionManagement() {
       return true
     } catch (error) {
       console.error('Error deleting session from Supabase:', error)
-      // Fallback to localStorage if Supabase fails
-      return deleteSessionFromLocalStorage(sessionId)
-    }
-  }
-
-  // Helper function to delete a session from localStorage
-  function deleteSessionFromLocalStorage(sessionId: string) {
-    try {
-      const sessions = JSON.parse(localStorage.getItem('actTherapySessions') || '[]')
-      const filteredSessions = sessions.filter((s: TherapySession) => s.id !== sessionId)
-      localStorage.setItem('actTherapySessions', JSON.stringify(filteredSessions))
-      return true
-    } catch (error) {
-      console.error('Error deleting session from localStorage:', error)
-      return false
+      throw error // Don't fallback to localStorage anymore
     }
   }
 
@@ -534,7 +573,12 @@ export function useSessionManagement() {
   function updateSessionMessages(messages: ChatMessage[]) {
     if (!currentSession.value) return
 
-    currentSession.value.messages = [...messages]
+    // Ensure all messages have timestamps
+    currentSession.value.messages = messages.map(msg => ({
+      ...msg,
+      timestamp: msg.timestamp || new Date().toISOString()
+    }))
+    
     currentSession.value.duration = calculateSessionDuration()
   }
 
@@ -812,43 +856,89 @@ ${conversation.substring(0, 5000)}`
     return `Gesprek op ${formattedDate}`
   }
 
-  // Add function to delete all sessions
+  // Delete all sessions
   async function deleteAllSessions() {
+    if (!user.value?.id) {
+      console.error('Cannot delete sessions: User not logged in')
+      return false
+    }
+
     try {
-      if (user.value?.id) {
-        // For logged-in users, delete all sessions from Supabase
-        // First get all user's sessions
-        const { data: sessions } = await supabase
-          .from('sessions')
-          .select('id')
-          .eq('user_id', user.value.id)
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id')
+        .eq('user_id', user.value.id)
+      
+      if (sessions && sessions.length > 0) {
+        const sessionIds = sessions.map(s => s.id)
+        await supabase
+          .from('messages')
+          .delete()
+          .in('session_id', sessionIds)
         
-        if (sessions && sessions.length > 0) {
-          // Delete all messages for these sessions
-          const sessionIds = sessions.map(s => s.id)
-          await supabase
-            .from('messages')
-            .delete()
-            .in('session_id', sessionIds)
-          
-          // Then delete all sessions
-          await supabase
-            .from('sessions')
-            .delete()
-            .eq('user_id', user.value.id)
-        }
-      } else {
-        // For anonymous users, clear localStorage
-        localStorage.removeItem('actTherapySessions')
+        await supabase
+          .from('sessions')
+          .delete()
+          .eq('user_id', user.value.id)
       }
       
-      // Clear in-memory sessions
       savedSessions.value = []
       currentSession.value = null
-      
       return true
     } catch (error) {
       console.error('Error deleting all sessions:', error)
+      return false
+    }
+  }
+
+  // Add test function to verify Supabase connection
+  async function testSupabaseConnection() {
+    try {
+      console.log("Testing Supabase connection...")
+      
+      // Test reading from sessions table
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('sessions')
+        .select('count')
+        .limit(1)
+      
+      if (sessionsError) {
+        console.error("Error reading from sessions table:", sessionsError)
+        return false
+      }
+      
+      console.log("Successfully connected to Supabase sessions table")
+      
+      // Test reading from messages table
+      const { data: messages, error: messagesError } = await supabase
+        .from('messages')
+        .select('count')
+        .limit(1)
+      
+      if (messagesError) {
+        console.error("Error reading from messages table:", messagesError)
+        return false
+      }
+      
+      console.log("Successfully connected to Supabase messages table")
+      
+      // Get actual counts
+      const { count: sessionCount } = await supabase
+        .from('sessions')
+        .select('*', { count: 'exact', head: true })
+      
+      const { count: messageCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+      
+      console.log("Current Supabase data:", {
+        sessions: sessionCount || 0,
+        messages: messageCount || 0
+      })
+      
+      return true
+    } catch (error) {
+      console.error("Error testing Supabase connection:", error)
       return false
     }
   }
@@ -866,6 +956,7 @@ ${conversation.substring(0, 5000)}`
     addSessionInsight,
     generateSessionSummary,
     calculateSessionDuration,
-    deleteAllSessions
+    deleteAllSessions,
+    testSupabaseConnection
   }
 } 

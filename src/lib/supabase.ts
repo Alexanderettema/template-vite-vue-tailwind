@@ -1,13 +1,38 @@
 import { createClient } from '@supabase/supabase-js'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables')
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables:', {
+    url: supabaseUrl ? 'set' : 'missing',
+    key: supabaseAnonKey ? 'set' : 'missing'
+  })
+  throw new Error('Missing required Supabase configuration')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+console.log('Initializing Supabase client with URL:', supabaseUrl)
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+})
+
+// Test the connection immediately
+void supabase.from('sessions').select('count').limit(1)
+  .then(({ data, error }) => {
+    if (error) {
+      console.error('Error connecting to Supabase:', error)
+    } else {
+      console.log('Successfully connected to Supabase sessions table')
+    }
+  })
+  .catch((error: PostgrestError | Error) => {
+    console.error('Failed to connect to Supabase:', error)
+  })
 
 // Type definitions for our database
 export type Database = {

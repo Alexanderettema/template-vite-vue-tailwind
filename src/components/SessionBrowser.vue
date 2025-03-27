@@ -59,6 +59,19 @@
         <font-awesome-icon icon="trash-alt" class="mr-1" />
         Verwijder Alle Sessies
       </button>
+
+      <!-- Test connection button -->
+      <button 
+        @click="testConnection" 
+        class="ml-2 text-xs px-3 py-2 rounded-full transition-colors flex items-center"
+        :class="{ 
+          'bg-blue-100 text-blue-700 hover:bg-blue-200': !darkMode, 
+          'bg-blue-900 bg-opacity-30 text-blue-300 hover:bg-blue-800 hover:bg-opacity-50': darkMode 
+        }"
+      >
+        <font-awesome-icon icon="database" class="mr-1" />
+        Test Supabase
+      </button>
     </div>
 
     <!-- Loading state -->
@@ -209,7 +222,8 @@ const {
   currentSession,
   generateSessionSummary,
   saveCurrentSession,
-  deleteAllSessions
+  deleteAllSessions,
+  testSupabaseConnection
 } = useSessionManagement()
 
 // Local state
@@ -362,6 +376,16 @@ async function confirmDeleteAll() {
       // Reload sessions after deletion
       await loadSavedSessions()
     }
+  }
+}
+
+// Add the test function
+async function testConnection() {
+  const result = await testSupabaseConnection()
+  if (result) {
+    alert('Successfully connected to Supabase! Check console for details.')
+  } else {
+    alert('Failed to connect to Supabase. Check console for errors.')
   }
 }
 </script>

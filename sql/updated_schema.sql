@@ -4,7 +4,7 @@ drop table if exists sessions;
 
 -- Create sessions table with our updated schema
 create table sessions (
-  id text primary key,
+  id uuid primary key,
   user_id uuid references auth.users,
   title text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()),
@@ -17,11 +17,11 @@ create table sessions (
 -- Create messages table with our updated schema
 create table messages (
   id uuid default uuid_generate_v4() primary key,
-  session_id text references sessions on delete cascade,
+  session_id uuid references sessions on delete cascade,
   role text check (role in ('user', 'assistant')),
   content text,
   essence text,
-  timestamp timestamp with time zone default timezone('utc'::text, now())
+  created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
 -- Enable Row Level Security (RLS)
