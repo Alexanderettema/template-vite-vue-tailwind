@@ -75,36 +75,28 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center py-12">
-      <div class="animate-pulse flex flex-col items-center">
-        <div class="h-12 w-12 rounded-full bg-emerald-500 opacity-75 mb-4"></div>
-        <p :class="{ 'text-gray-600': !darkMode, 'text-gray-300': darkMode }">Sessies laden...</p>
+    <div v-if="isLoading || isInitialLoading" class="flex flex-col items-center justify-center py-12 px-4">
+      <div class="relative w-24 h-24 mb-6">
+        <!-- Outer circle -->
+        <div class="absolute inset-0 border-4 border-emerald-200 rounded-full animate-pulse"></div>
+        <!-- Inner circle -->
+        <div class="absolute inset-2 border-4 border-emerald-300 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+        <!-- Center circle -->
+        <div class="absolute inset-4 border-4 border-emerald-400 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+        <!-- Center dot -->
+        <div class="absolute inset-8 bg-emerald-500 rounded-full animate-pulse" style="animation-delay: 0.6s"></div>
+      </div>
+      <div class="text-center space-y-2">
+        <p class="text-lg font-medium text-emerald-600 animate-pulse" style="animation-delay: 0.8s">
+          Even geduld...
+        </p>
+        <p class="text-sm text-gray-500 italic max-w-md animate-pulse" style="animation-delay: 1s">
+          We verzamelen je sessies met dezelfde zorg als een therapeut die luistert naar je verhaal
+        </p>
       </div>
     </div>
 
-    <!-- Empty state -->
-    <div v-else-if="filteredSessions.length === 0" class="py-12 px-6 flex flex-col items-center justify-center border-2 border-dashed rounded-lg"
-         :class="{ 'border-gray-300 bg-gray-50': !darkMode, 'border-gray-700 bg-gray-800': darkMode }">
-      <font-awesome-icon icon="book" class="text-4xl mb-4" :class="{ 'text-gray-400': !darkMode, 'text-gray-500': darkMode }" />
-      <h3 class="text-lg font-medium mb-3" :class="{ 'text-gray-700': !darkMode, 'text-gray-200': darkMode }">
-        Geen sessies gevonden
-      </h3>
-      <p class="text-center mb-6" :class="{ 'text-gray-500': !darkMode, 'text-gray-400': darkMode }">
-        Je hebt nog geen therapie sessies of er zijn geen resultaten die overeenkomen met je zoekopdracht.
-      </p>
-      <button 
-        @click="goToChat" 
-        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-        :class="{ 
-          'bg-emerald-600 text-white hover:bg-emerald-700': !darkMode, 
-          'bg-emerald-700 text-white hover:bg-emerald-800': darkMode 
-        }"
-      >
-        Start je eerste sessie
-      </button>
-    </div>
-
-    <!-- Sessions grid -->
+    <!-- Sessions grid - only show when not loading and has sessions -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div 
         v-for="session in filteredSessions" 
@@ -229,6 +221,7 @@ const {
 // Local state
 const searchQuery = ref('')
 const sortOption = ref('date-desc')
+const isInitialLoading = ref(true)
 
 // Load sessions when component mounts
 onMounted(async () => {
@@ -243,6 +236,7 @@ onMounted(async () => {
     }
     console.log("Session information updated")
   }
+  isInitialLoading.value = false
 })
 
 // Function to update session info
