@@ -626,11 +626,10 @@ export function useSessionManagement() {
       } else {
         // For shorter conversations, use a more detailed prompt
         prompt = `Dit is een ACT (Acceptance and Commitment Therapy) therapiesessie gesprek. 
-Maak een gedetailleerde samenvatting (maximaal 250 woorden) van dit gesprek die het volgende belicht:
-1. De kernuitdagingen, zorgen of worstelingen die de client heeft gedeeld
-2. Belangrijke ACT-concepten die in het gesprek aanwezig waren (bijv. cognitieve fusie, experiëntiële vermijding, waardenverduidelijking)
-3. Specifieke inzichten of momenten van helderheid die de client heeft ervaren
-4. Eventuele toezeggingen, oefeningen of praktijken waar de client mee heeft ingestemd
+Maak een korte, bondige samenvatting (maximaal 100 woorden) van dit gesprek die het volgende belicht:
+1. De kernuitdaging die de client heeft gedeeld
+2. Het belangrijkste ACT-concept dat is besproken
+3. Een specifiek inzicht of moment van helderheid
 
 Wees concreet en specifiek voor de situatie van deze client - vermijd algemene therapeutische uitspraken.
 Verzin geen details die niet zijn besproken. Als iets niet duidelijk is uit het gesprek, neem het dan niet op.
