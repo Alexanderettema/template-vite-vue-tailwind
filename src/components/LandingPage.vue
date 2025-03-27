@@ -47,7 +47,7 @@ function goToAuth() {
 // Load and show roadmap
 async function openRoadmap() {
   try {
-    const response = await fetch('/docs/client-sessions.md')
+    const response = await fetch('/docs/roadmap.md')
     const text = await response.text()
     roadmapContent.value = marked(text) as string
     showRoadmap.value = true
@@ -60,6 +60,66 @@ async function openRoadmap() {
 function closeRoadmap() {
   showRoadmap.value = false
 }
+
+// Add release notes link
+const showReleaseNotes = ref(false)
+const releaseNotesContent = ref('')
+
+// Load and show release notes
+async function openReleaseNotes() {
+  try {
+    const response = await fetch('/docs/release-notes.md')
+    const text = await response.text()
+    releaseNotesContent.value = marked(text) as string
+    showReleaseNotes.value = true
+  } catch (error) {
+    console.error('Failed to load release notes:', error)
+  }
+}
+
+// Close release notes dialog
+function closeReleaseNotes() {
+  showReleaseNotes.value = false
+}
+
+const roadmapItems = [
+  {
+    title: 'Voortgangs Tracking',
+    description: 'Visualisatie van therapie voortgang en patronen',
+    status: 'in-progress',
+    icon: 'spinner'
+  },
+  {
+    title: 'Oefeningen Bibliotheek',
+    description: 'Uitgebreide collectie ACT-oefeningen en werkbladen',
+    status: 'planned',
+    icon: 'book'
+  },
+  {
+    title: 'Mobiele App',
+    description: 'Native mobiele applicatie voor iOS en Android',
+    status: 'planned',
+    icon: 'mobile-alt'
+  },
+  {
+    title: 'Therapeut Dashboard',
+    description: 'Speciaal dashboard voor therapeuten met cliënt overzicht',
+    status: 'planned',
+    icon: 'user-md'
+  },
+  {
+    title: 'AI Verbeteringen',
+    description: 'Geavanceerdere AI-interacties en personalisatie',
+    status: 'planned',
+    icon: 'robot'
+  },
+  {
+    title: 'Groepssessies',
+    description: 'Mogelijkheid voor groepstherapie sessies',
+    status: 'planned',
+    icon: 'users'
+  }
+]
 </script>
 
 <template>
@@ -151,18 +211,32 @@ function closeRoadmap() {
         <p class="opacity-70">
           Ontdek de kracht van ACT therapie met geavanceerde Adaptieve ACT-technologie
         </p>
-        <!-- Retro Roadmap Link -->
-        <button @click="openRoadmap"
-                class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
-                :class="[
-                  darkMode ? 
-                    'border-gray-600 hover:bg-gray-600' : 
-                    'border-black hover:bg-black'
-                ]">
-          <font-awesome-icon :icon="['fas', 'map']" 
-                            class="transform transition-transform group-hover:-translate-y-0.5" />
-          <span class="tracking-wide">[ROADMAP_v1.0]</span>
-        </button>
+        <div class="flex gap-2 justify-center">
+          <!-- Retro Roadmap Link -->
+          <button @click="openRoadmap"
+                  class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
+                  :class="[
+                    darkMode ? 
+                      'border-gray-600 hover:bg-gray-600' : 
+                      'border-black hover:bg-black'
+                  ]">
+            <font-awesome-icon :icon="['fas', 'map']" 
+                              class="transform transition-transform group-hover:-translate-y-0.5" />
+            <span class="tracking-wide">[ROADMAP_v1.0]</span>
+          </button>
+          <!-- Release Notes Link -->
+          <button @click="openReleaseNotes"
+                  class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
+                  :class="[
+                    darkMode ? 
+                      'border-gray-600 hover:bg-gray-600' : 
+                      'border-black hover:bg-black'
+                  ]">
+            <font-awesome-icon :icon="['fas', 'history']" 
+                              class="transform transition-transform group-hover:-translate-y-0.5" />
+            <span class="tracking-wide">[RELEASE_NOTES]</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -185,6 +259,29 @@ function closeRoadmap() {
         <!-- Dialog Content -->
         <div class="p-6 overflow-y-auto prose dark:prose-invert max-w-none"
              v-html="roadmapContent">
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Release Notes Dialog -->
+    <div v-if="showReleaseNotes" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-600 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+           :class="[darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black']">
+        <!-- Dialog Header -->
+        <div class="flex items-center justify-between p-4 border-b-2 border-black dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
+          <h2 class="font-mono text-lg flex items-center gap-2">
+            <font-awesome-icon :icon="['fas', 'history']" />
+            <span>Release Notes</span>
+          </h2>
+          <button @click="closeReleaseNotes" 
+                  class="w-8 h-8 flex items-center justify-center border-2 border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-gray-600 transition-colors">
+            ×
+          </button>
+        </div>
+        <!-- Dialog Content -->
+        <div class="p-6 overflow-y-auto prose dark:prose-invert max-w-none"
+             v-html="releaseNotesContent">
         </div>
       </div>
     </div>
