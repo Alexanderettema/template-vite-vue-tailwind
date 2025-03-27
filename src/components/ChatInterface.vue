@@ -298,20 +298,38 @@ onMounted(async () => {
   // Check if we're continuing an existing session
   const sessionId = route.query.sessionId as string
   if (sessionId) {
-    const session = loadSession(sessionId)
-    if (session && session.messages.length > 0) {
-      // Load messages from the session
-      chatHistory.value = session.messages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-        essence: msg.essence,
-        displayFull: true,
-        timestamp: msg.timestamp
-      }))
-    } else {
-      // Start new session if not found
+    console.log("Continuing existing session with ID:", sessionId)
+    isLoading.value = true
+    try {
+      const session = await loadSession(sessionId)
+      if (session && session.messages && session.messages.length > 0) {
+        // Load messages from the session
+        console.log("Loading messages from session:", {
+          id: session.id,
+          messageCount: session.messages.length
+        })
+        
+        chatHistory.value = session.messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+          essence: msg.essence,
+          displayFull: true,
+          timestamp: msg.timestamp
+        }))
+        
+        console.log("Chat history populated with", chatHistory.value.length, "messages")
+      } else {
+        console.error("Session not found or has no messages")
+        // Start new session if not found
+        startNewSession()
+        showWelcomeMessage()
+      }
+    } catch (error) {
+      console.error("Error loading session:", error)
       startNewSession()
       showWelcomeMessage()
+    } finally {
+      isLoading.value = false
     }
   } else if (!currentSession.value) {
     // Only start a new session if we don't have one already

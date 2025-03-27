@@ -132,19 +132,6 @@
               <h3 class="text-lg font-medium" :class="{ 'text-gray-800': !darkMode, 'text-white': darkMode }">
                 Samenvatting
               </h3>
-              <button
-                @click="regenerateSessionSummary"
-                class="text-xs px-3 py-1.5 rounded-full transition-colors flex items-center"
-                :class="{ 
-                  'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700': !darkMode,
-                  'bg-gray-700 text-gray-300 hover:bg-emerald-900 hover:text-emerald-200': darkMode
-                }"
-                :disabled="isGeneratingSummary"
-              >
-                <font-awesome-icon :icon="isGeneratingSummary ? 'circle-notch' : 'sync'" 
-                  class="mr-1" :class="{ 'fa-spin': isGeneratingSummary }" />
-                {{ isGeneratingSummary ? 'Vernieuwen...' : 'Vernieuwen' }}
-              </button>
             </div>
             
             <div v-if="session.summary?.summary" class="mb-5">
@@ -232,9 +219,9 @@
                     :key="tagIndex"
                     class="text-xs px-1.5 py-0.5 rounded-full"
                     :class="{ 
-                      'bg-white bg-opacity-20 text-white': message.role === 'assistant',
-                      'bg-gray-300 text-gray-700': message.role === 'user' && !darkMode,
-                      'bg-gray-600 text-gray-200': message.role === 'user' && darkMode
+                      'bg-emerald-400 bg-opacity-30 text-emerald-50': message.role === 'assistant',
+                      'bg-gray-200 text-gray-800': message.role === 'user' && !darkMode,
+                      'bg-gray-600 text-gray-100': message.role === 'user' && darkMode
                     }"
                   >
                     {{ tag.trim() }}
@@ -259,11 +246,10 @@ const darkMode = inject('darkMode', ref(false))
 
 const route = useRoute()
 const router = useRouter()
-const { loadSession, currentSession, saveCurrentSession, generateSessionSummary, deleteSession: removeSession } = useSessionManagement()
+const { loadSession, currentSession, saveCurrentSession, deleteSession: removeSession } = useSessionManagement()
 
 const session = ref<TherapySession | null>(null)
 const isLoading = ref(false)
-const isGeneratingSummary = ref(false)
 
 // Load session on mount
 onMounted(async () => {
@@ -278,11 +264,6 @@ onMounted(async () => {
     const loadedSession = await loadSession(sessionId)
     if (loadedSession) {
       session.value = loadedSession
-      
-      // If summary is missing, generate one
-      if (!loadedSession.summary) {
-        await regenerateSessionSummary()
-      }
     } else {
       router.push('/sessions')
     }
@@ -293,48 +274,6 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
-// Function to regenerate the session summary
-async function regenerateSessionSummary() {
-  if (!session.value || !session.value.messages || session.value.messages.length < 2) {
-    console.log("Not enough messages to generate summary")
-    return
-  }
-
-  try {
-    isLoading.value = true
-    
-    // Store the original session
-    const originalSession = currentSession.value
-    
-    // Set current session for summary generation
-    const sessionForSummary: TherapySession = {
-      ...session.value,
-      messages: [...session.value.messages],
-      insights: [...session.value.insights]
-    }
-    currentSession.value = sessionForSummary
-    
-    // Generate new summary
-    const newSummary = await generateSessionSummary()
-    
-    if (newSummary && session.value) {
-      // Update the local session with new summary
-      session.value.summary = newSummary
-      session.value.title = newSummary.title
-      
-      // Save changes
-      await saveCurrentSession()
-    }
-    
-    // Restore original session
-    currentSession.value = originalSession
-  } catch (error) {
-    console.error('Error regenerating summary:', error)
-  } finally {
-    isLoading.value = false
-  }
-}
 
 // Navigation functions
 function goBack() {

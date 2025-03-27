@@ -444,10 +444,29 @@ export function useSessionManagement() {
     }
 
     try {
+      console.log("Loading session with ID:", sessionId)
       const session = await loadSessionFromSupabase(sessionId)
+      
       if (session) {
+        console.log("Session loaded successfully:", {
+          id: session.id,
+          title: session.title,
+          messageCount: session.messages.length
+        })
         currentSession.value = session
+
+        // Log each message to verify they're loaded properly
+        session.messages.forEach((msg, index) => {
+          console.log(`Message ${index + 1}:`, { 
+            role: msg.role,
+            contentPreview: msg.content.substring(0, 30) + "...",
+            hasTimestamp: !!msg.timestamp
+          })
+        })
+      } else {
+        console.error("Failed to load session with ID:", sessionId)
       }
+      
       return session
     } catch (error) {
       console.error('Error loading session:', error)
