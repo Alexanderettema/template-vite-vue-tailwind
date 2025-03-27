@@ -174,12 +174,6 @@ watch(() => chatHistory.value, (newChatHistory) => {
       essence: msg.essence,
       timestamp: msg.timestamp
     })))
-    
-    // Only auto-save session if there's at least one user message
-    const hasUserInput = newChatHistory.some(msg => msg.role === 'user')
-    if (hasUserInput) {
-      saveCurrentSession()
-    }
   }
 }, { deep: true })
 

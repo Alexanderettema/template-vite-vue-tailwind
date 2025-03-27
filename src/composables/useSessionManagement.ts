@@ -96,41 +96,18 @@ export function useSessionManagement() {
     const sessionId = generateSessionId()
     const now = new Date().toISOString()
     
-    try {
-      // First create the session in Supabase
-      const { error: insertError } = await supabase.from('sessions').insert({
-        id: sessionId,
-        user_id: user.value.id,
-        title: "Nieuwe sessie",
-        created_at: now,
-        duration: 0,
-        insights: [],
-        summary: null,
-        is_archived: false
-      })
-
-      if (insertError) {
-        console.error('Error creating session in Supabase:', insertError)
-        return null
-      }
-
-      // Then set it as current session
-      currentSession.value = {
-        id: sessionId,
-        userId: user.value.id,
-        title: "Nieuwe sessie",
-        date: now,
-        duration: 0,
-        messages: [],
-        insights: []
-      }
-
-      return sessionId
-    } catch (error) {
-      console.error('Error creating session:', error)
-      currentSession.value = null
-      return null
+    // Create only a local session without saving to Supabase yet
+    currentSession.value = {
+      id: sessionId,
+      userId: user.value.id,
+      title: "Nieuwe sessie",
+      date: now,
+      duration: 0,
+      messages: [],
+      insights: []
     }
+
+    return sessionId
   }
 
   // Save current session
@@ -154,6 +131,7 @@ export function useSessionManagement() {
     try {
       isLoading.value = true
       
+      // Generate summary if needed and session has enough messages
       if (!currentSession.value.summary && currentSession.value.messages.length >= 2) {
         await generateSessionSummary()
       }
@@ -201,104 +179,57 @@ export function useSessionManagement() {
         created_at: session.date,
         duration: session.duration,
         insights: session.insights,
-        summary: session.summary ? JSON.stringify(session.summary) : null,
+        summary: session.summary,
         is_archived: false
       }
+
+      let error;
       
-      console.log("Prepared session data:", sessionData)
-      
-      let result
-      if (existingSession) {
-        console.log("Updating existing session...")
-        result = await supabase
+      if (!existingSession) {
+        // Create new session
+        const { error: insertError } = await supabase
+          .from('sessions')
+          .insert(sessionData)
+        error = insertError
+      } else {
+        // Update existing session
+        const { error: updateError } = await supabase
           .from('sessions')
           .update(sessionData)
           .eq('id', session.id)
-      } else {
-        console.log("Inserting new session...")
-        result = await supabase
-          .from('sessions')
-          .insert(sessionData)
+          .eq('user_id', user.value!.id)
+        error = updateError
       }
-      
-      console.log("Session save result:", result)
-      
-      if (result.error) {
-        console.error("Error saving session to Supabase:", result.error)
-        throw result.error
+
+      if (error) {
+        console.error('Error saving session to Supabase:', error)
+        return null
       }
-      
-      // Save or update messages
-      console.log("Starting to save messages...")
-      for (const message of session.messages) {
-        const timestamp = message.timestamp || new Date().toISOString()
-        
-        console.log("Processing message:", {
-          role: message.role,
-          content: message.content.substring(0, 50) + "...",
-          timestamp,
-          essence: message.essence
-        })
-        
-        // Check if message exists in this specific session
-        const { data: messages, error: messageCheckError } = await supabase
-          .from('messages')
-          .select('id')
-          .eq('session_id', session.id)
-          .eq('content', message.content)
-          .eq('role', message.role)
-          .eq('created_at', timestamp)
-        
-        if (messageCheckError) {
-          console.error("Error checking for existing message:", messageCheckError)
-          continue
-        }
-        
-        console.log("Message existence check:", { exists: messages?.length > 0 })
-        
-        // Handle essence field - ensure it's a string or null
-        let essence = null
-        if (message.essence) {
-          essence = typeof message.essence === 'string' ? message.essence : null
-        }
-        
-        const messageData = {
-          session_id: session.id,
-          role: message.role,
-          content: message.content,
-          essence: essence,
-          created_at: timestamp
-        }
-        
-        console.log("Prepared message data:", messageData)
-        
-        let messageResult
-        if (messages && messages.length > 0) {
-          console.log("Updating existing message...")
-          messageResult = await supabase
-            .from('messages')
-            .update(messageData)
-            .eq('id', messages[0].id)
-        } else {
-          console.log("Inserting new message...")
-          messageResult = await supabase
-            .from('messages')
-            .insert(messageData)
-        }
-        
-        if (messageResult.error) {
-          console.error("Error saving message to Supabase:", messageResult.error)
-          console.log("Failed message data:", messageData)
-        } else {
-          console.log("Successfully saved message")
-        }
+
+      // Save messages
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .upsert(
+          session.messages.map(msg => ({
+            session_id: session.id,
+            role: msg.role,
+            content: msg.content,
+            essence: msg.essence,
+            created_at: msg.timestamp || session.date
+          })),
+          { onConflict: 'session_id,created_at' }
+        )
+
+      if (messagesError) {
+        console.error('Error saving messages to Supabase:', messagesError)
+        return null
       }
-      
-      console.log("=== Completed saveToSupabase ===")
+
+      console.log("=== Successfully saved session to Supabase ===")
       return session.id
     } catch (error) {
       console.error('Error in saveToSupabase:', error)
-      throw error
+      return null
     }
   }
 
