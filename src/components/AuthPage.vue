@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useRouter } from 'vue-router'
 
-const { signIn, signUp, signInWithGoogle, signOut, loading, error } = useAuth()
+const { signIn, signUp, signOut, loading, error } = useAuth()
 const router = useRouter()
 
 const isLogin = ref(true)
@@ -102,20 +102,6 @@ const handleLogout = async () => {
             {{ loading ? 'Laden...' : (isLogin ? 'Inloggen' : 'Registreren') }}
           </button>
         </form>
-
-        <!-- Google Sign In -->
-        <div class="mt-4">
-          <button
-            @click="signInWithGoogle"
-            class="w-full py-2 px-4 border-2 border-black dark:border-gray-600 bg-white dark:bg-gray-700 font-mono hover:bg-black hover:text-white dark:hover:bg-gray-600 dark:hover:text-white focus:outline-none transition-colors flex items-center justify-center gap-2 dark:text-white"
-            :disabled="loading"
-          >
-            <span class="bg-white rounded-full w-5 h-5 flex items-center justify-center">
-              <font-awesome-icon :icon="['fab', 'google']" class="text-gray-800" />
-            </span>
-            Doorgaan met Google
-          </button>
-        </div>
 
         <!-- Toggle Login/Signup -->
         <div class="mt-6 text-center">
