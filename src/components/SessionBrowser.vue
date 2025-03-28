@@ -359,8 +359,13 @@ function goToChat() {
 }
 
 // View a specific session
-function viewSession(sessionId: string) {
-  router.push(`/sessions/${sessionId}`)
+async function viewSession(sessionId: string) {
+  // Force reload the sessions list to ensure we have the latest data
+  await loadSavedSessions();
+  
+  // Ensure the session is properly loaded before navigating
+  console.log(`Navigating to session details for session ${sessionId}`);
+  router.push(`/sessions/${sessionId}`);
 }
 
 // Continue a session

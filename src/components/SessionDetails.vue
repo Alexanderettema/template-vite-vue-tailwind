@@ -186,9 +186,22 @@
             Conversatie
           </h3>
           
-          <div v-if="!session.messages?.length" class="py-4 text-center text-sm italic"
-               :class="{ 'text-gray-400': !darkMode, 'text-gray-500': darkMode }">
+          <div v-if="!session.messages || session.messages.length === 0" class="py-4 text-center text-sm italic"
+                :class="{ 'text-gray-400': !darkMode, 'text-gray-500': darkMode }">
             Geen berichten in deze sessie
+            <div class="mt-2">
+              <button 
+                @click="reloadSession" 
+                class="px-4 py-2 text-xs rounded transition-colors"
+                :class="{ 
+                  'bg-emerald-100 text-emerald-700 hover:bg-emerald-200': !darkMode, 
+                  'bg-emerald-900 bg-opacity-30 text-emerald-200 hover:bg-emerald-800': darkMode 
+                }"
+              >
+                <font-awesome-icon icon="sync" class="mr-1" :class="{ 'fa-spin': isReloading }" />
+                Berichten opnieuw laden
+              </button>
+            </div>
           </div>
           
           <div v-else class="space-y-4 mb-4">
@@ -199,12 +212,12 @@
               :class="{ 'justify-end': message.role === 'user' }"
             >
               <div class="max-w-[80%] p-3 rounded-lg"
-                   :class="{ 
-                     'bg-gray-100 text-gray-800': message.role === 'user' && !darkMode,
-                     'bg-gray-700 text-white': message.role === 'user' && darkMode,
-                     'bg-emerald-600 text-white': message.role === 'assistant' && !darkMode,
-                     'bg-emerald-700 text-white': message.role === 'assistant' && darkMode
-                   }">
+                    :class="{ 
+                      'bg-gray-100 text-gray-800': message.role === 'user' && !darkMode,
+                      'bg-gray-700 text-white': message.role === 'user' && darkMode,
+                      'bg-emerald-600 text-white': message.role === 'assistant' && !darkMode,
+                      'bg-emerald-700 text-white': message.role === 'assistant' && darkMode
+                    }">
                 <div class="text-sm mb-1 font-medium">
                   {{ message.role === 'user' ? 'Jij' : 'AI Therapeut' }}
                 </div>
@@ -237,7 +250,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject, computed } from 'vue'
+import { ref, onMounted, inject, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionManagement, type TherapySession, type SessionSummary } from '@/composables/useSessionManagement'
 
@@ -246,10 +259,11 @@ const darkMode = inject('darkMode', ref(false))
 
 const route = useRoute()
 const router = useRouter()
-const { loadSession, currentSession, saveCurrentSession, deleteSession: removeSession } = useSessionManagement()
+const { loadSession, currentSession, saveCurrentSession, deleteSession: removeSession, loadSavedSessions, savedSessions } = useSessionManagement()
 
 const session = ref<TherapySession | null>(null)
 const isLoading = ref(false)
+const isReloading = ref(false)
 
 // Load session on mount
 onMounted(async () => {
@@ -261,10 +275,38 @@ onMounted(async () => {
 
   try {
     isLoading.value = true
+    
+    // First load all saved sessions to ensure we have the latest data
+    console.log("Loading all sessions before loading specific session")
+    await loadSavedSessions()
+    
+    console.log("Loading session with ID:", sessionId)
     const loadedSession = await loadSession(sessionId)
     if (loadedSession) {
+      console.log("Session loaded successfully:", {
+        id: loadedSession.id,
+        title: loadedSession.title,
+        messageCount: loadedSession.messages?.length || 0,
+        hasMessages: !!loadedSession.messages?.length
+      })
+
+      // Debug the messages
+      if (loadedSession.messages?.length) {
+        console.log("First message:", loadedSession.messages[0])
+      } else {
+        console.log("No messages found in the loaded session")
+        
+        // Try to find the session in savedSessions directly
+        const savedSession = savedSessions.value.find(s => s.id === sessionId)
+        if (savedSession && savedSession.messages?.length) {
+          console.log("Found session in savedSessions with messages:", savedSession.messages.length)
+          loadedSession.messages = JSON.parse(JSON.stringify(savedSession.messages))
+        }
+      }
+      
       session.value = loadedSession
     } else {
+      console.error("Failed to load session, redirecting to sessions list")
       router.push('/sessions')
     }
   } catch (error) {
@@ -274,6 +316,28 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+// Watch the currentSession for any updates to the currently viewed session
+watch(() => currentSession.value, (newSession) => {
+  if (newSession && session.value && newSession.id === session.value.id) {
+    console.log('Updating viewed session with new data from currentSession')
+    // Make a deep copy to avoid reference issues
+    session.value = JSON.parse(JSON.stringify(newSession))
+  }
+}, { deep: true })
+
+// Also watch savedSessions to detect changes there
+watch(() => savedSessions.value, (newSessions) => {
+  if (!session.value) return
+  
+  // Find the current session in the savedSessions array
+  const updatedSession = newSessions.find(s => s.id === session.value?.id)
+  if (updatedSession) {
+    console.log('Updating viewed session with data from savedSessions')
+    // Make a deep copy to avoid reference issues
+    session.value = JSON.parse(JSON.stringify(updatedSession))
+  }
+}, { deep: true })
 
 // Navigation functions
 function goBack() {
@@ -320,5 +384,34 @@ function formatDuration(minutes: number) {
   
   if (remainingMinutes === 0) return `${hours} ${hours === 1 ? 'uur' : 'uren'}`
   return `${hours} ${hours === 1 ? 'uur' : 'uren'} en ${remainingMinutes} ${remainingMinutes === 1 ? 'minuut' : 'minuten'}`
+}
+
+// Function to reload session data
+async function reloadSession() {
+  if (!session.value) return;
+  
+  const sessionId = session.value.id;
+  isReloading.value = true;
+  
+  try {
+    console.log("Forcefully reloading session data for:", sessionId);
+    
+    // First reload all sessions to ensure the database has the latest
+    await loadSavedSessions();
+    
+    // Then try to load this specific session again
+    const reloadedSession = await loadSession(sessionId);
+    
+    if (reloadedSession) {
+      console.log("Session reloaded successfully with", reloadedSession.messages?.length || 0, "messages");
+      session.value = reloadedSession;
+    } else {
+      console.error("Failed to reload session");
+    }
+  } catch (error) {
+    console.error("Error reloading session:", error);
+  } finally {
+    isReloading.value = false;
+  }
 }
 </script> 

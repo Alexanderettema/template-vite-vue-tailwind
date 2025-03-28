@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useSessionManagement } from '@/composables/useSessionManagement'
+import { createClient } from '@supabase/supabase-js'
 
 const router = useRouter()
 const route = useRoute()
@@ -590,7 +591,55 @@ async function endSession() {
         sessionSummary.value = currentSession.value.summary.summary;
         
         // Ensure we update the current session with the final summary
-        await saveCurrentSession();
+        const savedSessionId = await saveCurrentSession();
+        console.log("Session saved with ID:", savedSessionId);
+        
+        if (savedSessionId) {
+          // Verify messages were saved correctly
+          const { data: messages, error } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('session_id', savedSessionId);
+          
+          if (error) {
+            console.error("Error verifying messages:", error);
+          } else {
+            console.log(`Verified ${messages.length} messages saved for session ${savedSessionId}`);
+            
+            // If no messages were saved but we have messages, try saving them again
+            if (messages.length === 0 && currentSession.value.messages.length > 0) {
+              console.warn("Messages may not have been saved. Trying direct insert...");
+              
+              for (const [index, msg] of currentSession.value.messages.entries()) {
+                const { error: msgError } = await supabase
+                  .from('messages')
+                  .insert({
+                    id: crypto.randomUUID(), // Add a unique ID for each message
+                    session_id: savedSessionId,
+                    role: msg.role,
+                    content: msg.content,
+                    essence: msg.essence,
+                    created_at: msg.timestamp || new Date(new Date(currentSession.value.date).getTime() + (index * 1000)).toISOString() // Ensure unique timestamps
+                  });
+                
+                if (msgError) {
+                  console.error("Error saving individual message:", msgError);
+                }
+              }
+              
+              // Check again after individual inserts
+              const { data: recheckedMessages } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('session_id', savedSessionId);
+                
+              console.log(`After individual inserts: ${recheckedMessages?.length || 0} messages saved`);
+            }
+          }
+        }
+        
+        // Reload saved sessions to ensure they're up to date everywhere
+        await loadSavedSessions();
         
         // Show the end session modal
         showSessionEndModal.value = true;
@@ -605,22 +654,7 @@ async function endSession() {
   }
 }
 
-// Function to reset chat and start a new session
-function startNewChat() {
-  // Close the modal
-  showSessionEndModal.value = false
-  
-  // Start a new session
-  startNewSession()
-  
-  // Clear chat history
-  chatHistory.value = []
-  
-  // Show welcome message
-  showWelcomeMessage()
-}
-
-// Custom icon mapping for ACT themes
+// Add theme icons object
 const themeIcons = {
   "Waarden": "heart",
   "Defusie": "paperclip", 
@@ -631,7 +665,7 @@ const themeIcons = {
   "Compassie": "smile"
 }
 
-// Add custom icon mapping for daily challenges
+// Add challenge icons object
 const challengeIcons = {
   "Uitstelgedrag": "clock",
   "Piekeren": "brain", 
@@ -760,6 +794,21 @@ const exploreKeyword = (word: string) => {
   sendMessage()
 }
 
+// Function to reset chat and start a new session
+function startNewChat() {
+  // Close the modal
+  showSessionEndModal.value = false
+  
+  // Start a new session
+  startNewSession()
+  
+  // Clear chat history
+  chatHistory.value = []
+  
+  // Show welcome message
+  showWelcomeMessage()
+}
+
 async function handleLogout() {
   console.log('Attempting to logout...')
   try {
@@ -788,6 +837,12 @@ function calculateSessionDuration() {
   
   return Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60))
 }
+
+// Initialize Supabase client
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
 </script>
 
 <template>

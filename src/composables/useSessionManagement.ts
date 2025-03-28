@@ -139,7 +139,22 @@ export function useSessionManagement() {
       currentSession.value.duration = calculateSessionDuration()
       
       const savedSessionId = await saveToSupabase(currentSession.value)
-      await loadSavedSessions()
+      
+      // Add the newly saved session to the savedSessions array if it's not already there
+      if (savedSessionId) {
+        const sessionExists = savedSessions.value.some(s => s.id === savedSessionId)
+        if (!sessionExists) {
+          // Make a deep copy to avoid reference issues
+          const sessionCopy = JSON.parse(JSON.stringify(currentSession.value))
+          savedSessions.value = [sessionCopy, ...savedSessions.value]
+        } else {
+          // Update existing session in the array
+          const index = savedSessions.value.findIndex(s => s.id === savedSessionId)
+          if (index !== -1) {
+            savedSessions.value[index] = JSON.parse(JSON.stringify(currentSession.value))
+          }
+        }
+      }
       
       return savedSessionId
     } catch (error) {
@@ -191,6 +206,7 @@ export function useSessionManagement() {
           .from('sessions')
           .insert(sessionData)
         error = insertError
+        console.log("Inserting new session:", { id: session.id, error: insertError })
       } else {
         // Update existing session
         const { error: updateError } = await supabase
@@ -199,6 +215,7 @@ export function useSessionManagement() {
           .eq('id', session.id)
           .eq('user_id', user.value!.id)
         error = updateError
+        console.log("Updating existing session:", { id: session.id, error: updateError })
       }
 
       if (error) {
@@ -210,14 +227,15 @@ export function useSessionManagement() {
       const { error: messagesError } = await supabase
         .from('messages')
         .upsert(
-          session.messages.map(msg => ({
+          session.messages.map((msg, index) => ({
+            id: crypto.randomUUID(), // Add a unique ID for each message
             session_id: session.id,
             role: msg.role,
             content: msg.content,
             essence: msg.essence,
-            created_at: msg.timestamp || session.date
+            created_at: msg.timestamp || new Date(new Date(session.date).getTime() + (index * 1000)).toISOString() // Ensure unique timestamps
           })),
-          { onConflict: 'session_id,created_at' }
+          { onConflict: 'id' } // Change conflict resolution to use the unique ID
         )
 
       if (messagesError) {
@@ -225,7 +243,53 @@ export function useSessionManagement() {
         return null
       }
 
+      // Verify that messages were saved successfully
+      const { data: savedMessages, error: checkMessagesError } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('session_id', session.id)
+      
+      if (checkMessagesError) {
+        console.error('Error verifying saved messages:', checkMessagesError)
+      } else {
+        console.log(`Verified ${savedMessages.length} messages saved for session ${session.id}`)
+        if (savedMessages.length === 0 && session.messages.length > 0) {
+          console.warn('Messages may not have been saved properly. Trying direct insert...')
+          
+          // Try inserting each message individually
+          for (const [index, msg] of session.messages.entries()) {
+            const { error } = await supabase
+              .from('messages')
+              .insert({
+                id: crypto.randomUUID(), // Add a unique ID for each message
+                session_id: session.id,
+                role: msg.role,
+                content: msg.content,
+                essence: msg.essence,
+                created_at: msg.timestamp || new Date(new Date(session.date).getTime() + (index * 1000)).toISOString() // Ensure unique timestamps
+              })
+              
+            if (error) {
+              console.error('Error inserting individual message:', error)
+            }
+          }
+          
+          // Check again
+          const { data: recheckedMessages } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('session_id', session.id)
+            
+          console.log(`After individual inserts: ${recheckedMessages?.length || 0} messages saved`)
+        }
+      }
+
       console.log("=== Successfully saved session to Supabase ===")
+      
+      // Always refresh the saved sessions to ensure UI consistency
+      // This ensures the session detail view will have the latest data
+      await loadSavedSessions()
+      
       return session.id
     } catch (error) {
       console.error('Error in saveToSupabase:', error)
@@ -250,8 +314,44 @@ export function useSessionManagement() {
     try {
       console.log("Loading sessions for user:", user.value.id)
       isLoading.value = true
-      const loadedSessions = await loadFromSupabase()
+      
+      // Add a retry mechanism for loading from Supabase
+      let retries = 0;
+      let loadedSessions = [];
+      
+      while (retries < 3) {
+        try {
+          loadedSessions = await loadFromSupabase()
+          console.log(`Successfully loaded ${loadedSessions.length} sessions from Supabase`)
+          break; // Success, exit the retry loop
+        } catch (error) {
+          retries++;
+          console.error(`Error loading from Supabase (attempt ${retries}/3):`, error)
+          
+          if (retries >= 3) {
+            console.warn("Maximum retries reached, falling back to local storage")
+            loadedSessions = loadFromLocalStorage()
+          } else {
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          }
+        }
+      }
+      
+      // Filter out any invalid sessions
       savedSessions.value = loadedSessions.filter(Boolean)
+      
+      // Log each session to help debug
+      savedSessions.value.forEach((session, index) => {
+        console.log(`Session ${index + 1}:`, { 
+          id: session.id, 
+          title: session.title,
+          date: session.date,
+          hasMessages: session.messages?.length > 0,
+          messageCount: session.messages?.length || 0
+        })
+      })
+      
       console.log("Successfully loaded sessions:", savedSessions.value.length)
       return savedSessions.value
     } catch (error) {
@@ -298,8 +398,10 @@ export function useSessionManagement() {
         
         if (messagesError) {
           console.error("Error loading messages from Supabase:", messagesError)
-          throw messagesError
+          continue; // Skip this session but continue with others
         }
+        
+        console.log(`Loaded ${messagesData.length} messages for session ${session.id}`)
         
         // Parse the summary if it's a string, otherwise use as-is
         let parsedSummary = undefined
@@ -329,6 +431,18 @@ export function useSessionManagement() {
             displayFull: true
           })),
           summary: parsedSummary
+        }
+        
+        // Extra check to make sure messages are loaded
+        if (therapySession.messages.length === 0 && messagesData.length > 0) {
+          console.warn("Message mapping issue detected, trying again with direct assignment")
+          therapySession.messages = messagesData.map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            essence: msg.essence || undefined,
+            timestamp: msg.created_at,
+            displayFull: true
+          }))
         }
         
         sessions.push(therapySession)
@@ -427,6 +541,12 @@ export function useSessionManagement() {
         return null
       }
       
+      console.log("Found session in database:", {
+        id: session.id,
+        title: session.title,
+        date: session.created_at
+      })
+      
       // Get messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
@@ -437,6 +557,15 @@ export function useSessionManagement() {
       if (messagesError) {
         console.error("Error loading messages:", messagesError)
         throw messagesError
+      }
+      
+      console.log(`Retrieved ${messagesData.length} messages for session ${sessionId}`)
+      
+      // Debug the message data
+      if (messagesData.length > 0) {
+        console.log("First message:", messagesData[0])
+      } else {
+        console.log("No messages found in database for this session")
       }
       
       // Parse the summary if it's a string, otherwise use as-is
