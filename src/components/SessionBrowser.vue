@@ -1,7 +1,7 @@
 <template>
-  <div class="session-browser p-6 md:p-8 w-full" :class="{ 'dark-mode': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode }">
+  <div class="session-browser p-6 md:p-8 w-full animate-fade-in" :class="{ 'dark-mode': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode }">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-6 animate-slide-in" style="animation-delay: 50ms;">
       <h2 class="text-xl font-semibold" :class="{ 'text-gray-800': !darkMode, 'text-white': darkMode }">
         Mijn Sessies
       </h2>
@@ -126,9 +126,10 @@
     <!-- Sessions grid - only show when not loading and has sessions -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div 
-        v-for="session in filteredSessions" 
+        v-for="(session, index) in filteredSessions" 
         :key="session.id"
-        class="session-card rounded-lg overflow-hidden shadow-sm transition-all cursor-pointer hover:shadow-md border"
+        class="session-card rounded-lg overflow-hidden shadow-sm transition-all cursor-pointer hover:shadow-md border animate-scale-in"
+        :style="`animation-delay: ${150 + (index * 50)}ms`"
         :class="{ 
           'bg-white border-gray-200': !darkMode, 
           'bg-gray-800 border-gray-700': darkMode 
@@ -427,7 +428,7 @@ async function testConnection() {
 }
 </script>
 
-<style>
+<style scoped>
 .session-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -442,5 +443,47 @@ async function testConnection() {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Animation for fade in */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to { 
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style> 

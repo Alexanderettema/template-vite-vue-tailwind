@@ -218,13 +218,30 @@ async function handleLogout() {
     console.error('Logout error:', error)
   }
 }
+
+// Page transition handlers
+function beforeEnter() {
+  // Set body overflow to hidden during transition to prevent scrolling
+  document.body.style.overflow = 'hidden'
+}
+
+function afterLeave() {
+  // Restore normal scrolling after transition
+  document.body.style.overflow = ''
+}
 </script>
 
 <template>
   <div class="app-container min-h-screen w-full" :class="{'dark': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode}">
     <div class="w-full" :class="{'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6': $route.name === 'sessions' || $route.name === 'session-details'}">
-      <router-view v-slot="{ Component }">
-        <component :is="Component" @start-app="startApp" @go-to-home="goToHome" />
+      <router-view v-slot="{ Component, route }">
+        <transition 
+          :name="route.meta.transition as string || 'fade'" 
+          mode="out-in"
+          @before-enter="beforeEnter"
+          @after-leave="afterLeave">
+          <component :is="Component" @start-app="startApp" @go-to-home="goToHome" />
+        </transition>
       </router-view>
     </div>
     
@@ -433,5 +450,31 @@ body {
   50% {
     transform: translateY(4px);
   }
+}
+
+/* Page transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.35s ease-out;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
 </style>

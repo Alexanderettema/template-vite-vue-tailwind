@@ -1,7 +1,7 @@
 <template>
-  <div class="session-details pt-6 md:pt-8 w-full" :class="{ 'dark-mode': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode }">
+  <div class="session-details pt-6 md:pt-8 w-full animate-fade-in" :class="{ 'dark-mode': darkMode, 'bg-gradient-to-b from-gray-50 to-gray-100': !darkMode, 'bg-gradient-to-b from-gray-900 to-gray-800': darkMode }">
     <!-- Back button and header -->
-    <div class="flex items-center mb-6 mt-4">
+    <div class="flex items-center mb-6 mt-4 animate-slide-in" style="animation-delay: 100ms;">
       <button 
         @click="goBack" 
         class="mr-4 p-2 rounded-full transition-all"
@@ -446,4 +446,51 @@ async function reloadSession() {
     isReloading.value = false;
   }
 }
-</script> 
+</script>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Apply staggered animations to content sections */
+.session-meta, .session-meta + div {
+  animation: slideIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.session-meta {
+  animation-delay: 200ms;
+}
+
+.session-meta + div {
+  animation-delay: 300ms;
+}
+
+.md\:w-2\/3 > div {
+  animation: slideIn 0.5s ease-out;
+  animation-delay: 400ms;
+  animation-fill-mode: both;
+}
+</style> 

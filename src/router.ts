@@ -27,19 +27,23 @@ const routes: RouteRecordRaw[] = [
     path: '/sessions',
     name: 'sessions',
     component: SessionBrowser,
-    meta: { requiresAuth: false }  // Allow both logged in and anonymous users
+    meta: { requiresAuth: false, transition: 'fade' }  // Allow both logged in and anonymous users
   },
   {
     path: '/sessions/:id',
     name: 'session-details',
     component: SessionDetails,
-    meta: { requiresAuth: false }  // Allow both logged in and anonymous users
+    meta: { requiresAuth: false, transition: 'slide' }  // Allow both logged in and anonymous users
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    // Always scroll to top when navigating to a new page
+    return { top: 0, behavior: 'smooth' }
+  }
 })
 
 // Navigation guard
