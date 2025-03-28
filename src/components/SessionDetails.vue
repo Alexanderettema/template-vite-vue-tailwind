@@ -18,10 +18,30 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center py-12">
-      <div class="animate-pulse flex flex-col items-center">
-        <div class="h-16 w-16 rounded-full bg-emerald-500 opacity-75 mb-4"></div>
-        <p :class="{ 'text-gray-600': !darkMode, 'text-gray-300': darkMode }">Sessie laden...</p>
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-12 px-4">
+      <div class="relative w-24 h-24 mb-6">
+        <!-- Outer circle -->
+        <div class="absolute inset-0 border-4 rounded-full animate-pulse"
+             :class="{ 'border-emerald-200': !darkMode, 'border-emerald-800': darkMode }"></div>
+        <!-- Inner circle -->
+        <div class="absolute inset-2 border-4 rounded-full animate-pulse" style="animation-delay: 0.2s"
+             :class="{ 'border-emerald-300': !darkMode, 'border-emerald-700': darkMode }"></div>
+        <!-- Center circle -->
+        <div class="absolute inset-4 border-4 rounded-full animate-pulse" style="animation-delay: 0.4s"
+             :class="{ 'border-emerald-400': !darkMode, 'border-emerald-600': darkMode }"></div>
+        <!-- Center dot -->
+        <div class="absolute inset-8 rounded-full animate-pulse" style="animation-delay: 0.6s"
+             :class="{ 'bg-emerald-500': !darkMode, 'bg-emerald-400': darkMode }"></div>
+      </div>
+      <div class="text-center space-y-2">
+        <p class="text-lg font-medium animate-pulse" style="animation-delay: 0.8s"
+           :class="{ 'text-emerald-600': !darkMode, 'text-emerald-400': darkMode }">
+          Even geduld...
+        </p>
+        <p class="text-sm italic max-w-md animate-pulse" style="animation-delay: 1s"
+           :class="{ 'text-gray-500': !darkMode, 'text-gray-400': darkMode }">
+          We verzamelen de sessiegegevens met dezelfde zorg als een therapeut die luistert naar je verhaal
+        </p>
       </div>
     </div>
 
@@ -192,15 +212,27 @@
             <div class="mt-2">
               <button 
                 @click="reloadSession" 
-                class="px-4 py-2 text-xs rounded transition-colors"
+                class="px-4 py-2 text-xs rounded transition-colors flex items-center justify-center mx-auto"
                 :class="{ 
                   'bg-emerald-100 text-emerald-700 hover:bg-emerald-200': !darkMode, 
                   'bg-emerald-900 bg-opacity-30 text-emerald-200 hover:bg-emerald-800': darkMode 
                 }"
+                :disabled="isReloading"
               >
                 <font-awesome-icon icon="sync" class="mr-1" :class="{ 'fa-spin': isReloading }" />
-                Berichten opnieuw laden
+                {{ isReloading ? 'Berichten laden...' : 'Berichten opnieuw laden' }}
               </button>
+            </div>
+          </div>
+          
+          <!-- Reload state -->
+          <div v-if="isReloading" class="mt-4">
+            <div class="flex justify-center">
+              <div class="w-12 h-12 relative">
+                <div class="absolute inset-0 border-2 border-emerald-200 rounded-full animate-pulse"></div>
+                <div class="absolute inset-1 border-2 border-emerald-300 rounded-full animate-pulse" style="animation-delay: 0.1s"></div>
+                <div class="absolute inset-2 border-2 border-emerald-400 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+              </div>
             </div>
           </div>
           
