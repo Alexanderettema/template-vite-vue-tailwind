@@ -123,119 +123,124 @@ const roadmapItems = [
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center p-5 w-full" 
-       :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800 text-white' : 'bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800']">
-    
-    <div class="max-w-3xl w-full border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-8 text-center -mt-24"
-         :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-800']">
-      
-      <div class="mb-5 text-xl">
-        <div class="text-6xl mb-2 flex justify-center">
-          <!-- Simple mandala-like breathing circle logo -->
-          <div class="relative w-24 h-24 flex items-center justify-center">
-            <!-- Outer breathing circle -->
-            <div class="absolute inset-0 border-4 rounded-full animate-pulse-slow" 
-                 :class="darkMode ? 'border-emerald-600' : 'border-emerald-500'"></div>
-            
-            <!-- Mandala pattern - middle circle -->
-            <div class="absolute w-16 h-16 border-2 rounded-full"
-                 :class="darkMode ? 'border-emerald-500' : 'border-emerald-600'"></div>
-                 
-            <!-- Mandala pattern - decorative dotted circle -->
-            <div class="absolute w-20 h-20 rounded-full border-dashed border-2 animate-spin-very-slow"
-                 :class="darkMode ? 'border-emerald-500/50' : 'border-emerald-600/50'"></div>
-            
-            <!-- Mandala pattern - inner circle -->
-            <div class="absolute w-8 h-8 border-1 rounded-full"
-                 :class="darkMode ? 'border-emerald-600' : 'border-emerald-700'"></div>
-            
-            <!-- Center dot -->
-            <div class="relative z-10 w-3 h-3 rounded-full"
-                 :class="darkMode ? 'bg-emerald-500' : 'bg-emerald-600'"></div>
+  <div class="landing-page min-h-screen flex flex-col items-center justify-center p-5 md:p-10 lg:p-15 animate-zoom-in"
+       :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800 text-white' : 'bg-gradient-to-b from-gray-50 to-gray-100']">
+    <div class="w-full max-w-4xl mx-auto text-center">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 animate-fade-in" style="animation-delay: 100ms;"
+          :class="[darkMode ? 'text-white' : 'text-gray-800']">
+        ACT Therapie Assistent
+      </h1>
+      <div class="max-w-3xl w-full border-2 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] p-8 text-center -mt-24"
+           :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-800']">
+        
+        <div class="mb-5 text-xl">
+          <div class="text-6xl mb-2 flex justify-center">
+            <!-- Simple mandala-like breathing circle logo -->
+            <div class="relative w-24 h-24 flex items-center justify-center">
+              <!-- Outer breathing circle -->
+              <div class="absolute inset-0 border-4 rounded-full animate-pulse-slow" 
+                   :class="darkMode ? 'border-emerald-600' : 'border-emerald-500'"></div>
+              
+              <!-- Mandala pattern - middle circle -->
+              <div class="absolute w-16 h-16 border-2 rounded-full"
+                   :class="darkMode ? 'border-emerald-500' : 'border-emerald-600'"></div>
+                   
+              <!-- Mandala pattern - decorative dotted circle -->
+              <div class="absolute w-20 h-20 rounded-full border-dashed border-2 animate-spin-very-slow"
+                   :class="darkMode ? 'border-emerald-500/50' : 'border-emerald-600/50'"></div>
+              
+              <!-- Mandala pattern - inner circle -->
+              <div class="absolute w-8 h-8 border-1 rounded-full"
+                   :class="darkMode ? 'border-emerald-600' : 'border-emerald-700'"></div>
+              
+              <!-- Center dot -->
+              <div class="relative z-10 w-3 h-3 rounded-full"
+                   :class="darkMode ? 'bg-emerald-500' : 'bg-emerald-600'"></div>
+            </div>
+          </div>
+          <h1 class="text-4xl font-bold mb-1">ACT</h1>
+          <p class="opacity-75">Interactieve sessies met een Adaptieve ACT Expert</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+          <div class="border-2 p-4 rounded-lg"
+               :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
+            <h2 class="text-xl font-bold mb-2">Wat is ACT?</h2>
+            <p class="text-left">
+              Acceptance and Commitment Therapy leert je om moeilijke gevoelens te accepteren en te handelen volgens je eigen waarden. Onze app maakt deze therapie toegankelijk voor iedereen.
+            </p>
+          </div>
+          <div class="border-2 p-4 rounded-lg"
+               :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
+            <h2 class="text-xl font-bold mb-2">Hoe werkt het?</h2>
+            <p class="text-left">
+              Voer korte, interactieve gesprekken met onze Adaptieve ACT Expert die gespecialiseerd is in ACT. Verken thema's zoals Waarden, Mindfulness en Acceptatie op je eigen tempo.
+            </p>
           </div>
         </div>
-        <h1 class="text-4xl font-bold mb-1">ACT</h1>
-        <p class="opacity-75">Interactieve sessies met een Adaptieve ACT Expert</p>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-        <div class="border-2 p-4 rounded-lg"
-             :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
-          <h2 class="text-xl font-bold mb-2">Wat is ACT?</h2>
-          <p class="text-left">
-            Acceptance and Commitment Therapy leert je om moeilijke gevoelens te accepteren en te handelen volgens je eigen waarden. Onze app maakt deze therapie toegankelijk voor iedereen.
+        
+        <div class="flex flex-wrap justify-center gap-3 mb-4">
+          <div v-for="(topic, index) in ['Waarden', 'Defusie', 'Mindfulness', 'Acceptatie', 'Zelf', 'Toewijding', 'Compassie']"
+               :key="index"
+               class="px-3 py-1 text-sm rounded-full border"
+               :class="[darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50']">
+            {{ topic }}
+          </div>
+        </div>
+        
+        <!-- Show Start Session button if logged in, otherwise show Login/Register button -->
+        <button v-if="user" 
+                @click="startApp" 
+                class="text-lg px-6 py-3 mt-3 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
+                :class="[
+                  darkMode ? 
+                    'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 
+                    'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500'
+                ]">
+          Start de Therapie Sessie
+        </button>
+        
+        <button v-else
+                @click="goToAuth" 
+                class="text-lg px-6 py-3 mt-3 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
+                :class="[
+                  darkMode ? 
+                    'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 
+                    'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500'
+                ]">
+          Inloggen / Registreren
+        </button>
+        
+        <div class="mt-5 text-sm space-y-2">
+          <p class="opacity-70">
+            Ontdek de kracht van ACT therapie met geavanceerde Adaptieve ACT-technologie
           </p>
-        </div>
-        <div class="border-2 p-4 rounded-lg"
-             :class="[darkMode ? 'border-gray-600' : 'border-gray-300']">
-          <h2 class="text-xl font-bold mb-2">Hoe werkt het?</h2>
-          <p class="text-left">
-            Voer korte, interactieve gesprekken met onze Adaptieve ACT Expert die gespecialiseerd is in ACT. Verken thema's zoals Waarden, Mindfulness en Acceptatie op je eigen tempo.
-          </p>
-        </div>
-      </div>
-      
-      <div class="flex flex-wrap justify-center gap-3 mb-4">
-        <div v-for="(topic, index) in ['Waarden', 'Defusie', 'Mindfulness', 'Acceptatie', 'Zelf', 'Toewijding', 'Compassie']"
-             :key="index"
-             class="px-3 py-1 text-sm rounded-full border"
-             :class="[darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50']">
-          {{ topic }}
-        </div>
-      </div>
-      
-      <!-- Show Start Session button if logged in, otherwise show Login/Register button -->
-      <button v-if="user" 
-              @click="startApp" 
-              class="text-lg px-6 py-3 mt-3 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
-              :class="[
-                darkMode ? 
-                  'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 
-                  'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500'
-              ]">
-        Start de Therapie Sessie
-      </button>
-      
-      <button v-else
-              @click="goToAuth" 
-              class="text-lg px-6 py-3 mt-3 border-2 font-mono transition-all hover:-translate-y-1 hover:shadow-lg"
-              :class="[
-                darkMode ? 
-                  'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600' : 
-                  'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500'
-              ]">
-        Inloggen / Registreren
-      </button>
-      
-      <div class="mt-5 text-sm space-y-2">
-        <p class="opacity-70">
-          Ontdek de kracht van ACT therapie met geavanceerde Adaptieve ACT-technologie
-        </p>
-        <div class="flex gap-2 justify-center">
-          <!-- Retro Roadmap Link -->
-          <button @click="openRoadmap"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
-                  :class="[
-                    darkMode ? 
-                      'border-gray-600 hover:bg-gray-600' : 
-                      'border-black hover:bg-black'
-                  ]">
-            <font-awesome-icon :icon="['fas', 'map']" 
-                              class="transform transition-transform group-hover:-translate-y-0.5" />
-            <span class="tracking-wide">[ROADMAP_v1.0]</span>
-          </button>
-          <!-- Release Notes Link -->
-          <button @click="openReleaseNotes"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
-                  :class="[
-                    darkMode ? 
-                      'border-gray-600 hover:bg-gray-600' : 
-                      'border-black hover:bg-black'
-                  ]">
-            <font-awesome-icon :icon="['fas', 'history']" 
-                              class="transform transition-transform group-hover:-translate-y-0.5" />
-            <span class="tracking-wide">[RELEASE_NOTES]</span>
-          </button>
+          <div class="flex gap-2 justify-center">
+            <!-- Retro Roadmap Link -->
+            <button @click="openRoadmap"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
+                    :class="[
+                      darkMode ? 
+                        'border-gray-600 hover:bg-gray-600' : 
+                        'border-black hover:bg-black'
+                    ]">
+              <font-awesome-icon :icon="['fas', 'map']" 
+                                class="transform transition-transform group-hover:-translate-y-0.5" />
+              <span class="tracking-wide">[ROADMAP_v1.0]</span>
+            </button>
+            <!-- Release Notes Link -->
+            <button @click="openReleaseNotes"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs border border-black transition-all hover:bg-black hover:text-white cursor-pointer group"
+                    :class="[
+                      darkMode ? 
+                        'border-gray-600 hover:bg-gray-600' : 
+                        'border-black hover:bg-black'
+                    ]">
+              <font-awesome-icon :icon="['fas', 'history']" 
+                                class="transform transition-transform group-hover:-translate-y-0.5" />
+              <span class="tracking-wide">[RELEASE_NOTES]</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -328,5 +333,48 @@ const roadmapItems = [
 
 .animate-spin-very-slow {
   animation: spin-very-slow 20s infinite linear;
+}
+</style>
+
+<style scoped>
+.animate-zoom-in {
+  animation: zoomIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes zoomIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style> 

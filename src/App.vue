@@ -477,4 +477,36 @@ body {
   opacity: 0;
   transform: translateX(-30px);
 }
+
+/* Zoom transition for landing page to chat */
+.zoom-enter-active,
+.zoom-leave-active {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.zoom-enter-from {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.zoom-leave-to {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+/* Slide up transition for session browser to chat */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
 </style>

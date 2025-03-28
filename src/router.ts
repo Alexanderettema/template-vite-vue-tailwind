@@ -10,7 +10,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: LandingPage
+    component: LandingPage,
+    meta: { transition: 'zoom' }
   },
   {
     path: '/auth',
@@ -21,7 +22,7 @@ const routes: RouteRecordRaw[] = [
     path: '/chat',
     name: 'chat',
     component: ChatInterface,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, transition: 'slide-up' }
   },
   {
     path: '/sessions',

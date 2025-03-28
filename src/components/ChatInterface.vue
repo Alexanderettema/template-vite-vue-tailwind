@@ -846,6 +846,80 @@ const supabase = createClient(
 </script>
 
 <template>
+  <div class="chat-interface flex h-screen flex-col animate-fade-in" :class="{ 'dark-mode': darkMode }">
+    <div class="flex-grow flex relative overflow-hidden">
+      <!-- Left panel: Themes/Topics -->
+      <div class="left-panel w-0 md:w-1/5 xl:w-1/6 bg-white h-full overflow-auto transition-all border-r animate-slide-left" 
+           :class="{ 'border-gray-200': !darkMode, 'border-gray-700 bg-gray-900': darkMode }"
+           style="animation-delay: 100ms">
+        <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5 w-full" 
+             :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-gray-50 to-gray-100']">
+          <!-- Themes panel (new left sidebar) -->
+          <div class="w-72 h-[calc(100vh-40px)] border-2 border-gray-800 drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden order-first"
+               :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+            <div class="flex justify-between items-center border-b-2 border-gray-800 p-2"
+                 :class="[darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white']">
+              <div class="font-bold flex items-center" :class="[darkMode ? 'text-white' : '']">
+                <font-awesome-icon icon="list" class="mr-1" />
+                {{ !selectedMainTopic ? (showDailyChallenges ? 'Dagelijkse Uitdagingen' : 'ACT Thema\'s') : 'Specifieke Oefeningen' }}
+              </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2.5 scrollbar-thin scrollbar-track-white"
+                 :class="[darkMode ? 'bg-gray-800 scrollbar-thumb-emerald-700 scrollbar-track-gray-800' : 'bg-white scrollbar-thumb-emerald-600']">
+              <!-- Main topics -->
+              <div v-if="!selectedMainTopic" class="flex flex-col gap-2.5">
+                <div class="font-bold border p-1 mb-2.5 text-center flex items-center justify-center"
+                     :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">
+                  <font-awesome-icon :icon="showDailyChallenges ? 'tasks' : 'star'" class="mr-1" />
+                  {{ showDailyChallenges ? 'Kies een uitdaging:' : 'Kies een ACT thema:' }}
+                </div>
+                
+                <!-- ACT Themes list -->
+                <template v-if="!showDailyChallenges">
+                  <button 
+                    v-for="(description, topic) in mainTopics" 
+                    :key="topic"
+                    @click="selectMainTopic(topic)"
+                    :disabled="isLoading"
+                    class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
+                    :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+                  >
+                    <font-awesome-icon :icon="themeIcons[topic as keyof typeof themeIcons] || 'bookmark'" class="mr-2" />
+                    {{ topic }}
+                    <span class="ml-auto text-xs opacity-70">
+                      <font-awesome-icon icon="chevron-right" />
+                    </span>
+                  </button>
+                </template>
+                
+                <!-- Daily Challenges list -->
+                <template v-else>
+                  <button 
+                    v-for="(description, challenge) in dailyChallenges" 
+                    :key="challenge"
+                    @click="selectMainTopic(challenge)"
+                    :disabled="isLoading"
+                    class="w-full text-left p-2 mb-1 border-2 cursor-pointer font-normal transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center"
+                    :class="[darkMode ? 'bg-gray-700 border-gray-600 text-white hover:bg-emerald-700' : 'bg-white border-gray-800 hover:bg-emerald-600 hover:text-white']"
+                  >
+                    <font-awesome-icon :icon="challengeIcons[challenge as keyof typeof challengeIcons] || 'tasks'" class="mr-2" />
+                    {{ challenge }}
+                    <span class="ml-auto text-xs opacity-70">
+                      <font-awesome-icon icon="chevron-right" />
+                    </span>
+                  </button>
+                </template>
+              </div>
+              
+              <!-- Subtopics after main topic selection -->
+              <div v-else class="flex flex-col gap-2.5">
+                <div class="font-bold border p-1 mb-2.5 text-center flex items-center justify-center"
+                     :class="[darkMode ? 'border-gray-600 bg-gray-800 text-white' : 'border-gray-800 bg-white']">
+                  <font-awesome-icon icon="star" class="mr-1" />
+                  Kies een oefening:
+                </div>
+                
+                <!-- Display ACT theme subtopics -->
   <div class="flex min-h-screen max-h-screen p-5 justify-center items-start gap-5 w-full" 
        :class="[darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-gray-50 to-gray-100']">
     <!-- Themes panel (new left sidebar) -->
@@ -1611,93 +1685,62 @@ const supabase = createClient(
   </div>
 </template>
 
-<style>
-@keyframes progress {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
 }
 
-@keyframes blink {
-  0%, 49% {
-    opacity: 1;
-  }
-  50%, 100% {
+.animate-slide-left {
+  animation: slideFromLeft 0.45s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-slide-right {
+  animation: slideFromRight 0.45s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-slide-up {
+  animation: slideFromBottom 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideFromLeft {
+  from { 
+    transform: translateX(-20px);
     opacity: 0;
   }
-}
-
-@keyframes fadeBreath {
-  0% { opacity: 0; filter: blur(2px); }
-  30% { opacity: 0.7; filter: blur(1px); }
-  70% { opacity: 0.9; filter: blur(0.5px); }
-  100% { opacity: 1; filter: blur(0); }
-}
-
-/* This gives a subtle pulse after the message appears */
-@keyframes subtlePulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.95; }
-  100% { opacity: 1; }
-}
-
-.message-fade-in {
-  animation: fadeBreath 1.2s ease-in-out forwards, subtlePulse 2s ease-in-out 1.2s infinite;
-}
-
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
-
-/* Scrollbar styling for browsers that support it */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 10px;
-}
-
-.scrollbar-track-white::-webkit-scrollbar-track {
-  background: white;
-  border-left: 1px solid #333;
-}
-
-.scrollbar-thumb-emerald-600::-webkit-scrollbar-thumb {
-  background-color: #1f2937;
-  border: 1px solid white;
-}
-
-/* Hide the fallback loading elements that use older CSS */
-.message-content,
-.user-message,
-.assistant-message {
-  display: none;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.8;
+  to { 
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Animation for slow spinning cog */
-@keyframes slow-spin {
-  0% {
-    transform: rotate(0deg);
+@keyframes slideFromRight {
+  from { 
+    transform: translateX(20px);
+    opacity: 0;
   }
-  100% {
-    transform: rotate(360deg);
+  to { 
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
-.animate-slow-spin {
-  animation: slow-spin 6s linear infinite;
+@keyframes slideFromBottom {
+  from { 
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
+</style> 
 </style> 
